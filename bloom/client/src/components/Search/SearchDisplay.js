@@ -1,11 +1,11 @@
 import React from 'react';
-import { Row } from 'react-bootstrap';
-import Col from 'react-bootstrap/Col'
+import { Row, Col, Container } from 'react-bootstrap';
 import SearchCard from './SearchCard'
 import './SearchDisplay.css'
 import MapContainer from '../Map/MapContainer'
 import SearchDisplayLoader from './SearchDisplayLoader'
 import SearchDisplayLoaderMobile from './SearchDisplayLoaderMobile'
+import {Switch} from '@material-ui/core'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 class SearchDisplay extends React.Component {
@@ -26,11 +26,19 @@ class SearchDisplay extends React.Component {
         lat: '',
         lng: ''
       },
-
       loading: true,
       query: this.props.location.search,
-      ownUpdate: false
+      ownUpdate: false,
+      checked: true
     }
+
+    this.toggleChecked = this.toggleChecked.bind(this);
+  }
+
+  toggleChecked() {
+    this.setState({
+      checked: !this.state.checked
+    })
   }
 
   componentDidMount() {
@@ -140,7 +148,8 @@ class SearchDisplay extends React.Component {
     }
 
     const DisplayMapDynamic = (props) => {
-        return <MapContainer google={window.google}
+        return <MapContainer style={{position: 'relative'}}
+        google={window.google}
         stores={this.state.stores}
         center={this.state.center}
         zoom={this.state.zoom}
@@ -148,16 +157,23 @@ class SearchDisplay extends React.Component {
     }
 
     return (
-<       Row className="restrict-viewport mx-0">
-          <Col xs={12} xl={6} className="px-5 my-3 h-100">
+      <div>
+        <Row className="justify-content-center">
+          <Col xs={12} className="d-block d-xl-none" style={{marginTop: 15, marginBottom: 15}}>
+            <Switch color="primary" checked={this.state.checked} onChange={this.toggleChecked}/>
+          </Col>
+        </Row>
+        <Row className="restrict-viewport mx-0">
+          <Col xs={12} xl={6} className={"px-5 my-3 h-100" + (this.state.checked ? "" : " d-none d-xl-block")}>
             <DisplayWithLoading/>
           </Col>
-          <Col id="map" xs={12} xl={6}>
-            <div className="position-fixed h-100 w-50 d-none d-xl-block">
+          <Col id="map" xs={12} xl={6} style={{padding: 0}}>
+            <div className={(this.state.checked ? " d-none d-xl-block" : "")}>
               <DisplayMapDynamic/>
             </div>
           </Col>
         </Row>
+      </div>
     );
   }
 }
