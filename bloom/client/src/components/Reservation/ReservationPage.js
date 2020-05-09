@@ -3,7 +3,7 @@ import Container from 'react-bootstrap/Container'
 import ServiceSelection from './ServiceSelection'
 import './ReservationPage.css'
 import { Row, Col, Card, ListGroup } from 'react-bootstrap'
-import { FaArrowLeft } from 'react-icons/fa'
+// import { FaArrowLeft } from 'react-icons/fa'
 import DateSelection from './DateSelection'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
@@ -65,13 +65,14 @@ class ReservationPage extends React.Component {
   handleSubmit = (goNext) => {
     console.log("goNext is: ", goNext)
     console.log("currentstep is: ", this.state.currentStep)
+    var newStep
     if (goNext && this.state.currentStep < 4) {
-      var newStep = this.state.currentStep + 1
+      newStep = this.state.currentStep + 1
       this.setState({
         currentStep: newStep
       })
     } else if(!goNext && this.state.currentStep > 1) {
-      var newStep = this.state.currentStep - 1
+      newStep = this.state.currentStep - 1
       this.setState({
         currentStep: newStep
       })
@@ -208,13 +209,13 @@ class ReservationPage extends React.Component {
       }
     }
 
-    const DisplayBackButton = (props) => {
-      if (this.state.currentStep === 1) {
-        return null
-      } else {
-        return <FaArrowLeft size={'2em'} className="pt-2 pr-2" onClick={this.backStep} />
-      }
-    }
+    // const DisplayBackButton = (props) => {
+    //   if (this.state.currentStep === 1) {
+    //     return null
+    //   } else {
+    //     return <FaArrowLeft size={'2em'} className="pt-2 pr-2" onClick={this.backStep} />
+    //   }
+    // }
 
     function ServiceList(props) {
       if (props.services) {

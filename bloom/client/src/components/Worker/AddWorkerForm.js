@@ -46,44 +46,40 @@ class AddWorkerForm extends React.Component {
   }
 
   // handle changes in the hours selection
-  handleSelectChange = (event) => {
+  handleSelectChange = (event, setFieldValue, workerHours) => {
     var days = ['formHoursMonday', 'formHoursTuesday', 'formHoursWednesday', 'formHoursThursday', 'formHoursFriday', 'formHoursSaturday', 'formHoursSunday']
     var day = days.indexOf(event.target.id)
     var old_start_time = 0
     var old_end_time = 0
     var newWorkerHours = []
-    old_start_time = this.state.workerHours[day].start_time
-    old_end_time = this.state.workerHours[day].end_time
+    old_start_time = workerHours[day].start_time
+    old_end_time = workerHours[day].end_time
     if (parseInt(event.target.querySelector('option').value) <= 840) {
       newWorkerHours = [
-        ...this.state.workerHours.slice(0, day),
+        ...workerHours.slice(0, day),
         { start_time: parseInt(event.target.value), end_time: old_end_time },
-        ...this.state.workerHours.slice(day + 1)
+        ...workerHours.slice(day + 1)
       ]
     } else {
       newWorkerHours = [
-        ...this.state.workerHours.slice(0, day),
+        ...workerHours.slice(0, day),
         { start_time: old_start_time, end_time: parseInt(event.target.value) },
-        ...this.state.workerHours.slice(day + 1)
+        ...workerHours.slice(day + 1)
       ]
     }
 
-    this.setState({
-      workerHours: newWorkerHours
-    })
+    setFieldValue("workerHours", newWorkerHours)
   };
 
   // handle change in working day toggle
-  handleDayStatusChange = (day) => {
+  handleDayStatusChange = (day, setFieldValue, weekIsWorking) => {
     var updateWeekIsWorking = [
-      ...this.state.weekIsWorking.slice(0, day),
-      !this.state.weekIsWorking[day],
-      ...this.state.weekIsWorking.slice(day + 1)
+      ...weekIsWorking.slice(0, day),
+      !weekIsWorking[day],
+      ...weekIsWorking.slice(day + 1)
     ]
 
-    this.setState({
-      weekIsWorking: updateWeekIsWorking
-    })
+    setFieldValue("weekIsWorking", updateWeekIsWorking)
   };
 
   // redirect to the worker display page and pass the new worker data
@@ -186,97 +182,14 @@ class AddWorkerForm extends React.Component {
         let saturdayCheckBox = <p>(Closed)</p>
         let sundayCheckBox = <p>(Closed)</p>
 
-        if(this.state.storeWeekIsWorking[0]){
-          mondayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="monday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[0]}
-                            onChange={() => this.handleDayStatusChange(0)}
-                          />
-        }
-
-        if(this.state.storeWeekIsWorking[1]){
-          tuesdayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="tuesday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[1]}
-                            onChange={() => this.handleDayStatusChange(1)}
-                          />
-        }
-
-        if(this.state.storeWeekIsWorking[2]){
-          wednesdayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="wednesday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[2]}
-                            onChange={() => this.handleDayStatusChange(2)}
-                          />
-        }
-
-        if(this.state.storeWeekIsWorking[3]){
-          thursdayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="thursday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[3]}
-                            onChange={() => this.handleDayStatusChange(3)}
-                          />
-        }
-
-        if(this.state.storeWeekIsWorking[4]){
-          fridayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="friday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[4]}
-                            onChange={() => this.handleDayStatusChange(4)}
-                          />
-        }
-
-        if(this.state.storeWeekIsWorking[5]){
-          saturdayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="saturday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[5]}
-                            onChange={() => this.handleDayStatusChange(5)}
-                          />
-        }
-
-        if(this.state.storeWeekIsWorking[6]){
-          sundayCheckBox = <Form.Check
-                            custom
-                            className="form-custom"
-                            type="checkbox"
-                            id="sunday-toggle"
-                            label="Working Today?"
-                            checked={this.state.weekIsWorking[6]}
-                            onChange={() => this.handleDayStatusChange(6)}
-                          />
-        }
-
         // worker form after loading
         return <Row className="justify-content-center my-5">
           <Col xs={12} lg={5}>
             <Formik
               initialValues={{
                 email: this.state.email,
-                workerHours: []
+                workerHours: this.state.workerHours,
+                weekIsWorking: this.state.weekIsWorking
               }}
               validationSchema={this.yupValidationSchema}
               onSubmit={(values) => {
@@ -284,8 +197,8 @@ class AddWorkerForm extends React.Component {
                 let triggerWorkerDisplay = this.triggerWorkerDisplay
 
                 // modify worker hours for db
-                values.workerHours = this.state.workerHours.map((day, index) => {
-                  if(this.state.weekIsWorking[index]){
+                values.workerHours = values.workerHours.map((day, index) => {
+                  if(values.weekIsWorking[index]){
                     return day
                   } 
                   else{
@@ -327,6 +240,92 @@ class AddWorkerForm extends React.Component {
                 handleSubmit,
                 setFieldValue }) => (
                   <Form className="formBody rounded p-4">
+                    {(() => {
+                      if(this.state.storeWeekIsWorking[0]){
+                        mondayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="monday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[0]}
+                                          onChange={() => this.handleDayStatusChange(0, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+
+                      if(this.state.storeWeekIsWorking[1]){
+                        tuesdayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="tuesday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[1]}
+                                          onChange={() => this.handleDayStatusChange(1, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+
+                      if(this.state.storeWeekIsWorking[2]){
+                        wednesdayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="wednesday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[2]}
+                                          onChange={() => this.handleDayStatusChange(2, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+
+                      if(this.state.storeWeekIsWorking[3]){
+                        thursdayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="thursday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[3]}
+                                          onChange={() => this.handleDayStatusChange(3, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+
+                      if(this.state.storeWeekIsWorking[4]){
+                        fridayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="friday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[4]}
+                                          onChange={() => this.handleDayStatusChange(4, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+
+                      if(this.state.storeWeekIsWorking[5]){
+                        saturdayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="saturday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[5]}
+                                          onChange={() => this.handleDayStatusChange(5, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+
+                      if(this.state.storeWeekIsWorking[6]){
+                        sundayCheckBox = <Form.Check
+                                          custom
+                                          className="form-custom"
+                                          type="checkbox"
+                                          id="sunday-toggle"
+                                          label="Working Today?"
+                                          checked={values.weekIsWorking[6]}
+                                          onChange={() => this.handleDayStatusChange(6, setFieldValue, values.weekIsWorking)}
+                                        />
+                      }
+                    })()}
+
                     <h2>Add Worker</h2>
 
                     <Form.Group controlId="formEmail">
@@ -341,7 +340,6 @@ class AddWorkerForm extends React.Component {
                           value={values.email}
                           placeholder="Email"
                           name="email"
-                          autoFocus
                           onChange={handleChange}
                           onBlur={handleBlur}
                           className={touched.email && errors.email ? "error" : null}
@@ -364,12 +362,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[0] || !this.state.storeWeekIsWorking[0]} value={!this.state.weekIsWorking[0] ? 540 : this.state.workerHours[0].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[0] || !this.state.storeWeekIsWorking[0]} value={!values.weekIsWorking[0] ? 540 : values.workerHours[0].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={0} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[0]  || !this.state.storeWeekIsWorking[0]} value={!this.state.weekIsWorking[0] ? 1020 : this.state.workerHours[0].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[0]  || !this.state.storeWeekIsWorking[0]} value={!values.weekIsWorking[0] ? 1020 : values.workerHours[0].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={0} />
                           </Form.Control>
                         </Col>
@@ -385,12 +383,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[1]  || !this.state.storeWeekIsWorking[1]} value={!this.state.weekIsWorking[1] ? 540 : this.state.workerHours[1].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[1]  || !this.state.storeWeekIsWorking[1]} value={!values.weekIsWorking[1] ? 540 : values.workerHours[1].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={1} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[1]  || !this.state.storeWeekIsWorking[1]} value={!this.state.weekIsWorking[1] ? 1020 : this.state.workerHours[1].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[1]  || !this.state.storeWeekIsWorking[1]} value={!values.weekIsWorking[1] ? 1020 : values.workerHours[1].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={1} />
                           </Form.Control>
                         </Col>
@@ -407,12 +405,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[2]  || !this.state.storeWeekIsWorking[2]} value={!this.state.weekIsWorking[2] ? 540 : this.state.workerHours[2].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[2]  || !this.state.storeWeekIsWorking[2]} value={!values.weekIsWorking[2] ? 540 : values.workerHours[2].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={2} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[2]  || !this.state.storeWeekIsWorking[2]} value={!this.state.weekIsWorking[2]  ? 1020 : this.state.workerHours[2].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[2]  || !this.state.storeWeekIsWorking[2]} value={!values.weekIsWorking[2]  ? 1020 : values.workerHours[2].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={2} />
                           </Form.Control>
                         </Col>
@@ -428,12 +426,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[3]  || !this.state.storeWeekIsWorking[3]} value={!this.state.weekIsWorking[3]  ? 540 : this.state.workerHours[3].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[3]  || !this.state.storeWeekIsWorking[3]} value={!values.weekIsWorking[3]  ? 540 : values.workerHours[3].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={3} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[3]  || !this.state.storeWeekIsWorking[3]} value={!this.state.weekIsWorking[3]  ? 1020 : this.state.workerHours[3].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[3]  || !this.state.storeWeekIsWorking[3]} value={!values.weekIsWorking[3]  ? 1020 : values.workerHours[3].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={3} />
                           </Form.Control>
                         </Col>
@@ -450,12 +448,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[4]  || !this.state.storeWeekIsWorking[4]} value={!this.state.weekIsWorking[4] ? 540 : this.state.workerHours[4].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[4]  || !this.state.storeWeekIsWorking[4]} value={!values.weekIsWorking[4] ? 540 : values.workerHours[4].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={4} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[4]  || !this.state.storeWeekIsWorking[4]} value={!this.state.weekIsWorking[4] ? 1020 : this.state.workerHours[4].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[4]  || !this.state.storeWeekIsWorking[4]} value={!values.weekIsWorking[4] ? 1020 : values.workerHours[4].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={4} />
                           </Form.Control>
                         </Col>
@@ -471,12 +469,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[5]  || !this.state.storeWeekIsWorking[5]} value={!this.state.weekIsWorking[5] ? 540 : this.state.workerHours[5].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[5]  || !this.state.storeWeekIsWorking[5]} value={!values.weekIsWorking[5] ? 540 : values.workerHours[5].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={5} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[5]  || !this.state.storeWeekIsWorking[5]} value={!this.state.weekIsWorking[5] ? 1020 : this.state.workerHours[5].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[5]  || !this.state.storeWeekIsWorking[5]} value={!values.weekIsWorking[5] ? 1020 : values.workerHours[5].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={5} />
                           </Form.Control>
                         </Col>
@@ -493,12 +491,12 @@ class AddWorkerForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[6]  || !this.state.storeWeekIsWorking[6]} value={!this.state.weekIsWorking[6] ? 540 : this.state.workerHours[6].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[6]  || !this.state.storeWeekIsWorking[6]} value={!values.weekIsWorking[6] ? 540 : values.workerHours[6].start_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateStartTimesForDay day={6} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[6]  || !this.state.storeWeekIsWorking[6]} value={!this.state.weekIsWorking[6] ? 1020 : this.state.workerHours[6].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!values.weekIsWorking[6]  || !this.state.storeWeekIsWorking[6]} value={!values.weekIsWorking[6] ? 1020 : values.workerHours[6].end_time} onChange={event => this.handleSelectChange(event, setFieldValue, values.workerHours)}>
                             <CreateEndTimesForDay day={6} />
                           </Form.Control>
                         </Col>

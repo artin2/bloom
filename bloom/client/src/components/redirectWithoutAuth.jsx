@@ -58,7 +58,8 @@ export default function redirectWithoutAuth(ComponentToProtect) {
 
               if (user.id === Number(this.props.match.params.user_id)) {
                 // if they are trying to access stores when they don't own any
-                if(window.location.href.split("/users/" + this.props.match.params.user_id + '/stores').length > 1 && user.role !== 1){
+                if(typeof user.role === 'string' )
+                if(window.location.href.split("/users/" + this.props.match.params.user_id + '/stores').length > 1 && ((typeof user.role === 'string' && user.role !== '1') || (typeof user.role === 'number' && user.role !== 1))){
                   this.setState({
                     loading:false,
                     redirect: true

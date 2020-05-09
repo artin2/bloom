@@ -197,19 +197,22 @@ class StoreEditForm extends React.Component {
     })
   };
 
-  deleteFileChangeHandler = async (event) => {
+  deleteFileChangeHandler = async (event, setFieldValue) => {
     if(event.target.checked){
       var joined = this.state.keys.concat(event.target.id);
+      setFieldValue("pictureCount", this.state.pictures.length - (this.state.keys.length + 1) + this.state.selectedFiles.length)
       this.setState({
         keys: joined
       })
     }
     else{
+      setFieldValue("pictureCount", this.state.pictures.length - (this.state.keys.length - 1) + this.state.selectedFiles.length)
       this.setState({keys: this.state.keys.filter(item => item !== event.target.id)});
     }
   }
 
-  fileChangedHandler = async (event) => {
+  fileChangedHandler = async (event, setFieldValue) => {
+    setFieldValue("pictureCount", this.state.pictures.length - this.state.keys.length + event.target.files.length)
     this.setState({ selectedFiles: event.target.files })
   }
 
@@ -332,7 +335,6 @@ class StoreEditForm extends React.Component {
         <Row className="justify-content-center mx-1" id="test">
         <Col xs={12} lg={5} className="my-5">
           <Formik
-            enableReinitialize
             initialValues={{
               name: this.state.store.name,
               description: this.state.store.description,
@@ -886,7 +888,7 @@ class StoreEditForm extends React.Component {
                           className="form-custom"
                           id={picture.key}
                           label={picture.key.split('/').slice(-1)[0]}
-                          onChange={event => this.deleteFileChangeHandler(event)}
+                          onChange={event => this.deleteFileChangeHandler(event, setFieldValue)}
                         />
                       </div>
                     ))}
@@ -896,7 +898,7 @@ class StoreEditForm extends React.Component {
                     <Form.Label><h5>Add Images</h5></Form.Label>
                     <br/>
                     <input
-                      onChange={event => this.fileChangedHandler(event)}
+                      onChange={event => this.fileChangedHandler(event, setFieldValue)}
                       type="file"
                       multiple
                       className={touched.pictures && errors.pictures ? "error" : null}

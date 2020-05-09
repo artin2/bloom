@@ -10,7 +10,7 @@ import {
 } from '../../reduxFolder/actions/alert'
 import store from '../../reduxFolder/store';
 import './StoreDisplay.css'
-import { getPictures, defaultStorePictures } from '../s3'
+import { /*getPictures,*/ defaultStorePictures } from '../s3'
 import {ListGroup} from 'react-bootstrap'
 import { FaEdit } from 'react-icons/fa';
 import { convertMinsToHrsMins } from '../helperFunctions'
@@ -58,16 +58,17 @@ class StoreDisplay extends React.Component {
 
   async componentDidMount() {
     // if we were passed the store data from calling component
-    let pictures
-    try {
-      pictures = await getPictures('stores/' + this.props.match.params.store_id + '/images/')
-      if(pictures.length === 0){
-        pictures = defaultStorePictures()
-      }
-    } catch (e) {
-      pictures = defaultStorePictures()
-      console.log("Error! Could not get store images", e)
-    }
+    let pictures = defaultStorePictures()
+    // let pictures
+    // try {
+    //   pictures = await getPictures('stores/' + this.props.match.params.store_id + '/images/')
+    //   if(pictures.length === 0){
+    //     pictures = defaultStorePictures()
+    //   }
+    // } catch (e) {
+    //   pictures = defaultStorePictures()
+    //   console.log("Error! Could not get store images", e)
+    // }
 
     if(this.props.location.state && this.props.location.state.storeHours){
       this.setState({

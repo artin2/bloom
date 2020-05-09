@@ -74,14 +74,16 @@ class EditProfileForm extends React.Component {
     });
   }
 
-  deleteFileChangeHandler = async (event) => {
+  deleteFileChangeHandler = async (event, setFieldValue) => {
     if(event.target.checked){
+      setFieldValue("pictureCount", this.state.uploaded + this.state.toUpload - 1)
       this.setState({
         deleted: 1,
         keys: [event.target.id]
       })
     }
     else{
+      setFieldValue("pictureCount", this.state.uploaded + this.state.toUpload - 0)
       this.setState({
         deleted: 0,
         keys: []
@@ -89,11 +91,13 @@ class EditProfileForm extends React.Component {
     }
   }
 
-  fileChangedHandler = async (event) => {
+  fileChangedHandler = async (event, setFieldValue) => {
     if(event.target.files.length > 0){
+      setFieldValue("pictureCount", this.state.uploaded + 1 - this.state.deleted)
       this.setState({ selectedFiles: event.target.files, toUpload: 1 })
     }
     else{
+      setFieldValue("pictureCount", this.state.uploaded - this.state.deleted)
       this.setState({ selectedFiles: event.target.files, toUpload: 0 })
     }
   }
@@ -140,24 +144,6 @@ class EditProfileForm extends React.Component {
   }
     
   render() {
-    let del = true
-    if(this.state.picture){
-      del = <Form.Group controlId="pictureCount">
-              <Form.Row className="justify-content-center">
-                <Form.Label><h5>Delete Profile Picture</h5></Form.Label>
-              </Form.Row>
-              <Image style={{height: "400px", width: "400px"}} fluid src={this.state.picture.url} alt={"Pic 1"} />
-              <Form.Check
-                // style={{marginLeft: 30}}
-                custom
-                className="form-custom"
-                id={this.state.picture.key}
-                label={this.state.picture.key.split('/').slice(-1)[0]}
-                onChange={event => this.deleteFileChangeHandler(event)}
-              />
-            </Form.Group>
-    }
-
     if(this.state.isLoading){
       return <Row className="vertical-center">
                <Col>
@@ -171,12 +157,14 @@ class EditProfileForm extends React.Component {
             </Row>
     }
     else{
+      let del;
+
       return (
         <Container fluid>
           <Row className="justify-content-center my-5">
             <Col xs={12} lg={5}>
               <Formik
-                enableReinitialize
+                // enableReinitialize
                 initialValues={{
                   first_name: this.props.user.first_name,
                   last_name: this.props.user.last_name,
@@ -220,7 +208,8 @@ class EditProfileForm extends React.Component {
                   touched,
                   handleChange,
                   handleBlur,
-                  handleSubmit}) => (
+                  handleSubmit,
+                  setFieldValue}) => (
                 <Form className="rounded">
                   <h3>Edit Profile</h3>
 
@@ -327,13 +316,32 @@ class EditProfileForm extends React.Component {
                     ): null}
                   </Form.Group>
 
+                  {(() => {
+                    if(this.state.picture){
+                      del = <Form.Group controlId="pictureCount">
+                              <Form.Row className="justify-content-center">
+                                <Form.Label><h5>Delete Profile Picture</h5></Form.Label>
+                              </Form.Row>
+                              <Image style={{height: "400px", width: "400px"}} fluid src={this.state.picture.url} alt={"Pic 1"} />
+                              <Form.Check
+                                // style={{marginLeft: 30}}
+                                custom
+                                className="form-custom"
+                                id={this.state.picture.key}
+                                label={this.state.picture.key.split('/').slice(-1)[0]}
+                                onChange={event => this.deleteFileChangeHandler(event, setFieldValue)}
+                              />
+                            </Form.Group>
+                    } 
+                  })()}
+
                   {del}
     
                     <Form.Group controlId="picture">
                       <Form.Label><h5>Add Profile Picture</h5></Form.Label>
                       <br/>
                       <input
-                        onChange={event => this.fileChangedHandler(event)}
+                        onChange={event => this.fileChangedHandler(event, setFieldValue)}
                         type="file"
                         className={touched.picture && errors.picture ? "error" : null}
                       />
