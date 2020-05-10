@@ -731,32 +731,76 @@ async function editService(req, res, next) {
       let values = [req.body.name, req.body.cost, req.body.workers, req.body.category, req.body.description, req.body.duration, req.params.service_id]
 
       db.client.query(query, values, (errFirst, resultFirst) => {
-          if (errFirst) {
-            helper.queryError(res, errFirst);
-          }
-
-          // we were able to update the service
-          if (resultFirst && resultFirst.rows.length == 1) {
-            // update each workers services array
-            for (var i = 0; i < req.body.workers.length; i++) {
-              query = 'UPDATE workers SET services = services || $1 where NOT services @> $1 and id=$2 RETURNING *'
-              values = [[req.params.service_id], req.body.workers[i]]
-              db.client.query(query, values, (errSecond, resultSecond) => {
-                done()
-                  if (errSecond) {
-                    helper.queryError(res, errSecond);
-                  }
-                  // second query shouldn't have to return a value
-                  helper.querySuccess(res, resultFirst.rows[0], "Successfully Updated Service!")
-                }
-              )
-            }
-          }
-          else {
-            helper.queryError(res, "Could not Update Service!");
-          }
+        if (errFirst) {
+          helper.queryError(res, errFirst);
         }
-      );
+
+        // we were able to update the service
+        if (resultFirst && resultFirst.rows.length == 1) {
+          // update each workers services array
+          for (var i = 0; i < req.body.allWorkers.length; i++) {
+            let worker_id = req.body.allWorkers[i]
+            query = 'SELECT * from workers WHERE id=' + worker_id
+
+            db.client.query(query, (errSecond, resultSecond) => {
+              if (errSecond) {
+                helper.queryError(res, errSecond);
+              }
+
+              if(resultSecond && resultSecond.rows.length > 0){
+                let added = false
+                for (let j = 0; j < req.body.workers.length; j++) {
+                  if(req.body.workers[j] === worker_id){
+                    added = true
+                  }
+                }
+
+                if(added){
+                  if(resultSecond.rows[0].services == null || (resultSecond.rows[0].services && !resultSecond.rows[0].services.includes(parseInt(req.params.service_id)))){
+                    let newServices = resultSecond.rows[0].services
+                    if(newServices != null){
+                      newServices.push(parseInt(req.params.service_id))
+                    }
+                    else{
+                      newServices = [parseInt(req.params.service_id)]
+                    }
+  
+                    query = 'UPDATE workers SET services = $1 where id=$2 RETURNING *'
+                    values = [newServices, resultSecond.rows[0].id]
+
+                    db.client.query(query, values, (errThird, resultThird) => {
+                      if (errThird) {
+                        helper.queryError(res, errThird);
+                      }
+                    })
+                  }
+                }
+                else{
+                  let newServices = resultSecond.rows[0].services.filter(function(value, index){ return value !== parseInt(req.params.service_id)})
+
+                  if(newServices.length === 0){
+                    newServices = null
+                  }
+                  
+                  query = 'UPDATE workers SET services = $1 where id=$2 RETURNING *'
+                  values = [newServices, resultSecond.rows[0].id]
+
+                  db.client.query(query, values, (errFourth, resultFourth) => {
+                    if (errFourth) {
+                      helper.queryError(res, errFourth);
+                    }
+                  })
+                }
+              }
+            })
+          }
+          done()
+          helper.querySuccess(res, resultFirst.rows[0], "Successfully Updated Service!")
+        }
+        else {
+          helper.queryError(res, "Could not Update Service!");
+        }
+      });
 
       if (err) {
         helper.dbConnError(res, err);

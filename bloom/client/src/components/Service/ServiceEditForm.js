@@ -206,10 +206,12 @@ class ServiceEditForm extends React.Component {
 
       let convertedWorkers = []
       let preselectedWorkers = []
+      let originalWorkers = []
       data.map((worker) => {
         convertedWorkers.push({ value: worker.id, label: worker.first_name + " " + worker.last_name})
         if(this.state.service.workers.includes(worker.id)) {
           preselectedWorkers.push({value: worker.id, label: worker.first_name + " " + worker.last_name})
+          originalWorkers.push(worker.id)
         }
         return worker
       });
@@ -217,7 +219,8 @@ class ServiceEditForm extends React.Component {
       this.setState({
         isLoading: false,
         workerOptions: convertedWorkers,
-        workers: preselectedWorkers
+        workers: preselectedWorkers,
+        originalWorkers: originalWorkers
       })
     });
 
@@ -272,6 +275,10 @@ class ServiceEditForm extends React.Component {
                   values.workers = values.workers.map(function(val){
                     return val.value;
                   })
+
+                  var allWorkers = this.state.originalWorkers.concat(values.workers)
+                  var allWorkersUnique = allWorkers.filter((worker, pos) => allWorkers.indexOf(worker) === pos)
+                  values.allWorkers = allWorkersUnique
   
                   if(values.category.length === 0 || values.workers.length === 0) {
                     return;
