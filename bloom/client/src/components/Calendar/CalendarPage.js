@@ -300,22 +300,44 @@ class Calendar extends React.Component {
     })
     .then(async data => {
       if (data) {
-        services = data;
+        if(!this.props.id) {
+          services = data;
 
-        let service_instances = []
-        let service_map = {}
+          let service_instances = []
+          let service_map = {}
+  
+          services.map((service, indx) => {
+            service_instances.push({id: service.id, text: service.name})
+            service_map[service.id] = service.name
+  
+            return service
+          })
+  
+          this.setState({
+            services: service_instances,
+            service_map: service_map
+          })
+        }
+        else{
+          services = data;
 
-        services.map((service, indx) => {
-          service_instances.push({id: service.id, text: service.name})
-          service_map[service.id] = service.name
-
-          return service
-        })
-
-        this.setState({
-          services: service_instances,
-          service_map: service_map
-        })
+          let service_instances = []
+          let service_map = {}
+  
+          services.map((service, indx) => {
+            if(service.workers.includes(this.props.id)){
+              service_instances.push({id: service.id, text: service.name})
+              service_map[service.id] = service.name
+            }
+  
+            return service
+          })
+  
+          this.setState({
+            services: service_instances,
+            service_map: service_map
+          })
+        }
       }
     });
   }
@@ -342,22 +364,45 @@ class Calendar extends React.Component {
     })
     .then(async data => {
       if (data) {
-        workers = data;
+        if(!this.props.id) {
+          workers = data;
 
-        let worker_instances = []
-        let worker_map = {}
-        workers.map((worker, indx) => {
-          worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
-          worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
-          worker_to_services[worker.id] = worker.services
+          let worker_instances = []
+          let worker_map = {}
+          workers.map((worker, indx) => {
+            worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
+            worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
+            worker_to_services[worker.id] = worker.services
+  
+            return worker
+          })
+          this.setState({
+            workers: worker_instances,
+            worker_map: worker_map,
+            worker_to_services: worker_to_services
+          })
+        }
+        else{
+          workers = data;
 
-          return worker
-        })
-        this.setState({
-          workers: worker_instances,
-          worker_map: worker_map,
-          worker_to_services: worker_to_services
-        })
+          let worker_instances = []
+          let worker_map = {}
+          workers.map((worker, indx) => {
+            if(worker.id === this.props.id){
+              worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
+              worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
+              worker_to_services[worker.id] = worker.services
+            }
+  
+            return worker
+          })
+          
+          this.setState({
+            workers: worker_instances,
+            worker_map: worker_map,
+            worker_to_services: worker_to_services
+          })
+        }
       }
     })
   }
