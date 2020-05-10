@@ -23,6 +23,7 @@
     "js-cookie": "^2.2.1",
     "jwt-decode": "^2.2.0",
     "mdbootstrap": "^4.12.0",
+    "moment": "^2.25.3",
     "multiselect-dropdown-react": "^1.0.5",
     "multiselect-react-dropdown": "^1.4.8",
     "react": "^16.12.0",

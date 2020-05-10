@@ -1107,12 +1107,13 @@ async function insertAppointments(req, res, group_id) {
     let storeId = req.params.store_id
       ; (async (req, res) => {
         const hourDb = await db.client.connect();
+        let appoint
         try {
           await hourDb.query("BEGIN");
           let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;'
           for (let i = 0; i < appointments.length; i++) {
             let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id]
-            await hourDb.query(query, values);
+            appoint = await hourDb.query(query, values);
           }
           await hourDb.query("COMMIT");
         } catch (e) {
@@ -1122,7 +1123,7 @@ async function insertAppointments(req, res, group_id) {
           throw e;
         } finally {
           if (!failed) {
-            helper.querySuccess(resp, group_id, 'Successfully added appointment!');
+            helper.querySuccess(resp, {group_id: group_id, appointment: appoint.rows[0]}, 'Successfully added appointment!');
           } else {
             helper.queryError(res, "Unable to add appointments!");
           }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Container } from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
 import SearchCard from './SearchCard'
 import './SearchDisplay.css'
 import MapContainer from '../Map/MapContainer'

@@ -113,7 +113,7 @@ class BookingPage extends React.Component {
                     })
                     .then(async data => {
                       if (data) {
-                        triggerAppointmentDisplay(data)
+                        triggerAppointmentDisplay(data.group_id)
                       }
                     });
                 }}

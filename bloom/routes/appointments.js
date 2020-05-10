@@ -374,15 +374,11 @@ async function deleteAppointment(req, res) {
 };
 
 async function updateAppointment(req, res) {
-
-
   let appointment = req.body.appointment[0];
-
-  console.log(appointment, appointment.date)
 
   db.client.connect((err, client, done) => {
 
-    let query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8 WHERE id=$9'
+    let query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8 WHERE id=$9 RETURNING *'
     let values = [req.body.user_id, appointment.worker_id, appointment.service_id, appointment.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, appointment.id]
 
     db.client.query(query, values, (err, result) => {
@@ -391,11 +387,12 @@ async function updateAppointment(req, res) {
           helper.queryError(res, err);
         }
         // we were able to delete the appointment
-        if (result) {
+        if (result && result.rows.length > 0) {
           console.log("update appointment was successful", result)
-          helper.querySuccess(res, result, 'Successfully updated appointment')
+          helper.querySuccess(res, result.rows[0], 'Successfully updated appointment')
         }
         else {
+          console.log("error!!!!", res)
           helper.queryError(res, "Could not update appointments!");
         }
       }
