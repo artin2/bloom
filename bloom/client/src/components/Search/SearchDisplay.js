@@ -153,7 +153,9 @@ class SearchDisplay extends React.Component {
         stores={this.state.stores}
         center={this.state.center}
         zoom={this.state.zoom}
-        mapStyles={this.state.mapStyles} />
+        mapStyles={this.state.mapStyles}
+        onClickFunctionBook={(store_id) => window.location.href = '/book/' + store_id}
+        onClickFunctionStore={(store_id) => window.location.href = '/stores/' + store_id}/>
     }
 
     return (

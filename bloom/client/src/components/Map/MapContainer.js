@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import { Map, InfoWindow, Marker } from 'google-maps-react';
+import blueCompass from '../../assets/blue-compass-icon.png'
+import {Button} from 'react-bootstrap'
+import Card from 'react-bootstrap/Card'
+import { FaPhone } from 'react-icons/fa';
 
 class MapContainer extends Component {
   constructor(props) {
@@ -29,6 +34,23 @@ class MapContainer extends Component {
     }
   } 
 
+  displayCurrentLocation() { 
+    if(this.props.center) {
+      const google = window.google;
+      return <Marker key={"current-location"} 
+                     id={"cur-loc"} 
+                     position={{ 
+                       lat: this.props.center.lat, 
+                       lng: this.props.center.lng }} 
+                     icon={{
+                        url: blueCompass,
+                        scaledSize: new google.maps.Size(24,24)
+                      }}/> 
+    } else {
+      return null
+    }
+  } 
+
   onMarkerClick = (props, marker, e) =>
   this.setState({
     selectedPlace: props,
@@ -46,16 +68,25 @@ class MapContainer extends Component {
     }
   };
 
-  onClickFunction (id) {
-    console.log("Here1")
-    // Currently not working...
-    // window.location.href='/book/' + id
+  onInfoWindowOpen(props, e) {
+    const button = (<Button style={{backgroundColor: '#8CAFCA', border: 0}} onClick={() => this.props.onClickFunctionBook(this.props.stores[this.state.activeMarkerIndex].id)}>Book Now</Button>);
+    ReactDOM.render(React.Children.only(button), document.getElementById("iwc"));
+
+    const title = (<h5 className="m-2" style={{cursor: 'pointer'}} onClick={() => this.props.onClickFunctionStore(this.props.stores[this.state.activeMarkerIndex].id)}>{this.props.stores[this.state.activeMarkerIndex].name}</h5>)
+    ReactDOM.render(React.Children.only(title), document.getElementById("iwt"));
   }
 
   render() {
     const DisplayInfoWindowContents = (props) => {
       if(this.props.stores) {
-        return <h4 className="mb-0">{this.props.stores[this.state.activeMarkerIndex].name}</h4>
+        return <div>
+                  <div id="iwt"/>
+                  <Card.Text className="mb-3">{this.props.stores[this.state.activeMarkerIndex].address.split(",").splice(0, 4).join(", ")}</Card.Text>
+                  <Card.Text className="mb-3">
+                    <FaPhone size={12}/> {this.props.stores[this.state.activeMarkerIndex].phone}
+                  </Card.Text>
+                  <div id="iwc"/>
+                </div>
       } else {
         return null
       }
@@ -68,11 +99,15 @@ class MapContainer extends Component {
         style={this.props.mapStyles}
         initialCenter={this.props.center}
       >
+        {this.displayCurrentLocation()}
         {this.displayMarkers()}
         <InfoWindow
-        marker={this.state.activeMarker}
-        visible={this.state.showingInfoWindow}
-        onClose={this.onClose}
+          marker={this.state.activeMarker}
+          visible={this.state.showingInfoWindow}
+          onClose={this.onClose}
+          onOpen={e => {
+            this.onInfoWindowOpen(this.props, e);
+          }}
         >
           <DisplayInfoWindowContents/>
         </InfoWindow>
@@ -82,8 +117,3 @@ class MapContainer extends Component {
 }
 
 export default MapContainer;
-
-
-// for fixing clicking within infowindow, some resources: https://stackoverflow.com/questions/60426907/reactjs-onclick-not-triggered-on-click-of-button-inside-google-maps-marker-inf
-// https://github.com/fullstackreact/google-maps-react/issues/70
-// https://www.google.com/search?q=onclick+within+infowindow+not+working+react&rlz=1C5CHFA_enUS821US821&oq=onclick+within+infowindow+not+working+react&aqs=chrome..69i57.7600j0j7&sourceid=chrome&ie=UTF-8
