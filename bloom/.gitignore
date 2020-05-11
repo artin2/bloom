@@ -9,7 +9,10 @@
 /coverage
 
 # production
-# /client/build
+/client/build
+
+# vscode settings
+/.vscode/
 
 # misc
 .DS_Store
