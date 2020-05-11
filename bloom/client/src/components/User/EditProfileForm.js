@@ -15,7 +15,31 @@ import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { connect } from 'react-redux';
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
-import { Image } from 'react-bootstrap';
+import { FilePond, registerPlugin } from 'react-filepond';
+import 'filepond/dist/filepond.min.css';
+import CropperEditor from './Cropper';
+import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import FilePondPluginImageCrop from "filepond-plugin-image-crop";
+import FilePondPluginImageResize from "filepond-plugin-image-resize";
+import FilePondPluginImageTransform from "filepond-plugin-image-transform";
+import FilePondPluginImageEdit from "filepond-plugin-image-edit";
+import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
+const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
+
+// Register the plugins for filepond
+registerPlugin(
+  FilePondPluginFileValidateType,
+  FilePondPluginImageExifOrientation,
+  FilePondPluginImagePreview,
+  FilePondPluginImageCrop,
+  FilePondPluginImageResize,
+  FilePondPluginImageTransform,
+  FilePondPluginImageEdit,
+);
+
+const pond = React.createRef();
 const override = css`
   display: block;
   margin: 0 auto;
@@ -33,7 +57,32 @@ class EditProfileForm extends React.Component {
         password_confirmation: '',
         id: ''
       },
-      picture: null,
+      files: [],
+      originalFiles: [],
+      image: null,
+      modalShow: false,
+      editor: {
+        // Called by FilePond to edit the image
+        // - should open your image editor
+        // - receives file object and image edit instructions
+        open: (file, instructions) => {
+          this.setModalShow(true);
+          this.setState({image: (URL.createObjectURL(file))});
+        },
+      
+        // Callback set by FilePond
+        // - should be called by the editor when user confirms editing
+        // - should receive output object, resulting edit information
+        onconfirm: output => {},
+      
+        // Callback set by FilePond
+        // - should be called by the editor when user cancels editing
+        oncancel: () => {},
+      
+        // Callback set by FilePond
+        // - should be called by the editor when user closes the editor
+        onclose: () => {}
+      },
       toUpload: 0,
       uploaded: 0,
       deleted: 0,
@@ -67,40 +116,18 @@ class EditProfileForm extends React.Component {
       password_confirmation: Yup.string()
       .oneOf([Yup.ref('password')], 'Passwords do not match')
       .required("Password confirmation is required"),
-      pictureCount: Yup.number()
-      .required("Pictures are required")
-      .min(1, "Must upload a picture")
-      .max(1, "Too many pictures!")
     });
+    this.handleEdit = this.handleEdit.bind(this);
   }
 
-  deleteFileChangeHandler = async (event, setFieldValue) => {
-    if(event.target.checked){
-      setFieldValue("pictureCount", this.state.uploaded + this.state.toUpload - 1)
-      this.setState({
-        deleted: 1,
-        keys: [event.target.id]
-      })
-    }
-    else{
-      setFieldValue("pictureCount", this.state.uploaded + this.state.toUpload - 0)
-      this.setState({
-        deleted: 0,
-        keys: []
-      })
-    }
-  }
-
-  fileChangedHandler = async (event, setFieldValue) => {
-    if(event.target.files.length > 0){
-      setFieldValue("pictureCount", this.state.uploaded + 1 - this.state.deleted)
-      this.setState({ selectedFiles: event.target.files, toUpload: 1 })
-    }
-    else{
-      setFieldValue("pictureCount", this.state.uploaded - this.state.deleted)
-      this.setState({ selectedFiles: event.target.files, toUpload: 0 })
-    }
-  }
+  handleEdit (data, item) {
+    this.state.editor.onconfirm({
+      data
+    });
+    this.setState({
+      croppedFile: item
+    })
+  };
 
   componentDidUpdate(prevProps, prevState)  {
     if (prevProps.user !== this.props.user) {
@@ -110,11 +137,28 @@ class EditProfileForm extends React.Component {
     }
   }
 
+  setModalShow(condition) {
+    this.setState({
+      modalShow: condition
+    })
+  }
+
   async componentDidMount(){
     if(this.props.picture){
       this.setState({
-        picture: this.props.picture,
-        uploaded: 1,
+        files: [{
+          source: this.props.picture.url,
+          options: {
+              type: 'local'
+          }
+        }],
+        originalFiles: [{
+          source: this.props.picture.url,
+          options: {
+              type: 'local'
+          }
+        }],
+        key: this.props.picture.key,
         isLoading: false
       })
     }
@@ -126,14 +170,24 @@ class EditProfileForm extends React.Component {
         if(picturesFetched.length > 0){
           // check count!!!!!
           await this.setState({
-            picture: picturesFetched[0],
-            uploaded: 1,
+            files: [{
+              source: picturesFetched[0].url,
+              options: {
+                  type: 'local'
+              }
+            }],
+            originalFiles: [{
+              source: this.props.picture.url,
+              options: {
+                  type: 'local'
+              }
+            }],
+            key: this.props.picture.key,
             isLoading: false
           })
         }
         else{
           await this.setState({
-            uploaded: 0,
             isLoading: false
           })
         }
@@ -157,8 +211,11 @@ class EditProfileForm extends React.Component {
             </Row>
     }
     else{
-      let del;
-
+      // lord forgive me for writing this hack, fix getting s3 images on load to avoid this
+      document.getElementsByClassName("filepond--file-wrapper")[0] && this.props.picture && (document.getElementsByClassName("filepond--file-wrapper")[0].style['background-image'] = 'url(' + this.props.picture.url + ')')
+      document.getElementsByClassName("filepond--file-wrapper")[0] && (document.getElementsByClassName("filepond--file-wrapper")[0].style['backgroundSize'] = 'cover')
+      // remove this whence they allow you customize buttons more with filepond. EditItem prop doesn't exist as of rn
+      document.getElementsByClassName("filepond--action-edit-item")[0] && (document.getElementsByClassName("filepond--action-edit-item")[0].dataset.align = "bottom right")
       return (
         <Container fluid>
           <Row className="justify-content-center my-5">
@@ -172,35 +229,46 @@ class EditProfileForm extends React.Component {
                   password: '',
                   password_confirmation: '',
                   id: 0,
-                  picture: [],
-                  pictureCount: this.state.uploaded + this.state.toUpload - this.state.deleted,
                 }}
                 validationSchema={this.yupValidationSchema}
                 onSubmit={async (values) => {
                   values.id = this.props.user.id
                   values.role = this.props.user.role
-
-                  // remove files from s3
-                  if(this.state.keys.length > 0){
-                    try {
-                      await deleteHandler(this.state.keys)
-                    } catch (e) {
-                      console.log("Error! Could not delete images from s3", e)
+                  let needsUpdate = false
+                  if(this.state.key) {
+                    let query = this.state.originalFiles[0].source.split('/')[5]
+                    let name = query.split('?')[0]
+                    if(name !== this.state.files[0].name) {
+                      needsUpdate = true
+                      // remove files from s3
+                      try {
+                        await deleteHandler([this.state.key])
+                      } catch (e) {
+                        console.log("Error! Could not delete images from s3", e)
+                      }
                     }
                   }
-
-                  // upload new images to s3 from client to avoid burdening back end
-                  if(this.state.selectedFiles.length > 0){
+                  if(needsUpdate || (!this.state.key && this.state.files.length > 0)){
+                    //set this to true for updateProfileContent function
+                    needsUpdate = true
+                    // upload new images to s3 from client to avoid burdening back end
                     let prefix = 'users/' + this.props.user.id + '/'
-                    try {
-                      await uploadHandler(prefix, this.state.selectedFiles)
-                    } catch (e) {
-                      console.log("Error! Could not upload images to s3", e)
+                    if(this.state.croppedFile) {
+                      try {
+                        await uploadHandler(prefix, [this.state.croppedFile])
+                      } catch (e) {
+                        console.log("Error! Could not upload images to s3", e)
+                      }
+                    } else {
+                      try {
+                        await uploadHandler(prefix, this.state.files)
+                      } catch (e) {
+                        console.log("Error! Could not upload images to s3", e)
+                      }
                     }
                   }
-
                   this.props.editProfile(values)
-                  this.props.updateProfileContent(this.state.selectedFiles.length > 0, values.first_name, values.last_name)
+                  this.props.updateProfileContent(needsUpdate, values.first_name, values.last_name)
                 }}
               >
               {( {values,
@@ -211,7 +279,50 @@ class EditProfileForm extends React.Component {
                   handleSubmit,
                   setFieldValue}) => (
                 <Form className="rounded">
-                  <h3>Edit Profile</h3>
+                  <Form.Group controlId="picture">
+                    <FilePond
+                      ref={pond}
+                      allowMultiple={false}
+                      allowImageCrop={true}
+                      allowImageTransform={true}
+                      imageCropAspectRatio={'1:1'}
+                      imageResizeTargetWidth={200}
+                      imageResizeTargetHeight={200}
+                      imageEditEditor={this.state.editor}
+                      instantUpload={false}
+                      files={this.state.files}
+                      stylePanelLayout='compact circle'
+                      styleButtonRemoveItemPosition='left bottom'
+                      onupdatefiles={fileItems => {
+                        // Set currently active file objects to this.state
+                        this.setState({
+                          files: fileItems.map(fileItem => fileItem.file)
+                        });
+                      }}
+                      server={{
+                        // fetch the image from our server, a little buggy bc of s3 permissions issues related to cors and maybe browser caching. 
+                        load: (source, load) => {
+                          var myRequest = new Request(source);
+                          const options = {
+                            method: 'get',
+                            headers: new Headers({'content-type': 'application/json'}),
+                            mode: 'no-cors'}
+                          fetch(myRequest, options).then(function(response) {
+                            response.blob().then(function(myBlob) {
+                              load(myBlob);
+                            });
+                          });
+                        },
+                        process: `${fetchDomain}/profiles/${this.props.user.id}`,
+                        revert: `${fetchDomain}/profiles/${this.props.user.id}`
+                      }}
+                      onwarning={(error) => {console.log(error)}}
+                    >
+                    </FilePond>
+                    <CropperEditor image={this.state.image} show={this.state.modalShow} onCrop={this.handleEdit} onHide={() => {this.setModalShow(false)}} pond={pond}/>
+                  </Form.Group>
+
+                  <h1>Edit Profile</h1>
 
                   <Form.Group controlId="formFirstName">
                     <InputGroup>
@@ -315,41 +426,6 @@ class EditProfileForm extends React.Component {
                       <div className="error-message">{errors.password_confirmation}</div>
                     ): null}
                   </Form.Group>
-
-                  {(() => {
-                    if(this.state.picture){
-                      del = <Form.Group controlId="pictureCount">
-                              <Form.Row className="justify-content-center">
-                                <Form.Label><h5>Delete Profile Picture</h5></Form.Label>
-                              </Form.Row>
-                              <Image style={{height: "400px", width: "400px"}} fluid src={this.state.picture.url} alt={"Pic 1"} />
-                              <Form.Check
-                                // style={{marginLeft: 30}}
-                                custom
-                                className="form-custom"
-                                id={this.state.picture.key}
-                                label={this.state.picture.key.split('/').slice(-1)[0]}
-                                onChange={event => this.deleteFileChangeHandler(event, setFieldValue)}
-                              />
-                            </Form.Group>
-                    } 
-                  })()}
-
-                  {del}
-    
-                    <Form.Group controlId="picture">
-                      <Form.Label><h5>Add Profile Picture</h5></Form.Label>
-                      <br/>
-                      <input
-                        onChange={event => this.fileChangedHandler(event, setFieldValue)}
-                        type="file"
-                        className={touched.picture && errors.picture ? "error" : null}
-                      />
-                      {touched.pictureCount && errors.pictureCount ? (
-                        <div className="error-message">{errors.pictureCount}</div>
-                      ): null}
-                    </Form.Group>
-
                   <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}

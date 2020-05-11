@@ -10,6 +10,7 @@ import EditProfileForm from './EditProfileForm';
 import GridLoader from 'react-spinners/GridLoader'
 import WorkerEditForm from '../Worker/WorkerEditForm';
 import { getPictures } from '../s3'
+import './Profile.css'
 import workerImage from '../../assets/worker.png'
 import { convertMinsToHrsMins } from '../helperFunctions'
 import { css } from '@emotion/core'
@@ -247,7 +248,7 @@ class Profile extends React.Component {
         <div className="profile-sidebar">
             {/* <!-- SIDEBAR USERPIC --> */}
             <div className="profile-userpic">
-              <Image style={{height: '300px', width: '300px'}} src={this.state.picture && Object.keys(this.state.picture).length !== 0 && this.state.picture.constructor === Object ? this.state.picture.url : workerImage} className="img-responsive" alt="" rounded />
+              <Image className="profile-img" fluid src={this.state.picture && Object.keys(this.state.picture).length !== 0 && this.state.picture.constructor === Object ? this.state.picture.url : workerImage} alt="" rounded />
             </div>
             {/* <!-- END SIDEBAR USERPIC --> */}
 
@@ -306,7 +307,7 @@ class Profile extends React.Component {
         <div className="profile-sidebar mb-5">
             {/* <!-- SIDEBAR USERPIC --> */}
             <div className="profile-userpic">
-              <Image style={{height: '200px', width: '200px'}} src={this.state.picture != null ? this.state.picture.url : "https://i.redd.it/v0caqchbtn741.jpg"} className="img-responsive" alt="" rounded />
+              <Image className="profile-img" src={this.state.picture != null ? this.state.picture.url : "https://i.redd.it/v0caqchbtn741.jpg"} alt="" rounded />
             </div>
             {/* <!-- END SIDEBAR USERPIC --> */}
 

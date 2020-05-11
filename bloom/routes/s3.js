@@ -32,6 +32,34 @@ async function getPresignedUploadUrl(req, res) {
   }
 }
 
+// function to create file from base64 encoded string
+function base64_decode(base64str, file) {
+  // create buffer object from base64 encoded string, it is important to tell the constructor that the string is base64 encoded
+  var bitmap = new Buffer(base64str, 'base64');
+  // write buffer to file
+  fs.writeFileSync(file, bitmap);
+  console.log('******** File created from base64 encoded string ********');
+}
+
+async function getImageObject(req, res) {
+  try{
+    const s3 = new aws.S3({
+      region: process.env.AWSRegion,
+      accessKeyId: process.env.AWSAccessKey,
+      secretAccessKey: process.env.AWSSecretKey
+    });  // Create a new instance of S3
+    console.log("key is: ", req.body.prefix)
+    let picture = await s3.getObject({
+      Bucket: process.env.AWSBucket,
+      Key: req.body.prefix
+    }).promise()
+    helper.querySuccess(res, picture, "Successfuly got profile")
+  } catch(e) {
+    console.log("errir is: ", e)
+    helper.queryError(res, "Error getting images")
+  }
+}
+
 async function getImages(req, res) {
   try{
     const s3 = new aws.S3({
@@ -49,7 +77,8 @@ async function getImages(req, res) {
     for (let i = 0; i < pictures.Contents.length; i++) {
       var params = {
         Bucket: process.env.AWSBucket, // bucket name
-        Key: pictures.Contents[i].Key
+        Key: pictures.Contents[i].Key,
+        ResponseCacheControl: "no-cache"
       };
       var signedUrl = await getSignedUrl(s3, params)
       signedUrls.push({
@@ -57,7 +86,8 @@ async function getImages(req, res) {
         url: signedUrl
       })
     }
-
+    console.log("signed urlls is: ")
+    console.log(signedUrls)
     helper.querySuccess(res, signedUrls, "Successfuly got pictures")
   } catch (e) {
     console.log("Error getting images", e)
@@ -146,5 +176,6 @@ module.exports = {
   getImages: getImages,
   getImagesLocal: getImagesLocal,
   deleteImages: deleteImages,
-  defaultStorePictures: defaultStorePictures
+  defaultStorePictures: defaultStorePictures,
+  getImageObject: getImageObject
 };

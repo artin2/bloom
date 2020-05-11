@@ -21,8 +21,6 @@ body {
 .profile-userpic img {
   float: none;
   margin: 0 auto;
-  width: 50%;
-  height: 50%;
   -webkit-border-radius: 50% !important;
   -moz-border-radius: 50% !important;
   border-radius: 50% !important;
@@ -109,8 +107,6 @@ body {
   background-color: #fff;
   /* border-style: groove; */
   padding: 20px;
-  padding-top: 50px;
-  padding-bottom: 40px;
   box-shadow: 10px 10px 5px #8888;
   border-radius: 10px;
   min-height: 460px;

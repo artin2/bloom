@@ -1,0 +1,30 @@
+
+@media only screen 
+and (min-device-width : 320px) 
+and (max-device-width : 992px) {
+  .profile-img{
+    height: 150px;
+    width: 150px;
+  }
+}
+
+/* Bootstrap lg and up */
+@media only screen 
+and (min-width : 992px) {
+  .profile-img{
+    height: 200px;
+    width: 200px;
+  }
+}
+
+button.filepond--file-action-button.filepond--action-process-item {
+  display: none;
+}
+
+.filepond--processing-complete-indicator{
+  display: none;
+}
+
+button.filepond--file-action-button.filepond--action-abort-item-load {
+  display: none;
+}

@@ -44,6 +44,22 @@ async function getPictures(prefixPassed) {
   return pictures
 }
 
+async function getProfilePicture(userId, prefixPassed) {
+  const response = await fetch(fetchDomain + '/profiles/' + userId, {
+      method: "POST",
+      headers: {
+          'Content-type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({prefix: prefixPassed})
+    })
+  const picture = await response.json()
+
+  console.log("!!!!picture is: ", picture)
+
+  return picture
+}
+
 // function for uploading all selected files to s3
 async function uploadHandler(prefix, selectedFiles) {
   // upload each image to s3
@@ -95,4 +111,4 @@ async function deleteHandler(keysPassed) {
   })
 }
 
-export { getPictures, uploadHandler, deleteHandler, defaultStorePictures, defaultServicePictures}
+export { getPictures, uploadHandler, deleteHandler, defaultStorePictures, defaultServicePictures, getProfilePicture}

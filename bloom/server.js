@@ -12,19 +12,22 @@ const appointments = require('./routes/appointments.js')
 const users = require('./routes/users.js');
 const jwt = require('jsonwebtoken');
 const s3 = require('./routes/s3');
+const fileUpload = require('express-fileupload')
+
 
 require('dotenv').config();
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')));
+app.use(fileUpload())
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN_PROD : process.env.ALLOWED_ORIGIN_DEV);
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Origin, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
   next();
 });
@@ -253,6 +256,35 @@ app.post('/deleteImages', withAuth, async (req, res) => {
   console.log("hit the deleteImages route")
   await s3.deleteImages(req, res);
 });
+
+app.post('/profiles/:user_id', async(req, res) => {
+  console.log("hit the post profile pic route")
+  console.log("req.body is: ", req.body)
+  console.log("req.files is: ", req.files)
+  helper.querySuccess(res, 'okay', "Successfuly got profile")
+  // await s3.getImageObject(req, res)
+})
+
+app.delete('/profiles/:user_id', async(req, res) => {
+  console.log("hit the delete profile pic route")
+  console.log("req.body is: ", req.body)
+  console.log("req.files is: ", req.files)
+  helper.querySuccess(res, 'np', "Successfuly got profile")
+  // await s3.getImageObject(req, res)
+})
+
+app.get('/profiles/:user_id', async(req, res) => {
+  console.log("hit the get profile pic route")
+  // console.log("req is: ", req)
+  console.log("req.body is: ", req.body)
+  console.log("req.files is: ", req.files)
+  // let uploadFile = req.files.filepond
+  // const fileName = req.files.filepond.name
+  // console.log(uploadFile)
+  // console.log(fileName)
+  helper.querySuccess(res, 'sucess', "Successfuly got profile")
+  // await s3.getProfilePic(req, res);
+})
 
 
 //Need to fix this: not sure what name of cookie is
