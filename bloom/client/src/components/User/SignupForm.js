@@ -7,6 +7,7 @@ import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import InputGroup from 'react-bootstrap/InputGroup'
 import { FaEnvelope, FaLockOpen, FaLock, FaUser, FaPhone } from 'react-icons/fa';
+import axios from 'axios'
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { connect } from 'react-redux';
@@ -15,10 +16,15 @@ import {signup} from '../../reduxFolder/redux.js'
 import GoogleLogin from 'react-google-login';
 import FacebookLogin from 'react-facebook-login';
 import {TiSocialFacebookCircular, TiSocialGooglePlus} from 'react-icons/ti';
+const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 class SignupForm extends React.Component {
   constructor(props) {
     super(props);
+    this.state = ({
+      emailDuplicate: false,
+      timer: null
+    })
     // RegEx for phone number validation
     this.phoneRegExp = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/
     this.emailRegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/
@@ -49,8 +55,25 @@ class SignupForm extends React.Component {
   }
 
   handleSubmit = (values) => {
+    try {
+      this.props.signUpUser(values)
+      console.log("successful")
+    } catch(error) {
+      console.log("error is: ", error)
+    }
+  }
 
-    this.props.signUpUser(values)
+  waitForTyping = (event, email) => {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.isEmailDuplicate(email + event.nativeEvent.data), 500);
+  }
+
+  isEmailDuplicate = async (email) => {
+    let response = await axios.get(fetchDomain + '/checkEmail/' + email)
+    console.log("response is: ", response)
+    this.setState({
+      emailDuplicate: response.data
+    })
   }
 
   successGoogle = (response) => {
@@ -219,12 +242,12 @@ class SignupForm extends React.Component {
                       value={values.email}
                       placeholder="Email"
                       name="email"
-                      onChange={handleChange}
+                      onChange={(e) => {handleChange(e); this.waitForTyping(e, values.email)}}
                       onBlur={handleBlur}
-                      className={touched.email && errors.email ? "error" : null}/>
+                      className={touched.email && (errors.email || this.state.emailDuplicate) ? "error" : null}/>
                   </InputGroup>
-                  {touched.email && errors.email ? (
-                    <div className="error-message">{errors.email}</div>
+                  {touched.email && (errors.email || this.state.emailDuplicate) ? (
+                    <div className="error-message">{errors.email ? errors.email : "Email is already taken."}</div>
                   ): null}
                 </Form.Group>
 

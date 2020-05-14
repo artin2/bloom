@@ -135,8 +135,8 @@ async function signup(req, res) {
     });
   }
   else {
-    res.send('Missing a Parameter');
     res.status(400);
+    res.send('Missing a Parameter');
   }
 }
 
@@ -273,10 +273,44 @@ async function getUsers(req, res, next) {
   }
 };
 
+async function checkEmail(req, res, next) {
+  try {
+    // query for email to see if it exists
+    let query = "SELECT COUNT(*) FROM users WHERE email=$1"
+    console.log("email is: ", req.params.email)
+    values=[req.params.email]
+
+    db.client.connect((err, client, done) => {
+      // try to get email count
+      db.client.query(query, values, (err, result) => {
+        done()
+          if (err) {
+            helper.queryError(res, err);
+          }
+          // we were successfuly able to get the email count
+          if (result) {
+            console.log("count result is: ", result.rows[0].count)
+            helper.querySuccess(res, result.rows[0].count == 1, "Successfully got all users!");
+          }
+          else {
+            helper.queryError(res, "No users!");
+          }
+        });
+      if (err) {
+        helper.dbConnError(res, err);
+      }
+    });
+  }
+  catch (err) {
+    helper.authError(res, err);
+  }
+};
+
 
 module.exports = {
   login: login,
   signup: signup,
   edit: edit,
-  getUsers: getUsers
+  getUsers: getUsers,
+  checkEmail: checkEmail
 };

@@ -75,6 +75,11 @@ app.get('/allUsers', withAuth, async (req, res, next) => {
   await users.getUsers(req, res, next);
 });
 
+app.get('/checkEmail/:email', async (req, res, next) => {
+  console.log('hit the check email route')
+  await users.checkEmail(req, res, next);
+});
+
 app.get('/checkToken', withAuth, function(req, res) {
   console.log("hit the check token route")
   //if it gets in here, that means withAuth passed and your token is valid

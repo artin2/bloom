@@ -11,8 +11,6 @@ import {TiSocialFacebookCircular, TiSocialGooglePlus} from 'react-icons/ti';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {login} from '../../reduxFolder/redux.js'
-// import { useGoogleLogin } from 'react-google-login';
-// import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 
 class LoginForm extends React.Component {
   constructor(props) {
@@ -23,7 +21,6 @@ class LoginForm extends React.Component {
       message: {},
       provider: null
     };
-
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -54,9 +51,7 @@ class LoginForm extends React.Component {
       provider: "Facebook",
       email: response.email,
       password: response.accessToken
-
     });
-
     this.props.loginUser(this.state)
   }
 
@@ -80,7 +75,6 @@ class LoginForm extends React.Component {
           pathname: '/'
         })
       }
-
     }
   }
 

@@ -16,10 +16,8 @@ import VizSensor from 'react-visibility-sensor';
 import Category from './Category.js';
 
 const calc = (x, y) => [-(y - window.innerHeight / 2) / 20, (x - window.innerWidth / 2) / 80, 1.04]
-// const trans = (x, y, s) => `perspective(600px) scale(${s})`
 
-
-function useScreenWidth(): number {
+function useScreenWidth() {
 
   const [position, setPosition] = useState({ xys: [0, 0, 1] });
 
@@ -43,60 +41,11 @@ function useScreenWidth(): number {
   return position;
 }
 
-// function useScroll(): number {
-//   const [scrollPosition, setSrollPosition] = useState(0);
-//   const handleScroll = () => {
-//     const position = window.pageYOffset;
-//     setSrollPosition(position);
-//   };
-
-//   useEffect(() => {
-//     window.addEventListener('scroll', handleScroll);
-//     return () => {
-//       window.removeEventListener('scroll', handleScroll);
-//     };
-//   }, []);
-
-//   return scrollPosition;
-// }
-
-// function useResizeWidth(): number {
-//   const [width, setWidth] = useState(window.innerWidth)
-//   useEffect(() => {
-//     let mounted = true
-//     let handleResize;
-
-//     if (mounted) {
-//       handleResize = () => {
-//         setWidth(window.innerWidth)
-//       }
-//       window.addEventListener('resize', handleResize)
-//     }
-//     return () => {
-//       mounted = false;
-//       window.removeEventListener('resize', handleResize)
-//     }
-//   })
-//   return width;
-// }
-
 function ScreenWidth({ listen, children }) {
-  const screenWidth: number = useScreenWidth();
+  const screenWidth = useScreenWidth();
   return children(screenWidth);
 
 };
-
-// function ScreenResize({ listen, children }) {
-//   const resize: number = useResizeWidth();
-//   return children(resize);
-// };
-
-// function ScreenScroll({ listen, children }) {
-//   const scroll: number = useScroll();
-//   return children(scroll);
-
-// };
-
 
 class Homepage extends React.Component {
   constructor(props) {
@@ -104,11 +53,6 @@ class Homepage extends React.Component {
     this.state = {
       Visible: false
     }
-
-    // this.handleMouseEnter = this.handleMouseEnter.bind(this, this.props.handleMouseEnter)
-    // this.handleMouseMove = this.handleMouseMove.bind(this, this.props.handleMouseMove)
-    // this.handleMouseLeave = this.handleMouseLeave.bind(this, this.props.handleMouseLeave)
-
   }
 
   goToStore() {
@@ -118,8 +62,6 @@ class Homepage extends React.Component {
   }
 
   render() {
-
-    // console.log(this.state.Visible)
     return (
       <Container fluid style={{ backgroundColor: '#c0cbcf' }}>
         <div>

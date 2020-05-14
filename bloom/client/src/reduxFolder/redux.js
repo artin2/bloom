@@ -3,36 +3,49 @@ import {userLoginSuccess, userLoginFailure, userSignupSuccess, userSignupFailure
 // import {getWorkerOptionsSuccess, addWorker} from './actions/worker';
 import {failure} from './actions/index'
 import {addAlert} from './actions/alert';
+import axios from 'axios';
+
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 // USER FUNCTIONS
 
 export function signup(values){
   return dispatch => {
-    fetch(fetchDomain + '/signUp' , {
-      method: "POST",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(values)
-    })
-    .then(function(response){
-      dispatch(addAlert(response))  // seems this alert is not persisting...
+      axios.post(fetchDomain + '/signUp', values)
+      .then(response => {
+        console.log("response is: ", response)
+        dispatch(userSignupSuccess(response.user))
+        return response
+      }, (error) => {
+        console.log("about to dispatch a failure")
+        dispatch(userSignupFailure(error))
+      }
+      )
+    
+    // fetch(fetchDomain + '/signUp' , {
+    //   method: "POST",
+    //   headers: {
+    //     'Content-type': 'application/json'
+    //   },
+    //   credentials: 'include',
+    //   body: JSON.stringify(values)
+    // })
+    // .then(function(response){
+    //   dispatch(addAlert(response))  // seems this alert is not persisting...
 
-      if(response.status!==200){
-        dispatch(userSignupFailure(response))
-      }
-      else{
-        return response.json()
-      }
-    })
-    .then(data => {
-      if(data){
-        dispatch(userSignupSuccess(data.user));
-        return data;
-      }
-    });
+    //   if(response.status!==200){
+    //     dispatch(userSignupFailure(response))
+    //   }
+    //   else{
+    //     return response.json()
+    //   }
+    // })
+    // .then(data => {
+    //   if(data){
+    //     dispatch(userSignupSuccess(data.user));
+    //     return data;
+    //   }
+    // });
   }
 }
 

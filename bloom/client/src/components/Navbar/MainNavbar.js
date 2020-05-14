@@ -16,15 +16,15 @@ class MainNavbar extends React.Component {
         if(location.pathname === '/search') {
           return <Nav className="full-width">
               <SearchBar className="nav-link"/>
-              <Link to="/about" className="nav-link">About</Link>
-              <Link to="/login" className="nav-link">Login</Link>
-              <Link to="/signup" className="nav-link">Signup</Link>
+              <Link id="about" to="/about" className="nav-link">About</Link>
+              <Link id="login" to="/login" className="nav-link">Login</Link>
+              <Link id="signup" to="/signup" className="nav-link">Signup</Link>
             </Nav>
         } else {
           return <Nav className="full-width justify-content-end">
-            <Link to="/about" className="nav-link">About</Link>
-            <Link to="/login" className="nav-link">Login</Link>
-            <Link to="/signup" className="nav-link">Signup</Link>
+            <Link id="about" to="/about" className="nav-link">About</Link>
+            <Link id="login" to="/login" className="nav-link">Login</Link>
+            <Link id="signup" to="/signup" className="nav-link">Signup</Link>
           </Nav>
         }
       } else {

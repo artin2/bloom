@@ -7,13 +7,6 @@ import paint from '../../assets/abstract-painting.jpg';
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
 import { Image } from 'react-bootstrap';
-// import { connect } from 'react-redux';
-// import { bindActionCreators } from 'redux';
-// import {login} from '../../reduxFolder/redux.js'
-// import { useLocation } from 'react-router-dom'
-// import ReactDOM from 'react-dom';
-// import { useGoogleLogin } from 'react-google-login';
-// import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 
 class Registration extends React.Component {
   constructor(props) {

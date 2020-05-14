@@ -7,6 +7,10 @@ function convertMinsToHrsMins(mins) {
     am = true
     h -= 12
   }
+  else if (h == 0) {
+    am = true
+    h += 12
+  }
   else if (h < 12) {
     am = true
   } else if (h !== 12) {
