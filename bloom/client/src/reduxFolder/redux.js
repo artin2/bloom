@@ -11,101 +11,45 @@ const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_AP
 
 export function signup(values){
   return dispatch => {
-      axios.post(fetchDomain + '/signUp', values)
-      .then(response => {
-        console.log("response is: ", response)
-        dispatch(userSignupSuccess(response.user))
-        return response
-      }, (error) => {
-        console.log("about to dispatch a failure")
-        dispatch(userSignupFailure(error))
-      }
-      )
-    
-    // fetch(fetchDomain + '/signUp' , {
-    //   method: "POST",
-    //   headers: {
-    //     'Content-type': 'application/json'
-    //   },
-    //   credentials: 'include',
-    //   body: JSON.stringify(values)
-    // })
-    // .then(function(response){
-    //   dispatch(addAlert(response))  // seems this alert is not persisting...
-
-    //   if(response.status!==200){
-    //     dispatch(userSignupFailure(response))
-    //   }
-    //   else{
-    //     return response.json()
-    //   }
-    // })
-    // .then(data => {
-    //   if(data){
-    //     dispatch(userSignupSuccess(data.user));
-    //     return data;
-    //   }
-    // });
+    axios.post(fetchDomain + '/signUp', values, {
+      withCredentials: true
+    })
+    .then(response => {
+      dispatch(userSignupSuccess(response.data.user))
+      return response.data
+    }, (error) => {
+      dispatch(userSignupFailure(error))
+    }
+    )
   }
 }
 
 export function login(values) {
   return dispatch => {
-    fetch(fetchDomain + '/login' , {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      method: "POST",
-      body: JSON.stringify(values)
-      
+    axios.post(fetchDomain + '/login', values, {
+      withCredentials: true
     })
-    .then(function(response){
-      dispatch(addAlert(response))
-
-      if(response.status!==200){
-        dispatch(userLoginFailure(response));
-      }
-      else{
-        return response.json()
-      }
+    .then(response => {
+      dispatch(userLoginSuccess(response.data.user))
+      return response.data
+    }, (error) => {
+      dispatch(userLoginFailure(error))
     })
-    .then(data => {
-      if(data){
-        dispatch(userLoginSuccess(data.user));
-        return data;
-      }
-    });
-  }
+    }
 }
 
 export function editUser(values){
   return dispatch => {
-    fetch(fetchDomain + '/users/' + values.id , {
-      method: "POST",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(values)
+    axios.post(fetchDomain + '/users/' + values.id, values, {
+      withCredentials: true
     })
-    .then(function(response){
-      dispatch(addAlert(response))
-
-      if(response.status!==200){
-        dispatch(failure(response))
-      }
-      else{
-        // redirect to home page signed in
-        return response.json()
-      }
-    })
-    .then(data => {
-      if(data){
-        dispatch(editUserSuccess(data))
-        return data
-      }
-    });
+    .then(response => {
+      dispatch(editUserSuccess(response.data))
+      return response.data
+    }, (error) => {
+      dispatch(failure(error))
+    }
+    )
   }
 }
 

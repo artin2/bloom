@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-// require('jest-fetch-mock').enableMocks()
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 test('expect to be logged out on launch', (async () => {

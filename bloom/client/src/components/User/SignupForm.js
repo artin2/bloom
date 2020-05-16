@@ -63,14 +63,17 @@ class SignupForm extends React.Component {
     }
   }
 
-  waitForTyping = (event, email) => {
+  // Wait half a second once the user is done typing the email to check for valid email. 
+  waitForTyping = (event, errors, email) => {
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.isEmailDuplicate(email + event.nativeEvent.data), 500);
+    if(!errors) {
+      this.timer = setTimeout(() => this.isEmailDuplicate(email + event.nativeEvent.data), 500);
+    }
   }
 
+  // Request to check for valid email
   isEmailDuplicate = async (email) => {
     let response = await axios.get(fetchDomain + '/checkEmail/' + email)
-    console.log("response is: ", response)
     this.setState({
       emailDuplicate: response.data
     })
@@ -88,7 +91,6 @@ class SignupForm extends React.Component {
       role: '0',
       phone: ''
     });
-
     this.props.signUpUser(this.state)
   }
 
@@ -97,12 +99,9 @@ class SignupForm extends React.Component {
   }
 
   successFacebook = (response) => {
-
     console.log("Facebook Success:", response.accessToken);
     let name = response.name.split(" ");;
-
     this.setState({
-
       provider: "Facebook",
       password: response.accessToken,
       email: response.email,
@@ -110,11 +109,8 @@ class SignupForm extends React.Component {
       last_name: name[1],
       role: '0',
       phone: ''
-
     });
-
     this.props.signUpUser(this.state)
-
   }
 
   failureFacebook = (response) => {
@@ -137,7 +133,6 @@ class SignupForm extends React.Component {
           pathname: '/'
         })
       }
-
     }
   }
 
@@ -158,6 +153,8 @@ class SignupForm extends React.Component {
         >
 
         {( {values,
+            isValid,
+            dirty,
             errors,
             touched,
             handleChange,
@@ -188,7 +185,6 @@ class SignupForm extends React.Component {
                     <div className="error-message">{errors.first_name}</div>
                   ): null}
                 </Form.Group>
-
 
                 <Form.Group controlId="formLastName">
                   <InputGroup>
@@ -242,7 +238,7 @@ class SignupForm extends React.Component {
                       value={values.email}
                       placeholder="Email"
                       name="email"
-                      onChange={(e) => {handleChange(e); this.waitForTyping(e, values.email)}}
+                      onChange={(e) => {handleChange(e); this.waitForTyping(e, errors.email, values.email)}}
                       onBlur={handleBlur}
                       className={touched.email && (errors.email || this.state.emailDuplicate) ? "error" : null}/>
                   </InputGroup>
@@ -293,7 +289,7 @@ class SignupForm extends React.Component {
                   ): null}
                 </Form.Group>
 
-                <Button className="signup mb-1" onClick={handleSubmit}>Sign Up</Button>
+                <Button className="signup mb-1" disabled={!(isValid && dirty) || this.state.emailDuplicate} onClick={handleSubmit}>Sign Up</Button>
                 </Col>
 
                 <Col xs={12} sm={10} md={7} lg={6} className="mb-5">
@@ -325,7 +321,6 @@ class SignupForm extends React.Component {
                 </Row>
               </Form>
         )}
-
         </Formik>
 );
 
