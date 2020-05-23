@@ -15,7 +15,7 @@ import { connect } from 'react-redux';
 // import { bindActionCreators } from 'redux';
 // import {addStore} from '../../reduxFolder/actions/stores.js'
 import UserStoresDashboardLoader from './UserStoresDashboardLoader';
-import { /*getPictures,*/ defaultStorePictures } from '../s3'
+import { /*getPictures,*/ defaultStorePictures } from '../../util/s3'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 // ***** NOTE: fix to properly display all the stores

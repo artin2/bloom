@@ -11,7 +11,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { bindActionCreators } from 'redux';
 import {editUser} from '../../reduxFolder/redux.js'
-import { getPictures, deleteHandler, uploadHandler } from '../s3'
+import { getPictures, deleteHandler, uploadHandler } from '../../util/s3'
 import { connect } from 'react-redux';
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'

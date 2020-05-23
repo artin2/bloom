@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col'
 import Cookies from 'js-cookie';
 import { FaEdit, FaHourglassHalf, FaDollarSign } from 'react-icons/fa';
 import {Carousel, Image } from 'react-bootstrap'
-import { /*getPictures,*/ defaultServicePictures } from '../s3'
+import { /*getPictures,*/ defaultServicePictures } from '../../util/s3'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 const override = css`

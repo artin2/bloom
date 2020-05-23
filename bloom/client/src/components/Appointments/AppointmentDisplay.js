@@ -11,7 +11,7 @@ import {
 import store from '../../reduxFolder/store';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 const override = css`

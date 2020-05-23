@@ -18,9 +18,9 @@ import {
   addAlert
 } from '../../reduxFolder/actions/alert'
 import store from '../../reduxFolder/store';
-import { uploadHandler } from '../s3';
+import { uploadHandler } from '../../util/s3';
 import { Multiselect } from 'multiselect-react-dropdown';
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 // import { css } from '@emotion/core'
 // import GridLoader from 'react-spinners/GridLoader'
 // const override = css`

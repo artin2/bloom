@@ -10,10 +10,10 @@ import {
 } from '../../reduxFolder/actions/alert'
 import store from '../../reduxFolder/store';
 import './StoreDisplay.css'
-import { /*getPictures,*/ defaultStorePictures } from '../s3'
+import { /*getPictures,*/ defaultStorePictures } from '../../util/s3'
 import {ListGroup} from 'react-bootstrap'
 import { FaEdit } from 'react-icons/fa';
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 

@@ -9,8 +9,8 @@ import './WorkerDisplay.css'
 import Calendar from '../Calendar/CalendarPage'
 import WorkerEditForm from './WorkerEditForm';
 import workerImage from '../../assets/worker.png'
-import { getPictures } from '../s3'
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { getPictures } from '../../util/s3'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;

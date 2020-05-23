@@ -8,7 +8,7 @@ import './DateSelection.css';
 import { Form, Button } from 'react-bootstrap';
 import store from '../../reduxFolder/store';
 import { addAlert } from '../../reduxFolder/actions/alert'
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;

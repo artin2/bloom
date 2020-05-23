@@ -15,7 +15,7 @@ import {
 import store from '../../reduxFolder/store';
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 const override = css`
   display: block;
   margin: 0 auto;

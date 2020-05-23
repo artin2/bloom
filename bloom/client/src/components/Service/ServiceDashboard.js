@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { Button, Carousel, Image } from 'react-bootstrap';
 import './Services.css';
-import { /*getPictures,*/ defaultServicePictures } from '../s3'
+import { /*getPictures,*/ defaultServicePictures } from '../../util/s3'
 import { FaEdit } from 'react-icons/fa';
 import LinesEllipsis from 'react-lines-ellipsis'
 import { css } from '@emotion/core'

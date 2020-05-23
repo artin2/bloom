@@ -10,8 +10,8 @@ import { Image } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup'
 import UserDashboardLoader from '../Store/UserStoresDashboardLoader';
 import workerImage from '../../assets/worker.png'
-// import { getPictures } from '../s3'
-import { convertMinsToHrsMins } from '../helperFunctions'
+// import { getPictures } from '../../util/s3'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 // import {
 //   addAlert
 // } from '../../reduxFolder/actions'

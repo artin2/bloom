@@ -14,7 +14,7 @@ import {
   addAlert
 } from '../../reduxFolder/actions/alert'
 import store from '../../reduxFolder/store';
-import { getPictures, deleteHandler, uploadHandler } from '../s3'
+import { getPictures, deleteHandler, uploadHandler } from '../../util/s3'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 const override = css`

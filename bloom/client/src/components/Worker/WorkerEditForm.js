@@ -10,7 +10,7 @@ import {
   addAlert
 } from '../../reduxFolder/actions/alert'
 import store from '../../reduxFolder/store';
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import { withRouter } from "react-router"

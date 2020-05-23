@@ -9,10 +9,10 @@ import Calendar from '../Calendar/CalendarPage'
 import EditProfileForm from './EditProfileForm';
 import GridLoader from 'react-spinners/GridLoader'
 import WorkerEditForm from '../Worker/WorkerEditForm';
-import { getPictures } from '../s3'
+import { getPictures } from '../../util/s3'
 import './Profile.css'
 import workerImage from '../../assets/worker.png'
-import { convertMinsToHrsMins } from '../helperFunctions'
+import { convertMinsToHrsMins } from '../../util/helperFunctions'
 import { css } from '@emotion/core'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
