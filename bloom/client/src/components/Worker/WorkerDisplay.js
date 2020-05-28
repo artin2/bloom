@@ -156,7 +156,7 @@ class WorkerDisplay extends React.Component {
         <div className="profile-sidebar">
             {/* <!-- SIDEBAR USERPIC --> */}
             <div className="profile-userpic">
-              <Image src={this.state.picture && Object.keys(this.state.picture).length !== 0 && this.state.picture.constructor === Object ? this.state.picture.url : workerImage} className="img-responsive" alt="" rounded />
+              <Image className="profile-img" src={this.state.picture && Object.keys(this.state.picture).length !== 0 && this.state.picture.constructor === Object ? this.state.picture.url : workerImage} alt="" rounded />
             </div>
             {/* <!-- END SIDEBAR USERPIC --> */}
 

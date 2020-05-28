@@ -219,7 +219,7 @@ class StoreSignupForm extends React.Component {
                 setFieldValue,
                 isSubmitting
               }) => (
-                  <Form className="formBody rounded p-5">
+                  <Form className="formBody rounded p-2 py-4 p-lg-5">
                     <h3>Store Sign Up</h3>
 
                     <Form.Group controlId="formName">
