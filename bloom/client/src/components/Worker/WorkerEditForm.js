@@ -8,12 +8,15 @@ import Button from 'react-bootstrap/Button'
 import { Formik } from 'formik';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { convertMinsToHrsMins } from '../helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import { withRouter } from "react-router"
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { editWorker } from './WorkerHelper.js'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 const override = css`
   display: block;
@@ -25,42 +28,8 @@ class WorkerEditForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      worker: {
-        id: 0,
-        store_id: 0,
-        user_id: 0,
-        created_at: "",
-        first_name: "",
-        last_name: ""
-      },
-
-      storeHours: [
-        { day_of_the_week: 0, start_time: 0, end_time: 0},
-        { day_of_the_week: 1, start_time: 0, end_time: 0},
-        { day_of_the_week: 2, start_time: 0, end_time: 0},
-        { day_of_the_week: 3, start_time: 0, end_time: 0},
-        { day_of_the_week: 4, start_time: 0, end_time: 0},
-        { day_of_the_week: 5, start_time: 0, end_time: 0},
-        { day_of_the_week: 6, start_time: 0, end_time: 0}
-      ],
-      workerHours: [
-        { day_of_the_week: 0, start_time: 0, end_time: 0},
-        { day_of_the_week: 1, start_time: 0, end_time: 0},
-        { day_of_the_week: 2, start_time: 0, end_time: 0},
-        { day_of_the_week: 3, start_time: 0, end_time: 0},
-        { day_of_the_week: 4, start_time: 0, end_time: 0},
-        { day_of_the_week: 5, start_time: 0, end_time: 0},
-        { day_of_the_week: 6, start_time: 0, end_time: 0}
-      ],
-      originalWorkerHours: [
-        { day_of_the_week: 0, start_time: 0, end_time: 0},
-        { day_of_the_week: 1, start_time: 0, end_time: 0},
-        { day_of_the_week: 2, start_time: 0, end_time: 0},
-        { day_of_the_week: 3, start_time: 0, end_time: 0},
-        { day_of_the_week: 4, start_time: 0, end_time: 0},
-        { day_of_the_week: 5, start_time: 0, end_time: 0},
-        { day_of_the_week: 6, start_time: 0, end_time: 0}
-      ],
+      worker: this.props.worker,
+      storeHours: this.props.storeHours,
       loading: true,
       newHours: [],
       weekIsWorking: [true, true, true, true, true, true, true],
@@ -85,6 +54,8 @@ class WorkerEditForm extends React.Component {
   }
 
   handleSelectChange = (event) => {
+
+
     var days = ['formHoursMonday', 'formHoursTuesday', 'formHoursWednesday', 'formHoursThursday', 'formHoursFriday', 'formHoursSaturday', 'formHoursSunday']
     var day = days.indexOf(event.target.id)
     var updateNewHours = this.state.newHours
@@ -95,8 +66,8 @@ class WorkerEditForm extends React.Component {
       old_start_time = this.state.newHours[day].start_time
       old_end_time = this.state.newHours[day].end_time
     } else {
-      old_start_time = this.state.workerHours[day].start_time
-      old_end_time = this.state.workerHours[day].end_time
+      old_start_time = this.state.worker.workerHours[day].start_time
+      old_end_time = this.state.worker.workerHours[day].end_time
     }
 
     if (parseInt(event.target.querySelector('option').value) <= 840) {
@@ -105,9 +76,9 @@ class WorkerEditForm extends React.Component {
       }
       updateNewHours[day] = { start_time: parseInt(event.target.value), end_time: old_end_time }
       newWorkerHours = [
-        ...this.state.workerHours.slice(0, day),
+        ...this.state.worker.workerHours.slice(0, day),
         { start_time: parseInt(event.target.value), end_time: old_end_time },
-        ...this.state.workerHours.slice(day + 1)
+        ...this.state.worker.workerHours.slice(day + 1)
       ]
     } else {
       if(this.state.storeHours[day].start_time == null){
@@ -115,16 +86,20 @@ class WorkerEditForm extends React.Component {
       }
       updateNewHours[day] = { start_time: old_start_time, end_time: parseInt(event.target.value) }
       newWorkerHours = [
-        ...this.state.workerHours.slice(0, day),
+        ...this.state.worker.workerHours.slice(0, day),
         { start_time: old_start_time, end_time: parseInt(event.target.value) },
-        ...this.state.workerHours.slice(day + 1)
+        ...this.state.worker.workerHours.slice(day + 1)
       ]
     }
 
-    this.setState({
+    this.setState(prevState => ({
+    ...prevState, worker: {
+        ...prevState.worker,
+        workerHours: newWorkerHours
+      },
       newHours: updateNewHours,
-      workerHours: newWorkerHours
-    })
+      })
+    )
   };
 
   handleDayStatusChange = (day) => {
@@ -134,93 +109,47 @@ class WorkerEditForm extends React.Component {
       ...this.state.weekIsWorking.slice(day + 1)
     ]
 
-    let oldWorkerHours = this.state.workerHours
-    if(this.state.workerHours[day].start_time == null){
+    let oldWorkerHours = this.state.worker.workerHours
+    if(this.state.worker.workerHours[day].start_time == null){
       oldWorkerHours[day].start_time = 540
       oldWorkerHours[day].end_time = 1020
     }
 
     this.setState({
       weekIsWorking: updateWeekIsWorking,
-      workerHours: oldWorkerHours
     })
   };
 
+
+
   componentDidMount() {
+
     let store_id = this.props.match.params.store_id ? this.props.match.params.store_id : this.props.store_id;
     let worker_id = this.props.match.params.worker_id ? this.props.match.params.worker_id : this.props.worker_id;
 
-    if(this.props.location.state && this.props.location.state.worker){
-      this.setState({
-        worker: this.props.location.state.worker
-      })
-    }
-    else{
-      // first we fetch the service itself
-      fetch(fetchDomain + '/stores/' + store_id + '/workers/' + worker_id, {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        if(data){
-          this.setState({
-            worker: data
-          })
-        }
-      });
-    }
-
-    Promise.all([
-      fetch(fetchDomain + '/stores/' + store_id + '/workers/' + worker_id + '/hours', {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      }).then(value => value.json()),
-      fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      }).then(value => value.json())
-    ]).then(allResponses => {
+      let workerHours = this.props.worker.workerHours
+      let storeHours = this.props.storeHours
 
       let oldWeekIsWorking = this.state.weekIsWorking
-      for(let i = 0; i < allResponses[0].length; i++){
-        if(allResponses[0][i].start_time == null){
+      for(let i = 0; i < workerHours.length; i++){
+        if(workerHours[i].start_time == null){
           oldWeekIsWorking[i] = false
         }
       }
 
       let storeWeekIsWorking = this.state.storeWeekIsWorking
-      for(let i = 0; i < allResponses[1].length; i++){
-        if(allResponses[1][i].open_time == null){
+      for(let i = 0; i < storeHours.length; i++){
+        if(storeHours[i].open_time == null){
           storeWeekIsWorking[i] = false
         }
       }
       this.setState({
-        storeHours: allResponses[1],
-        workerHours: allResponses[0],
         weekIsWorking: oldWeekIsWorking,
         storeWeekIsWorking: storeWeekIsWorking,
-        originalWorkerHours: JSON.parse(JSON.stringify(allResponses[0])),
+        originalWorkerHours: JSON.parse(JSON.stringify(workerHours)),
         loading: false
       })
-    })
+
   }
 
   render() {
@@ -366,7 +295,7 @@ class WorkerEditForm extends React.Component {
                 first_name: this.state.worker.first_name,
                 last_name: this.state.worker.last_name,
                 newHours: this.state.newHours,
-                noChange: false
+                noChange: true
               }}
               validationSchema={this.yupValidationSchema}
               onSubmit={(values) => {
@@ -374,10 +303,10 @@ class WorkerEditForm extends React.Component {
                 let store_id = this.props.match.params.store_id ? this.props.match.params.store_id : this.props.store_id;
                 let worker_id = this.props.match.params.worker_id ? this.props.match.params.worker_id : this.props.worker_id;
 
-                values.newHours = this.state.workerHours.map((day, index) => {
+                values.newHours = this.state.worker.workerHours.map((day, index) => {
                   if(this.state.weekIsWorking[index] && (this.state.originalWorkerHours[index].start_time !== day.start_time || this.state.originalWorkerHours[index].end_time !== day.end_time)){
                     return day
-                  } 
+                  }
                   else if(this.state.weekIsWorking[index] && (this.state.originalWorkerHours[index].start_time === day.start_time && this.state.originalWorkerHours[index].end_time === day.end_time)){
                     return {}
                   }
@@ -388,36 +317,8 @@ class WorkerEditForm extends React.Component {
                   }
                 })
 
-                fetch(fetchDomain + '/stores/' + store_id + '/workers/' + worker_id, {
-                  method: "POST",
-                  headers: {
-                    'Content-type': 'application/json'
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify(values)
-                })
-                  .then(function (response) {
-                    if (response.status !== 200) {
-                      store.dispatch(addAlert(response))
-                    }
-                    else {
-                      // redirect to worker page
-                      return response.json()
-                    }
-                  })
-                  .then(data => {
-                    if (data) {
-                      let actualHours = []
-                      for(let i = 0; i < this.state.workerHours.length; i++) {
-                        if(this.state.weekIsWorking[i] && this.state.storeWeekIsWorking[i]) {
-                          actualHours.push(this.state.workerHours[i])
-                        } else {
-                          actualHours.push({end_time: null, start_time: null})
-                        }
-                      }
-                      this.props.updateWorkerHours(actualHours)
-                    }
-                  });
+                this.props.editWorker(store_id, worker_id, values)
+
               }}
             >
               {({ values,
@@ -439,12 +340,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[0] || !this.state.storeWeekIsWorking[0]} value={this.state.workerHours[0].start_time === null ? 540 : this.state.workerHours[0].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[0] || !this.state.storeWeekIsWorking[0]} value={this.state.worker.workerHours[0].start_time === null ? 540 : this.state.worker.workerHours[0].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={0} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[0] || !this.state.storeWeekIsWorking[0]} value={this.state.workerHours[0].end_time === null ? 1020 : this.state.workerHours[0].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[0] || !this.state.storeWeekIsWorking[0]} value={this.state.worker.workerHours[0].end_time === null ? 1020 : this.state.worker.workerHours[0].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={0} />
                           </Form.Control>
                         </Col>
@@ -460,12 +361,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[1] || !this.state.storeWeekIsWorking[1]} value={this.state.workerHours[1].start_time === null ? 540 : this.state.workerHours[1].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[1] || !this.state.storeWeekIsWorking[1]} value={this.state.worker.workerHours[1].start_time === null ? 540 : this.state.worker.workerHours[1].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={1} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[1] || !this.state.storeWeekIsWorking[1]} value={this.state.workerHours[1].end_time === null ? 1020 : this.state.workerHours[1].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[1] || !this.state.storeWeekIsWorking[1]} value={this.state.worker.workerHours[1].end_time === null ? 1020 : this.state.worker.workerHours[1].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={1} />
                           </Form.Control>
                         </Col>
@@ -482,12 +383,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[2] || !this.state.storeWeekIsWorking[2]} value={this.state.workerHours[2].start_time === null ? 540 : this.state.workerHours[2].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[2] || !this.state.storeWeekIsWorking[2]} value={this.state.worker.workerHours[2].start_time === null ? 540 : this.state.worker.workerHours[2].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={2} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[2] || !this.state.storeWeekIsWorking[2]} value={this.state.workerHours[2].end_time === null ? 1020 : this.state.workerHours[2].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[2] || !this.state.storeWeekIsWorking[2]} value={this.state.worker.workerHours[2].end_time === null ? 1020 : this.state.worker.workerHours[2].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={2} />
                           </Form.Control>
                         </Col>
@@ -503,12 +404,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[3] || !this.state.storeWeekIsWorking[3]} value={this.state.workerHours[3].start_time === null ? 540 : this.state.workerHours[3].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[3] || !this.state.storeWeekIsWorking[3]} value={this.state.worker.workerHours[3].start_time === null ? 540 : this.state.worker.workerHours[3].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={3} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[3]  || !this.state.storeWeekIsWorking[3]} value={this.state.workerHours[3].end_time === null ? 1020 : this.state.workerHours[3].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[3]  || !this.state.storeWeekIsWorking[3]} value={this.state.worker.workerHours[3].end_time === null ? 1020 : this.state.worker.workerHours[3].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={3} />
                           </Form.Control>
                         </Col>
@@ -525,12 +426,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[4] || !this.state.storeWeekIsWorking[4]} value={this.state.workerHours[4].start_time === null ? 540 : this.state.workerHours[4].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[4] || !this.state.storeWeekIsWorking[4]} value={this.state.worker.workerHours[4].start_time === null ? 540 : this.state.worker.workerHours[4].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={4} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[4] || !this.state.storeWeekIsWorking[4]} value={this.state.workerHours[4].end_time === null ? 1020 : this.state.workerHours[4].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[4] || !this.state.storeWeekIsWorking[4]} value={this.state.worker.workerHours[4].end_time === null ? 1020 : this.state.worker.workerHours[4].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={4} />
                           </Form.Control>
                         </Col>
@@ -546,12 +447,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[5] || !this.state.storeWeekIsWorking[5]} value={this.state.workerHours[5].start_time === null ? 540 : this.state.workerHours[5].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[5] || !this.state.storeWeekIsWorking[5]} value={this.state.worker.workerHours[5].start_time === null ? 540 : this.state.worker.workerHours[5].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={5} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[5] || !this.state.storeWeekIsWorking[5]} value={this.state.workerHours[5].end_time === null ? 1020 : this.state.workerHours[5].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[5] || !this.state.storeWeekIsWorking[5]} value={this.state.worker.workerHours[5].end_time === null ? 1020 : this.state.worker.workerHours[5].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={5} />
                           </Form.Control>
                         </Col>
@@ -568,12 +469,12 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                       <Form.Row>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[6] || !this.state.storeWeekIsWorking[6]} value={this.state.workerHours[6].start_time === null ? 540 : this.state.workerHours[6].start_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[6] || !this.state.storeWeekIsWorking[6]} value={this.state.worker.workerHours[6].start_time === null ? 540 : this.state.worker.workerHours[6].start_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateStartTimesForDay day={6} />
                           </Form.Control>
                         </Col>
                         <Col>
-                          <Form.Control as="select" disabled={!this.state.weekIsWorking[6] || !this.state.storeWeekIsWorking[6]} value={this.state.workerHours[6].end_time === null ? 1020 : this.state.workerHours[6].end_time} onChange={this.handleSelectChange.bind(this)}>
+                          <Form.Control as="select" disabled={!this.state.weekIsWorking[6] || !this.state.storeWeekIsWorking[6]} value={this.state.worker.workerHours[6].end_time === null ? 1020 : this.state.worker.workerHours[6].end_time} onChange={this.handleSelectChange.bind(this)}>
                             <CreateEndTimesForDay day={6} />
                           </Form.Control>
                         </Col>
@@ -595,4 +496,9 @@ class WorkerEditForm extends React.Component {
   }
 }
 
-export default withRouter(WorkerEditForm);
+const mapDispatchToProps = dispatch => bindActionCreators({
+  editWorker: (store_id, worker_id, values) => editWorker(store_id, worker_id, values)
+}, dispatch)
+
+
+export default withRouter(connect(null, mapDispatchToProps)(WorkerEditForm));

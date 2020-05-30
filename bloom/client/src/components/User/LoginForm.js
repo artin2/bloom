@@ -10,7 +10,7 @@ import FacebookLogin from 'react-facebook-login';
 import {TiSocialFacebookCircular, TiSocialGooglePlus} from 'react-icons/ti';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import {login} from '../../reduxFolder/redux.js'
+import {login} from './UserHelper.js'
 // import { useGoogleLogin } from 'react-google-login';
 // import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 

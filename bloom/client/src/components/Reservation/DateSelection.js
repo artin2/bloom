@@ -6,8 +6,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import './DateSelection.css';
 import { Form, Button } from 'react-bootstrap';
-import store from '../../reduxFolder/store';
-import { addAlert } from '../../reduxFolder/actions/alert'
+import store from '../../redux/store';
+import { addAlert } from '../../redux/actions/alert'
 import { convertMinsToHrsMins } from '../helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
@@ -165,18 +165,18 @@ class DateSelection extends React.Component {
             currSchedule.push({ worker_id: currScheduleCurrWorker, service_id: currScheduleCurrService.id, start_time: currScheduleCurrTime, end_time: currScheduleCurrTime + currScheduleCurrService.duration, price: currScheduleCurrService.cost, date: this.state.currDate })
             currScheduleCurrTime += currScheduleCurrService.duration
             currScheduleServiceIndex += 1
-            //NOTE, will always cycle to first worker. What if we want to maintain worker for entire appointment duration? May be worth refactoring for continuity. 
+            //NOTE, will always cycle to first worker. What if we want to maintain worker for entire appointment duration? May be worth refactoring for continuity.
             currScheduleCurrWorkerIndex = 0
             if (currScheduleServiceIndex === this.props.selectedServices.length) {
-              //We've found a worker for each service in the appointment. We're done. 
+              //We've found a worker for each service in the appointment. We're done.
               foundSchedule = true
             }
           } else if (currScheduleCurrWorkerIndex + 1 < currDaySchedules.length) {
             // continue checking if there's another worker available for this service
             currScheduleCurrWorkerIndex += 1
           } else {
-            // no workers were available for this appointment. 
-            // NOTE: it may be possible, in the case where there are multiple services selected for the appointment, that there is still some combination of worker slots to make this appointment work. I'm only checking linearly. This may be worth refactoring for better scheduling, but the tradeoff is increased complexity in scheduling. 
+            // no workers were available for this appointment.
+            // NOTE: it may be possible, in the case where there are multiple services selected for the appointment, that there is still some combination of worker slots to make this appointment work. I'm only checking linearly. This may be worth refactoring for better scheduling, but the tradeoff is increased complexity in scheduling.
             scheduleStillWorks = false
           }
         }

@@ -7,8 +7,8 @@ import Cookies from 'js-cookie';
 import { withRouter } from "react-router-dom";
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import './StoreDisplay.css'
 import { /*getPictures,*/ defaultStorePictures } from '../s3'
 import {ListGroup} from 'react-bootstrap'

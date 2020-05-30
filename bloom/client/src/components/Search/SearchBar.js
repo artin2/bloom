@@ -5,6 +5,9 @@ import './SearchBar.css'
 import {withRouter} from 'react-router'
 import { FiSearch } from 'react-icons/fi';
 import Select from 'react-select'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getSearchResults } from './SearchHelper.js'
 
 const helper = require('./helper.js');
 
@@ -21,11 +24,11 @@ class SearchBar extends React.Component {
       address: '',
       distanceSelect: "",
       distance: 15,
-      nails: false,	
-      hair: false,	
-      facials: false,	
-      barber: false,	
-      spa: false,	
+      nails: false,
+      hair: false,
+      facials: false,
+      barber: false,
+      spa: false,
       makeup: false,
       searchRadiusList: [{value: 1, label: '1 mile'}, {value: 5, label: '5 miles'}, {value: 10, label: '10 miles'}, {value: 25, label: '25 miles'}, {value: 50, label: '50 miles'}]
     }
@@ -37,67 +40,68 @@ class SearchBar extends React.Component {
 
   handleSelectChange = (selectedCategory) => {
     // there must be a better way to do this
+
     if(selectedCategory.value === "Nails") {
-      this.setState({ 
+      this.setState({
         nails: true,
-        hair: false,	
-        facials: false,	
-        barber: false,	
-        spa: false,	
+        hair: false,
+        facials: false,
+        barber: false,
+        spa: false,
         makeup: false,
       })
     } else if (selectedCategory.value === "Hair") {
-      this.setState({ 
+      this.setState({
         nails: false,
-        hair: true,	
-        facials: false,	
-        barber: false,	
-        spa: false,	
+        hair: true,
+        facials: false,
+        barber: false,
+        spa: false,
         makeup: false,
       })
     } else if (selectedCategory.value === "Facials") {
-      this.setState({ 
+      this.setState({
         nails: false,
-        hair: false,	
-        facials: true,	
-        barber: false,	
-        spa: false,	
+        hair: false,
+        facials: true,
+        barber: false,
+        spa: false,
         makeup: false,
       })
     } else if (selectedCategory.value === "Barbershops") {
-      this.setState({ 
+      this.setState({
         nails: false,
-        hair: false,	
-        facials: false,	
-        barber: true,	
-        spa: false,	
+        hair: false,
+        facials: false,
+        barber: true,
+        spa: false,
         makeup: false,
       })
     } else if (selectedCategory.value === "Spa") {
-      this.setState({ 
+      this.setState({
         nails: false,
-        hair: false,	
-        facials: false,	
-        barber: false,	
-        spa: true,	
+        hair: false,
+        facials: false,
+        barber: false,
+        spa: true,
         makeup: false,
       })
     } else if (selectedCategory.value === "Makeup") {
-      this.setState({ 
+      this.setState({
         nails: false,
-        hair: false,	
-        facials: false,	
-        barber: false,	
-        spa: false,	
+        hair: false,
+        facials: false,
+        barber: false,
+        spa: false,
         makeup: true,
       })
     } else {
-      this.setState({ 
+      this.setState({
         nails: true,
-        hair: true,	
-        facials: true,	
-        barber: true,	
-        spa: true,	
+        hair: true,
+        facials: true,
+        barber: true,
+        spa: true,
         makeup: true,
       })
     }
@@ -105,7 +109,7 @@ class SearchBar extends React.Component {
   }
 
   handleSearchRadiusChange = (distanceSelect) => {
-    this.setState({ 
+    this.setState({
       distanceSelect: distanceSelect,
       distance: distanceSelect.value
     });
@@ -115,12 +119,15 @@ class SearchBar extends React.Component {
     let queryString = require('./helper.js').queryString;
     const formState = (({ address, distance, nails, hair, spa, facials, barber, makeup }) => ({ address, distance, nails, hair, spa, facials, barber, makeup }))(this.state);
     let query = queryString(formState)
+
+    this.props.getSearchResults(query)
+
     this.props.history.push({
       pathname: "/search",
       search: query,
-      state: {
-        address: this.state.address
-      }
+      // state: {
+      //   address: this.state.address
+      // }
     });
   }
 
@@ -202,4 +209,9 @@ class SearchBar extends React.Component {
   }
 }
 
-export default withRouter(SearchBar);
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getSearchResults: (query) => getSearchResults(query)
+}, dispatch)
+
+
+export default withRouter(connect(null, mapDispatchToProps)(SearchBar));

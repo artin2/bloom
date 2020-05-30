@@ -16,36 +16,40 @@ import { convertMinsToHrsMins } from '../helperFunctions'
 //   addAlert
 // } from '../../reduxFolder/actions'
 // import store from '../../reduxFolder/store';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getWorkers } from './WorkerHelper.js'
+import { updateCurrentWorker } from '../../redux/actions/worker'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 class WorkerDashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state ={
-      workers: [],
+      workers: this.props.workers,
       redirectToWorkerEditForm: null,
       redirectToWorkerDisplay: null,
-      loading: true,
+      loading: this.props.loading,
       daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     }
   }
 
   triggerWorkerEditForm(workerPassed) {
+
+    this.props.updateCurrentWorker(workerPassed)
     this.props.history.push({
       pathname: '/stores/' + this.props.match.params.store_id + '/workers/' + workerPassed.id,
       state: {
-        worker: workerPassed,
         edit: true
       }
     })
   }
 
   triggerWorkerDisplay(workerPassed) {
+
+    this.props.updateCurrentWorker(workerPassed)
     this.props.history.push({
       pathname: '/stores/' + this.props.match.params.store_id + '/workers/' + workerPassed.id,
-      state: {
-        worker: workerPassed
-      }
     })
   }
 
@@ -55,124 +59,54 @@ class WorkerDashboard extends React.Component {
     })
   }
 
-  async componentDidMount() {
-    if(this.props.location.state && this.props.location.state.workers){
-      await this.setState({
-        workers: this.props.location.state.workers,
-      })
+  componentDidUpdate(prevProps) {
 
-      if(this.state.workers.length > 0){
-        for (let i = 0; i < this.state.workers.length; i++) {
-          fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/' + this.state.workers[i].id + '/hours', {
-            method: "GET",
-            headers: {
-              'Content-type': 'application/json'
-            },
-            credentials: 'include'
-          })
-          .then(function(response){
-            if(response.status!==200){
-              // throw an error alert
-              // store.dispatch(addAlert(response))
-            }
-            else{
-              return response.json();
-            }
-          })
-          .then(data => {
-            if(data){
-              var stateCopy = Object.assign({}, this.state);
-              stateCopy.workers[i].workerHours = data
-              this.setState(stateCopy)
-            }
-          });    
-        }
-      }
+      if (this.props.workers !== prevProps.workers) {
 
-      this.setState({
-        loading: false
-      })
-    }
-    else{
-      await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers', {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          // store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        if(data){
           this.setState({
-            workers: data,
+            workers: this.props.workers,
           })
-        }
-      });
+      }
 
-      if(this.state.workers.length > 0){
-        for (let i = 0; i < this.state.workers.length; i++) {
-          let picturesFetched = {}
-          // try {
-          //   picturesFetched = await getPictures('users/' + this.state.workers[i].user_id + '/')
-          //   if(picturesFetched.length > 0){
-          //     picturesFetched = picturesFetched[0]
-          //   }
-          //   else{
-          //     picturesFetched = {}
-          //   }
-          // } catch (e) {
-          //   console.log("Error getting pictures from s3!", e)
-          // }
-          
-          fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/' + this.state.workers[i].id + '/hours', {
-            method: "GET",
-            headers: {
-              'Content-type': 'application/json'
-            },
-            credentials: 'include'
-          })
-          .then(function(response){
-            if(response.status!==200){
-              // throw an error alert
-              // store.dispatch(addAlert(response))
-            }
-            else{
-              return response.json();
-            }
-          })
-          .then(data => {
-            if(data){
-              var stateCopy = Object.assign({}, this.state);
-              stateCopy.workers[i].workerHours = data
-              stateCopy.workers[i].picture = picturesFetched
-              this.setState(stateCopy)
-            }
-          });
-        }
+      if (this.props.loading !== prevProps.loading) {
 
         this.setState({
-          loading: false
+          loading: this.props.loading,
         })
       }
-      else{
-        this.setState({
-          loading: false
-        })
-      }
-    }
+
   }
+
+  componentDidMount() {
+
+    this.props.getWorkers(this.props.match.params.store_id)
+
+    // if(this.state.workers.length > 0) {
+    //     for (let i = 0; i < this.state.workers.length; i++) {
+    //       let picturesFetched = {}
+    //       try {
+    //         picturesFetched = await getPictures('users/' + this.state.workers[i].user_id + '/')
+    //         if(picturesFetched.length > 0){
+    //           picturesFetched = picturesFetched[0]
+    //         }
+    //         else{
+    //           picturesFetched = {}
+    //         }
+    //       } catch (e) {
+    //         console.log("Error getting pictures from s3!", e)
+    //       }
+    //
+    //       let stateCopy = Object.assign({}, this.state);
+    //       stateCopy.workers[i].picture = picturesFetched
+    //       this.setState(stateCopy)
+    //
+    //     }
+    //   }
+    }
 
   render() {
     const ListWorkingHours = (props) => {
+
       if(props.workerHours){
         let items = [];
         for (let i = 0; i < props.workerHours.length; i++) {
@@ -189,6 +123,7 @@ class WorkerDashboard extends React.Component {
     }
 
     const DisplayWithLoading = (props) => {
+
       if (this.state.loading) {
         return <Row className="mt-5">
             <Col xs="12">
@@ -205,6 +140,8 @@ class WorkerDashboard extends React.Component {
           )
         }
         else{
+          console.log(this.props.workers)
+
           return(
             <div>
               <p className="workers_title">My Workers </p>
@@ -251,4 +188,14 @@ class WorkerDashboard extends React.Component {
   }
 }
 
-export default WorkerDashboard;
+const mapDispatchToProps = dispatch => bindActionCreators({
+  updateCurrentWorker: (worker) => updateCurrentWorker(worker),
+  getWorkers: (store_id) => getWorkers(store_id)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  workers: state.workerReducer.workers,
+  loading: state.workerReducer.isFetching,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(WorkerDashboard);

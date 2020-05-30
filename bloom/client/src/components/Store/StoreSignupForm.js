@@ -12,12 +12,12 @@ import * as Yup from 'yup';
 import Cookies from 'js-cookie';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import {updateRole} from '../../reduxFolder/actions/user.js'
-import {addStore} from '../../reduxFolder/actions/stores.js'
+import {updateRole} from '../../redux/actions/user.js'
+import {addStore} from '../../redux/actions/stores.js'
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { uploadHandler } from '../s3';
 import { Multiselect } from 'multiselect-react-dropdown';
 import { convertMinsToHrsMins } from '../helperFunctions'
@@ -184,7 +184,7 @@ class StoreSignupForm extends React.Component {
                 values.storeHours = this.state.storeHours.map((day, index) => {
                   if(this.state.weekIsWorking[index]){
                     return day
-                  } 
+                  }
                   else {
                     return {open_time: null, close_time: null}
                   }

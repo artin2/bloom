@@ -12,8 +12,8 @@ import * as Yup from 'yup';
 import { Multiselect } from 'multiselect-react-dropdown';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
@@ -265,13 +265,13 @@ class ServiceEditForm extends React.Component {
                   let store_id = this.props.match.params.store_id
                   let service_id = this.props.match.params.service_id
                   let triggerServiceDisplay = this.triggerServiceDisplay
-  
+
                   let shorterVersion = helper.shorterVersion;
-  
+
                   values.category = values.category.map(function (val) {
                     return shorterVersion(val.label)
                   })[0]
-  
+
                   values.workers = values.workers.map(function(val){
                     return val.value;
                   })
@@ -279,22 +279,22 @@ class ServiceEditForm extends React.Component {
                   var allWorkers = this.state.originalWorkers.concat(values.workers)
                   var allWorkersUnique = allWorkers.filter((worker, pos) => allWorkers.indexOf(worker) === pos)
                   values.allWorkers = allWorkersUnique
-  
+
                   if(values.category.length === 0 || values.workers.length === 0) {
                     return;
                   }
-  
+
                   // remove files from s3
                   if(this.state.keys.length > 0){
                     await deleteHandler(this.state.keys)
                   }
-  
+
                   // upload new images to s3 from client to avoid burdening back end
                   if(this.state.selectedFiles.length > 0){
                     let prefix = 'stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id + '/'
                     await uploadHandler(prefix, this.state.selectedFiles)
                   }
-  
+
                   fetch(fetchDomain + '/stores/' + store_id + "/services/" + service_id, {
                     method: "POST",
                     headers: {
@@ -328,7 +328,7 @@ class ServiceEditForm extends React.Component {
                   setFieldValue}) => (
                 <Form className="formBody rounded p-5">
                   <h3>Edit Service</h3>
-  
+
                   <Form.Group controlId="formService">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -348,7 +348,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.name}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formCost">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -368,7 +368,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.cost}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formDuration">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -389,7 +389,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.duration}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formDescription">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -411,7 +411,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.description}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formWorkers" className={touched.workers && errors.workers ? "error" : null}>
                     <Multiselect
                       selectedValues={this.state.workers}
@@ -428,7 +428,7 @@ class ServiceEditForm extends React.Component {
                   {touched.workers && errors.workers ? (
                       <div className="error-message" style={{marginTop: -15}}>{errors.workers}</div>
                     ) : null}
-  
+
                   <Form.Group controlId="formCategory" className={touched.category && errors.category ? "error" : null}>
                     <Multiselect
                       selectedValues={this.state.selected}
@@ -446,7 +446,7 @@ class ServiceEditForm extends React.Component {
                   {touched.category && errors.category ? (
                       <div className="error-message" style={{marginTop: -15}}>{errors.category}</div>
                     ) : null}
-  
+
                   <Form.Group controlId="pictureCount">
                     <Form.Label>Delete Images</Form.Label>
                     {this.state.pictures.map((picture, index) => (
@@ -461,7 +461,7 @@ class ServiceEditForm extends React.Component {
                       </div>
                     ))}
                   </Form.Group>
-  
+
                   <Form.Group controlId="pictures">
                     <Form.Label>Add Images</Form.Label>
                     <br/>
@@ -475,7 +475,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Button onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}

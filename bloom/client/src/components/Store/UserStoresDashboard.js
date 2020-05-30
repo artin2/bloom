@@ -9,8 +9,8 @@ import { FaEdit } from 'react-icons/fa';
 import './UserStoresDashboard.css'
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { connect } from 'react-redux';
 // import { bindActionCreators } from 'redux';
 // import {addStore} from '../../reduxFolder/actions/stores.js'

@@ -2,15 +2,17 @@ import { combineReducers } from 'redux'
 import userReducer from './user'
 import alertReducer from './alert'
 // import serviceReducer from './service'
-// import workerReducer from './worker'
+import workerReducer from './worker'
 import storeReducer from './stores'
+import searchReducer from './search'
 
 let rootReducer = combineReducers({
   userReducer,
   alertReducer,
-  storeReducer
+  storeReducer,
+  searchReducer,
   // serviceReducer,
-  // workerReducer
+  workerReducer
 })
 
 export default rootReducer;

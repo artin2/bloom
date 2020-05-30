@@ -7,8 +7,8 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import { FaEnvelope, FaUser, FaPhone } from 'react-icons/fa';
 import { Formik } from 'formik';
 import { Form, Button } from 'react-bootstrap';
-import store from '../../reduxFolder/store';
-import { addAlert } from '../../reduxFolder/actions/alert'
+import store from '../../redux/store';
+import { addAlert } from '../../redux/actions/alert'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import Cookies from 'js-cookie';

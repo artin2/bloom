@@ -11,7 +11,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import {signup} from '../../reduxFolder/redux.js'
+import {signup} from './UserHelper.js'
 import GoogleLogin from 'react-google-login';
 import FacebookLogin from 'react-facebook-login';
 import {TiSocialFacebookCircular, TiSocialGooglePlus} from 'react-icons/ti';

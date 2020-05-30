@@ -12,8 +12,8 @@ import * as Yup from 'yup';
 import { Multiselect } from 'multiselect-react-dropdown';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { uploadHandler } from '../s3';
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
@@ -98,7 +98,7 @@ class AddServiceForm extends React.Component {
         })
       }
     });
-    
+
     await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/categories" , {
       method: "GET",
       headers: {
@@ -191,15 +191,15 @@ class AddServiceForm extends React.Component {
                   let selectedFiles = this.state.selectedFiles
                   let triggerServiceDisplay = this.triggerServiceDisplay
                   let shorterVersion = helper.shorterVersion;
-  
+
                   values.category = values.category.map(function (val) {
                     return shorterVersion(val.label)
                   })[0]
-  
+
                   values.workers = values.workers.map(function(val){
                     return val.value;
                   })
-  
+
                   fetch(fetchDomain + '/stores/addService/' + store_id, {
                     method: "POST",
                     headers: {
@@ -217,7 +217,7 @@ class AddServiceForm extends React.Component {
                     }
                   })
                   .then(async function(data){
-  
+
                     // redirect to home page signed in
                     if(data){
                       // upload to s3 from client to avoid burdening back end
@@ -228,7 +228,7 @@ class AddServiceForm extends React.Component {
                       triggerServiceDisplay(data)
                     }
                   })
-  
+
                   setSubmitting(false)
                 }}
               >
@@ -241,7 +241,7 @@ class AddServiceForm extends React.Component {
                   setFieldValue}) => (
                 <Form className="formBody rounded p-5">
                   <h3>Add Service</h3>
-  
+
                   <Form.Group controlId="formService">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -261,7 +261,7 @@ class AddServiceForm extends React.Component {
                       <div className="error-message">{errors.name}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formCost">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -281,7 +281,7 @@ class AddServiceForm extends React.Component {
                       <div className="error-message">{errors.cost}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formDuration">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -302,7 +302,7 @@ class AddServiceForm extends React.Component {
                       <div className="error-message">{errors.duration}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formDescription">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -324,7 +324,7 @@ class AddServiceForm extends React.Component {
                       <div className="error-message">{errors.description}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formWorkers" className={touched.workers && errors.workers ? "error" : null}>
                     <Multiselect
                       options={this.state.workerOptions}
@@ -340,7 +340,7 @@ class AddServiceForm extends React.Component {
                   {touched.workers && errors.workers ? (
                       <div className="error-message" style={{marginTop: -15}}>{errors.workers}</div>
                     ) : null}
-  
+
                   <Form.Group controlId="formCategory" className={touched.category && errors.category ? "error" : null}>
                     <Multiselect
                       options={this.state.category}
@@ -357,7 +357,7 @@ class AddServiceForm extends React.Component {
                   {touched.category && errors.category ? (
                       <div className="error-message" style={{marginTop: -15}}>{errors.category}</div>
                     ) : null}
-  
+
                   <Form.Group controlId="formPictureCount">
                     <input
                       onChange={event => this.fileChangedHandler(event, setFieldValue)}
@@ -369,7 +369,7 @@ class AddServiceForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}

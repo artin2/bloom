@@ -7,8 +7,8 @@ import Cookies from 'js-cookie';
 import { withRouter } from "react-router-dom";
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import { convertMinsToHrsMins } from '../helperFunctions'
