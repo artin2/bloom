@@ -348,7 +348,7 @@ class StoreEditForm extends React.Component {
               storeHours: this.state.storeHours
             }}
             validationSchema={this.yupValidationSchema}
-            onSubmit={async (values) => {
+            onSubmit={async (values, actions) => {
               let shorterVersion = helper.shorterVersion
 
               values.category = values.category.map(function (val) {
@@ -408,6 +408,7 @@ class StoreEditForm extends React.Component {
               .then(function(response){
                 if(response.status!==200){
                   store.dispatch(addAlert(response))
+                  actions.setSubmitting(false);
                 }
                 else {
                   // redirect to home page signed in
@@ -421,6 +422,7 @@ class StoreEditForm extends React.Component {
                 else{
                   console.log("should not be here, but going to redirect until this is fixed")
                   triggerStoreDisplayNoResp()
+                  actions.setSubmitting(false);
                 }
               });
             }}
@@ -431,7 +433,8 @@ class StoreEditForm extends React.Component {
               handleChange,
               handleBlur,
               handleSubmit,
-              setFieldValue }) => (
+              setFieldValue,
+              isSubmitting }) => (
                 <Form className="formBody rounded p-4">
                   <h3>Store Edit</h3>
 
@@ -907,8 +910,8 @@ class StoreEditForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
                   </Form.Group>
-
-                  <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                  
+                  <Button disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}
           </Formik>

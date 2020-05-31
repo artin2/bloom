@@ -173,7 +173,7 @@ class StoreSignupForm extends React.Component {
                 pictureCount: this.state.selectedFiles.length,
               }}
               validationSchema={this.yupValidationSchema}
-              onSubmit={(values) => {
+              onSubmit={(values, actions) => {
                 let shorterVersion = helper.shorterVersion
 
                 values.category = values.category.map(function (val) {
@@ -206,6 +206,7 @@ class StoreSignupForm extends React.Component {
                     if (response.status !== 200) {
                       // throw an error alert
                       store.dispatch(addAlert(response))
+                      actions.setSubmitting(false);
                     }
                     else {
                       return response.json();
@@ -221,6 +222,9 @@ class StoreSignupForm extends React.Component {
                       this.props.addStore(data)
                       triggerStoreDisplay(data, values.owner_id)
                     }
+                    else{
+                      actions.setSubmitting(false);
+                    }
                   });
               }}
             >
@@ -230,7 +234,8 @@ class StoreSignupForm extends React.Component {
                 handleChange,
                 handleBlur,
                 handleSubmit,
-                setFieldValue
+                setFieldValue,
+                isSubmitting
               }) => (
                   <Form className="formBody rounded p-5">
                     <h3>Store Sign Up</h3>
@@ -690,7 +695,7 @@ class StoreSignupForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
 
-                    <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                    <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                   </Form>
                 )}
             </Formik>

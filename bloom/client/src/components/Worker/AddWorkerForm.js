@@ -192,7 +192,7 @@ class AddWorkerForm extends React.Component {
                 weekIsWorking: this.state.weekIsWorking
               }}
               validationSchema={this.yupValidationSchema}
-              onSubmit={(values) => {
+              onSubmit={(values, actions) => {
                 let store_id = this.props.match.params.store_id
                 let triggerWorkerDisplay = this.triggerWorkerDisplay
 
@@ -218,6 +218,7 @@ class AddWorkerForm extends React.Component {
                 .then(function (response) {
                   if (response.status !== 200) {
                     store.dispatch(addAlert(response))
+                    actions.setSubmitting(false);
                   }
                   else {
                     return response.json();
@@ -227,6 +228,9 @@ class AddWorkerForm extends React.Component {
                   // upon successful worker upload, show the worker
                   if (data) {
                     triggerWorkerDisplay(data)
+                  }
+                  else{
+                    actions.setSubmitting(false);
                   }
                 })
               }}
@@ -238,7 +242,8 @@ class AddWorkerForm extends React.Component {
                 handleChange,
                 handleBlur,
                 handleSubmit,
-                setFieldValue }) => (
+                setFieldValue,
+                isSubmitting }) => (
                   <Form className="formBody rounded p-4">
                     {(() => {
                       if(this.state.storeWeekIsWorking[0]){
@@ -502,7 +507,7 @@ class AddWorkerForm extends React.Component {
                         </Col>
                       </Form.Row>
                     </Form.Group>
-                    <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                    <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                   </Form>
                 )}
             </Formik>

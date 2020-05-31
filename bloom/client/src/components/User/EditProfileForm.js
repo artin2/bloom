@@ -231,7 +231,7 @@ class EditProfileForm extends React.Component {
                   id: 0,
                 }}
                 validationSchema={this.yupValidationSchema}
-                onSubmit={async (values) => {
+                onSubmit={async (values, actions) => {
                   values.id = this.props.user.id
                   values.role = this.props.user.role
                   let needsUpdate = false
@@ -269,6 +269,7 @@ class EditProfileForm extends React.Component {
                   }
                   this.props.editProfile(values)
                   this.props.updateProfileContent(needsUpdate, values.first_name, values.last_name)
+                  actions.setSubmitting(false);
                 }}
               >
               {( {values,
@@ -277,7 +278,8 @@ class EditProfileForm extends React.Component {
                   handleChange,
                   handleBlur,
                   handleSubmit,
-                  setFieldValue}) => (
+                  setFieldValue,
+                  isSubmitting}) => (
                 <Form className="rounded">
                   <Form.Group controlId="picture">
                     <FilePond
@@ -426,7 +428,7 @@ class EditProfileForm extends React.Component {
                       <div className="error-message">{errors.password_confirmation}</div>
                     ): null}
                   </Form.Group>
-                  <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                  <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}
               </Formik>

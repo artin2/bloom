@@ -120,7 +120,7 @@ class LoginForm extends React.Component {
                 </Form.Row>
               <Form.Row className="justify-content-center">
               <Col xs={11} sm={8} md={7} lg={6}>
-                <Button  className="login my-1" type="submit" variant="primary" onClick={this.handleSubmit}>Login</Button>
+                <Button disabled={!(this.state.email && this.state.password)} className="login my-1" type="submit" variant="primary" onClick={this.handleSubmit}>Login</Button>
                   <p className="my-1"> OR </p>
                   <GoogleLogin
                     clientId={process.env.REACT_APP_GOOGLE_ID}

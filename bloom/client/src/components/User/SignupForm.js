@@ -48,9 +48,9 @@ class SignupForm extends React.Component {
     });
   }
 
-  handleSubmit = (values) => {
-
+  handleSubmit = (values, actions) => {
     this.props.signUpUser(values)
+    actions.setSubmitting(false);
   }
 
   successGoogle = (response) => {
@@ -139,7 +139,8 @@ class SignupForm extends React.Component {
             touched,
             handleChange,
             handleBlur,
-            handleSubmit}) => (
+            handleSubmit,
+            isSubmitting}) => (
           <Form className="formBody rounded p-5">
             <h3>Sign Up</h3>
 
@@ -270,7 +271,7 @@ class SignupForm extends React.Component {
                   ): null}
                 </Form.Group>
 
-                <Button className="signup mb-1" onClick={handleSubmit}>Sign Up</Button>
+                <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} className="signup mb-1" onClick={handleSubmit}>Sign Up</Button>
                 </Col>
 
                 <Col xs={12} sm={10} md={7} lg={6} className="mb-5">

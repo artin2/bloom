@@ -186,7 +186,7 @@ class AddServiceForm extends React.Component {
                   pictureCount: this.state.selectedFiles.length
                 }}
                 validationSchema={this.yupValidationSchema}
-                onSubmit={async (values, {setSubmitting }) => {
+                onSubmit={async (values, actions) => {
                   let store_id = this.props.match.params.store_id
                   let selectedFiles = this.state.selectedFiles
                   let triggerServiceDisplay = this.triggerServiceDisplay
@@ -211,6 +211,7 @@ class AddServiceForm extends React.Component {
                   .then(function(response){
                     if(response.status!==200){
                       store.dispatch(addAlert(response))
+                      actions.setSubmitting(false);
                     }
                     else{
                       return response.json();
@@ -221,15 +222,16 @@ class AddServiceForm extends React.Component {
                     // redirect to home page signed in
                     if(data){
                       // upload to s3 from client to avoid burdening back end
-                    if(selectedFiles.length > 0){
-                      let prefix = 'stores/' + data.store_id + '/services/' + data.id + '/'
-                      await uploadHandler(prefix, selectedFiles)
-                    }
+                      if(selectedFiles.length > 0){
+                        let prefix = 'stores/' + data.store_id + '/services/' + data.id + '/'
+                        await uploadHandler(prefix, selectedFiles)
+                      }
                       triggerServiceDisplay(data)
                     }
+                    else{
+                      actions.setSubmitting(false);
+                    }
                   })
-  
-                  setSubmitting(false)
                 }}
               >
               {( {values,
@@ -238,7 +240,8 @@ class AddServiceForm extends React.Component {
                   handleChange,
                   handleBlur,
                   handleSubmit,
-                  setFieldValue}) => (
+                  setFieldValue,
+                  isSubmitting}) => (
                 <Form className="formBody rounded p-5">
                   <h3>Add Service</h3>
   
@@ -370,7 +373,7 @@ class AddServiceForm extends React.Component {
                     ): null}
                   </Form.Group>
   
-                  <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                  <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}
               </Formik>
