@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux'
 import userReducer from './user'
 import alertReducer from './alert'
-// import serviceReducer from './service'
+import serviceReducer from './service'
 import workerReducer from './worker'
 import storeReducer from './stores'
 import searchReducer from './search'
@@ -11,7 +11,7 @@ let rootReducer = combineReducers({
   alertReducer,
   storeReducer,
   searchReducer,
-  // serviceReducer,
+  serviceReducer,
   workerReducer
 })
 

@@ -9,6 +9,10 @@ import { FaEdit } from 'react-icons/fa';
 import LinesEllipsis from 'react-lines-ellipsis'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getServices } from './ServiceHelper.js'
+import { updateCurrentService } from '../../redux/actions/service.js'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -29,20 +33,18 @@ class ServiceDashboard extends React.Component {
 
   // trigger functions are for redirecting to a different page
   triggerServiceEdit(servicePassed) {
+
+    this.props.updateCurrentService(servicePassed)
     this.props.history.push({
       pathname: '/stores/' + this.props.match.params.store_id + "/services/" + servicePassed.id + '/edit',
-      state: {
-        service: servicePassed
-      }
     })
   }
 
   triggerServiceDisplay(servicePassed) {
+
+    this.props.updateCurrentService(servicePassed)
     this.props.history.push({
       pathname: '/stores/' + this.props.match.params.store_id + "/services/" + servicePassed.id,
-      state: {
-        service: servicePassed
-      }
     })
   }
 
@@ -52,30 +54,7 @@ class ServiceDashboard extends React.Component {
     })
   }
 
-  async componentDidMount() {
-    // retrieve the services, either passed or fetching directly from db
-    let services;
-    if(this.props.location.state && this.props.location.state.services){
-      services = this.props.location.state.services
-    }
-    else{
-      services = await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/services/", {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          // store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-    }
+  async fetchPictures(services) {
 
     // if there are services, retrieve the pictures of the services
     if(services.length > 0){
@@ -104,13 +83,29 @@ class ServiceDashboard extends React.Component {
 
       this.setState({
         services: appendedServices,
-        loading: false
       })
     }
-    else{
-      this.setState({
-        loading: false
-      })
+  }
+
+  async componentDidMount() {
+    // retrieve the services, either passed or fetching directly from db
+
+    if(!this.props.services){
+      this.props.getService(this.props.match.params.store_id)
+    }
+    else {
+      this.fetchPictures(this.props.services)
+    }
+
+    this.setState({
+      loading: false
+    })
+  }
+
+  async componentDidUpdate(prevProps, prevState)  {
+
+    if (prevProps.services !== this.props.services) {
+      this.fetchPictures(this.props.services)
     }
   }
 
@@ -204,4 +199,15 @@ class ServiceDashboard extends React.Component {
   }
 }
 
-export default ServiceDashboard;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getServices: (store_id) => getServices(store_id),
+  updateCurrentService: (service) => updateCurrentService(service),
+}, dispatch)
+
+const mapStateToProps = state => ({
+  services: state.serviceReducer.services,
+})
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(ServiceDashboard);

@@ -3,7 +3,6 @@ import { GET_WORKER_OPTIONS_SUCCESS, WORKER_FETCHING, WORKER_FAILURE, ADD_WORKER
 
 const initialState = {
   workers: [],
-  workerOptions: {},
   worker: [],
   isFetching: false,
   error: '',
@@ -12,10 +11,6 @@ const initialState = {
 
 function workerReducer(state = initialState, action) {
   switch (action.type) {
-    // case GET_WORKER_OPTIONS_SUCCESS:
-    //   return Object.assign({}, state, {
-    //     workerOptions: action.workerOptions
-    //   })
 
     case GET_WORKER_SUCCESS:
       return Object.assign({}, state, {

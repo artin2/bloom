@@ -17,6 +17,10 @@ import store from '../../redux/store';
 import { uploadHandler } from '../s3';
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getWorkers } from '../Worker/WorkerHelper.js'
+import { addService, getCategories } from './ServiceHelper.js'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -41,7 +45,7 @@ class AddServiceForm extends React.Component {
       workerOptions: [],
       selectedOption: null,
       selectedFiles: [],
-      isLoading: true
+      isLoading: this.props.loading
     };
 
     // Schema for yup
@@ -73,66 +77,54 @@ class AddServiceForm extends React.Component {
   }
 
   async componentDidMount() {
-    // need to get store category, fetch?
-    await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/workers" , {
-      method: "GET",
-      headers: {
-          'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(function(response){
-      if(response.status!==200){
-        // throw an error alert
-        store.dispatch(addAlert(response))
-      }
-      else{
-        return response.json();
-      }
-    })
-    .then(data => {
-      if(data){
-        let convertedWorkers = data.map((worker) => ({ value: worker.id, label: worker.first_name + " " + worker.last_name }));
-        this.setState({
-          workerOptions: convertedWorkers
-        })
-      }
-    });
 
-    await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/categories" , {
-      method: "GET",
-      headers: {
-          'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(function(response){
-      if(response.status!==200){
-        // throw an error alert
-        store.dispatch(addAlert(response))
-      }
-      else{
-        return response.json();
-      }
-    })
-    .then(data => {
-      if(data){
-        let convertedCategory = data[0].category.map((category, indx) => ({ value: indx, label: helper.longerVersion(category)}));
-        this.setState({
-          category: convertedCategory,
-          isLoading: false
-        })
-      }
-    });
+    if(!this.props.workers) {
+      this.props.getWorkers(this.props.match.params.store_id)
+    }
+    else {
+      let convertedWorkers = this.props.workers.map((worker) => ({ value: worker.id, label: worker.first_name + " " + worker.last_name }));
+      this.setState({
+        workerOptions: convertedWorkers
+      })
+    }
+
+    if(!this.props.categories) {
+      this.props.getCategories(this.props.match.params.store_id)
+    }
+    else {
+      let convertedCategory = this.props.categories.map((category, indx) => ({ value: indx, label: helper.longerVersion(category)}));
+         this.setState({
+           category: convertedCategory,
+         })
+    }
+
   }
 
   // redirect to the worker display page
-  componentDidUpdate(prevProps, prevState)  {
+  async componentDidUpdate(prevProps, prevState)  {
+
     if (prevProps.service !== this.props.service) {
-      this.props.history.push({
-        pathname: '/stores/' + this.props.service.store_id + '/services/' + this.props.service.id
+
+      if(this.state.selectedFiles.length > 0){
+        let prefix = 'stores/' + this.props.service.store_id + '/services/' + this.props.service.id + '/'
+        await uploadHandler(prefix, this.state.selectedFiles)
+      }
+        this.triggerServiceDisplay(this.props.service)
+    }
+    if (prevProps.workers !== this.props.workers) {
+      let convertedWorkers = this.props.workers.map((worker) => ({ value: worker.id, label: worker.first_name + " " + worker.last_name }));
+      this.setState({
+        workerOptions: convertedWorkers
       })
     }
+    if (prevProps.categories !== this.props.categories) {
+      let convertedCategory = this.props.categories.map((category, indx) => ({ value: indx, label: helper.longerVersion(category)}));
+      this.setState({
+        category: convertedCategory,
+        // isLoading: false
+      })
+    }
+
   }
 
   // redirect to the worker display page and pass the new worker data
@@ -188,8 +180,8 @@ class AddServiceForm extends React.Component {
                 validationSchema={this.yupValidationSchema}
                 onSubmit={async (values, {setSubmitting }) => {
                   let store_id = this.props.match.params.store_id
-                  let selectedFiles = this.state.selectedFiles
-                  let triggerServiceDisplay = this.triggerServiceDisplay
+                  // let selectedFiles = this.state.selectedFiles
+                  // let triggerServiceDisplay = this.triggerServiceDisplay
                   let shorterVersion = helper.shorterVersion;
 
                   values.category = values.category.map(function (val) {
@@ -200,35 +192,7 @@ class AddServiceForm extends React.Component {
                     return val.value;
                   })
 
-                  fetch(fetchDomain + '/stores/addService/' + store_id, {
-                    method: "POST",
-                    headers: {
-                      'Content-type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(values)
-                  })
-                  .then(function(response){
-                    if(response.status!==200){
-                      store.dispatch(addAlert(response))
-                    }
-                    else{
-                      return response.json();
-                    }
-                  })
-                  .then(async function(data){
-
-                    // redirect to home page signed in
-                    if(data){
-                      // upload to s3 from client to avoid burdening back end
-                    if(selectedFiles.length > 0){
-                      let prefix = 'stores/' + data.store_id + '/services/' + data.id + '/'
-                      await uploadHandler(prefix, selectedFiles)
-                    }
-                      triggerServiceDisplay(data)
-                    }
-                  })
-
+                  this.props.addService(store_id, values)
                   setSubmitting(false)
                 }}
               >
@@ -382,4 +346,18 @@ class AddServiceForm extends React.Component {
   }
 }
 
-export default AddServiceForm;
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getWorkers: (store_id) => getWorkers(store_id),
+  addService: (store_id, values) => addService(store_id, values),
+  getCategories: (store_id) => getCategories(store_id)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  service: state.serviceReducer.service,
+  workers: state.workerReducer.workers,
+  loading: state.serviceReducer.isFetching,
+  categories: state.serviceReducer.categories
+})
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddServiceForm);

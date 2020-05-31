@@ -8,6 +8,8 @@ import {Carousel, Image } from 'react-bootstrap'
 import { /*getPictures,*/ defaultServicePictures } from '../s3'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 const override = css`
   display: block;
   margin: 0 auto;
@@ -18,15 +20,7 @@ class ServiceDisplay extends React.Component {
   constructor(props) {
     super(props);
     this.state ={
-      service: {
-        id: "",
-        name: "",
-        cost: "",
-        workers: [],
-        store_id: "",
-        category: "",
-        description: ""
-      },
+      service: this.props.service,
       loading: true,
       pictures: [],
       store: {owners:[]}
@@ -54,27 +48,27 @@ class ServiceDisplay extends React.Component {
     let picturesFetched = defaultServicePictures()
 
     // retrieve the service, either passed or fetching directly from db
-    if(this.props.location.state && this.props.location.state.service){
+    if(this.props.service){
       this.setState({
-        service: this.props.location.state.service,
+        // service: this.props.location.state.service,
         pictures: picturesFetched,
       })
     }
-    else{
-      const serviceResponse = await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id, {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      const serviceFetched = await serviceResponse.json()
-
-      this.setState({
-        service: serviceFetched,
-        pictures: picturesFetched,
-      })
-    }
+    // else{
+    //   const serviceResponse = await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id, {
+    //     method: "GET",
+    //     headers: {
+    //         'Content-type': 'application/json'
+    //     },
+    //     credentials: 'include'
+    //   })
+    //   const serviceFetched = await serviceResponse.json()
+    //
+    //   this.setState({
+    //     service: serviceFetched,
+    //     pictures: picturesFetched,
+    //   })
+    // }
 
     // get the store so we can check if the current user is an owner
     let storeResponse = await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id, {
@@ -168,4 +162,10 @@ class ServiceDisplay extends React.Component {
   }
 }
 
-export default ServiceDisplay;
+
+const mapStateToProps = state => ({
+  service: state.serviceReducer.service,
+
+})
+
+export default connect(mapStateToProps, null)(ServiceDisplay);
