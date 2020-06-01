@@ -12,11 +12,15 @@ import * as Yup from 'yup';
 import { Multiselect } from 'multiselect-react-dropdown';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getWorkers } from '../Worker/WorkerHelper.js'
+import { editService, getCategories, getService } from './ServiceHelper.js'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -34,15 +38,7 @@ class ServiceEditForm extends React.Component {
       selected: [],
       workers: [],
       workerError: false,
-      service: {
-        id: "",
-        name: "",
-        cost: "",
-        workers: [],
-        store_id: "",
-        category: "",
-        description: ""
-      },
+      service: this.props.service,
       workerOptions: [],
       preselectedWorkers: [],
       preselectedCategories: [],
@@ -71,9 +67,9 @@ class ServiceEditForm extends React.Component {
       .required("Worker is required"),
       category: Yup.array()
       .required("Category is required"),
-      pictureCount: Yup.number()
-      .required("Pictures are required")
-      .min(1, "Must have at least one picture")
+      // pictureCount: Yup.number()
+      // .required("Pictures are required")
+      // .min(1, "Must have at least one picture")
     });
 
     this.triggerServiceDisplay = this.triggerServiceDisplay.bind(this);
@@ -109,7 +105,8 @@ class ServiceEditForm extends React.Component {
     setFieldValue("pictureCount", this.state.pictures.length - this.state.keys.length + event.target.files.length)
   }
 
-  async componentDidMount() {
+  async fetchPictures() {
+
     let picturesFetched = []
     try {
       picturesFetched = await getPictures('stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id + '/')
@@ -117,99 +114,89 @@ class ServiceEditForm extends React.Component {
       console.log("Error getting pictures from s3!", e)
     }
 
-    if(this.props.location.state && this.props.location.state.service){
+    this.setState({
+      // service: this.props.location.state.service,
+      pictures: picturesFetched,
+    })
 
-      this.setState({
-        service: this.props.location.state.service,
-        pictures: picturesFetched,
-      })
+  }
+
+  componentDidMount() {
+
+    if(!this.props.service){
+      this.props.getService(this.props.match.params.store_id, this.props.match.params.service_id)
     }
-    else{
-      // first we fetch the service itself
-      await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id, {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        if(data){
-          this.setState({
-            service: data,
-            pictures: picturesFetched,
-          })
-        }
-      });
+    else {
+      this.fetchPictures()
     }
 
-    await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/categories" , {
-      method: "GET",
-      headers: {
-          'Content-type': 'application/json'
-      },
-      credentials: 'include'
+    if(!this.props.workers) {
+      this.props.getWorkers(this.props.match.params.store_id)
+    }
+    else {
+      this.convertWorkers(this.props.workers)
+    }
+
+    if(!this.props.categories) {
+      this.props.getCategories(this.props.match.params.store_id)
+    }
+    else {
+      this.convertCategory(this.props.categories)
+    }
+
+    this.setState({
+      isLoading: false
     })
-    .then(function(response){
-      if(response.status!==200){
-        // throw an error alert
-        store.dispatch(addAlert(response))
-      }
-      else{
-        return response.json();
-      }
-    })
-    .then(data => {
-      if(data){
 
-        let convertedCategory = []
-        let preselectedCategories = []
+  }
 
-        data[0].category.map((category, indx) => {
-          convertedCategory.push({ value: indx, label: helper.longerVersion(category)})
-          if(this.state.service.category === category) {
-            preselectedCategories.push({ value: indx, label: helper.longerVersion(category)})
-          }
-          return category
-        });
+  componentDidUpdate(prevProps, prevState)  {
 
-        this.setState({
-          category: convertedCategory,
-          selected: preselectedCategories
-        })
+    if (prevProps.service !== this.props.service) {
+          this.fetchPictures()
+    }
+
+    if (prevProps.categories !== this.props.categories) {
+      this.convertCategory(this.props.categories)
+    }
+
+    if (prevProps.workers !== this.props.workers) {
+      this.convertWorkers(this.props.workers)
+    }
+
+    if (prevProps.services !== this.props.services) {
+
+      this.triggerServiceDisplay(this.props.service)
+
+    }
+
+  }
+
+  convertCategory(categories) {
+
+    let convertedCategory = []
+    let preselectedCategories = []
+
+    categories.map((category, indx) => {
+      convertedCategory.push({ value: indx, label: helper.longerVersion(category)})
+      if(this.state.service.category === category) {
+        preselectedCategories.push({ value: indx, label: helper.longerVersion(category)})
       }
+      return category
     });
 
-    await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/workers" , {
-      method: "GET",
-      headers: {
-          'Content-type': 'application/json'
-      },
-      credentials: 'include',
+    this.setState({
+      category: convertedCategory,
+      selected: preselectedCategories
     })
-    .then(function(response){
-      if(response.status!==200){
-        console.log("Error!", response.status)
-      }
-      else{
-        return response.json();
-      }
-    })
-    .then(data => {
+  }
+
+  convertWorkers(workers) {
 
       let convertedWorkers = []
       let preselectedWorkers = []
       let originalWorkers = []
-      data.map((worker) => {
+      workers.map((worker) => {
         convertedWorkers.push({ value: worker.id, label: worker.first_name + " " + worker.last_name})
         if(this.state.service.workers.includes(worker.id)) {
           preselectedWorkers.push({value: worker.id, label: worker.first_name + " " + worker.last_name})
@@ -219,12 +206,10 @@ class ServiceEditForm extends React.Component {
       });
 
       this.setState({
-        isLoading: false,
         workerOptions: convertedWorkers,
         workers: preselectedWorkers,
         originalWorkers: originalWorkers
       })
-    });
 
   }
 
@@ -266,14 +251,13 @@ class ServiceEditForm extends React.Component {
                 onSubmit={async (values, actions) => {
                   let store_id = this.props.match.params.store_id
                   let service_id = this.props.match.params.service_id
-                  let triggerServiceDisplay = this.triggerServiceDisplay
-  
+
                   let shorterVersion = helper.shorterVersion;
-  
+
                   values.category = values.category.map(function (val) {
                     return shorterVersion(val.label)
                   })[0]
-  
+
                   values.workers = values.workers.map(function(val){
                     return val.value;
                   })
@@ -281,48 +265,24 @@ class ServiceEditForm extends React.Component {
                   var allWorkers = this.state.originalWorkers.concat(values.workers)
                   var allWorkersUnique = allWorkers.filter((worker, pos) => allWorkers.indexOf(worker) === pos)
                   values.allWorkers = allWorkersUnique
-  
+
                   if(values.category.length === 0 || values.workers.length === 0) {
                     return;
                   }
-  
+
                   // remove files from s3
                   if(this.state.keys.length > 0){
                     await deleteHandler(this.state.keys)
                   }
-  
+
                   // upload new images to s3 from client to avoid burdening back end
                   if(this.state.selectedFiles.length > 0){
                     let prefix = 'stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id + '/'
                     await uploadHandler(prefix, this.state.selectedFiles)
                   }
-  
-                  fetch(fetchDomain + '/stores/' + store_id + "/services/" + service_id, {
-                    method: "POST",
-                    headers: {
-                      'Content-type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(values)
-                  })
-                  .then(function(response){
-                    if(response.status!==200){
-                      store.dispatch(addAlert(response))
-                      actions.setSubmitting(false);
-                    }
-                    else{
-                      return response.json();
-                    }
-                  })
-                  .then(function(data){
-                    // redirect to home page signed in
-                    if(data){
-                      triggerServiceDisplay(data)
-                    }
-                    else{
-                      actions.setSubmitting(false);
-                    }
-                  })
+
+                  await this.props.editService(store_id, service_id, values)
+                  actions.setSubmitting(false)
                 }}
               >
               {( {values,
@@ -335,7 +295,7 @@ class ServiceEditForm extends React.Component {
                   isSubmitting}) => (
                 <Form className="formBody rounded p-5">
                   <h3>Edit Service</h3>
-  
+
                   <Form.Group controlId="formService">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -355,7 +315,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.name}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formCost">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -375,7 +335,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.cost}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formDuration">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -396,7 +356,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.duration}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formDescription">
                     <InputGroup>
                       <InputGroup.Prepend>
@@ -418,7 +378,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.description}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Form.Group controlId="formWorkers" className={touched.workers && errors.workers ? "error" : null}>
                     <Multiselect
                       selectedValues={this.state.workers}
@@ -435,7 +395,7 @@ class ServiceEditForm extends React.Component {
                   {touched.workers && errors.workers ? (
                       <div className="error-message" style={{marginTop: -15}}>{errors.workers}</div>
                     ) : null}
-  
+
                   <Form.Group controlId="formCategory" className={touched.category && errors.category ? "error" : null}>
                     <Multiselect
                       selectedValues={this.state.selected}
@@ -453,7 +413,7 @@ class ServiceEditForm extends React.Component {
                   {touched.category && errors.category ? (
                       <div className="error-message" style={{marginTop: -15}}>{errors.category}</div>
                     ) : null}
-  
+
                   <Form.Group controlId="pictureCount">
                     <Form.Label>Delete Images</Form.Label>
                     {this.state.pictures.map((picture, index) => (
@@ -468,7 +428,7 @@ class ServiceEditForm extends React.Component {
                       </div>
                     ))}
                   </Form.Group>
-  
+
                   <Form.Group controlId="pictures">
                     <Form.Label>Add Images</Form.Label>
                     <br/>
@@ -495,4 +455,19 @@ class ServiceEditForm extends React.Component {
   }
 }
 
-export default ServiceEditForm;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getWorkers: (store_id) => getWorkers(store_id),
+  editService: (store_id, service_id, values) => editService(store_id, service_id, values),
+  getCategories: (store_id) => getCategories(store_id),
+  getService: (store_id, service_id) => getService(store_id, service_id)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  service: state.serviceReducer.service,
+  workers: state.workerReducer.workers,
+  categories: state.serviceReducer.categories,
+  services: state.serviceReducer.services
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(ServiceEditForm);

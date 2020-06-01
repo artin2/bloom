@@ -11,11 +11,14 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 import { convertMinsToHrsMins } from '../helperFunctions'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getStoreHours, addWorker } from './WorkerHelper.js'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -28,7 +31,7 @@ class AddWorkerForm extends React.Component {
     this.state = {
       email: '',
       workerHours: [],
-      storeHours: [],
+      storeHours: this.props.storeHours,
       weekIsWorking: [true, true, true, true, true, true, true],
       storeWeekIsWorking: [true, true, true, true, true, true, true],
       loading: true,
@@ -83,57 +86,54 @@ class AddWorkerForm extends React.Component {
   };
 
   // redirect to the worker display page and pass the new worker data
-  triggerWorkerDisplay(returnedWorker) {
+  triggerWorkerDisplay(returnedWorker, workerHours) {
+
+    returnedWorker.workerHours = workerHours
     this.props.history.push({
       pathname: '/stores/' + this.props.match.params.store_id + '/workers/' + returnedWorker.id,
       state: {
-        worker: returnedWorker
+        worker: returnedWorker,
       }
     })
   }
 
   componentDidMount() {
+
     // fetch store hours on mounting
-    fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/storeHours", {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(function (response) {
-      if (response.status !== 200) {
-        // throw an error alert
-        store.dispatch(addAlert(response))
-      }
-      else {
-        return response.json();
-      }
-    })
-    .then(data => {
-      // on successful retrieval of store data, map worker's potential valid hours accordingly
-      if (data) {
-        let receivedWorkerHours = data.map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
-        let oldWeekIsWorking = this.state.weekIsWorking
-
-        for(let i = 0; i < receivedWorkerHours.length; i++){
-          if(receivedWorkerHours[i].start_time == null){
-            oldWeekIsWorking[i] = false
-          }
-        }
-
-        let storeWeekIsWorking = JSON.parse(JSON.stringify(oldWeekIsWorking))
-
-        this.setState({
-          storeHours: data,
-          weekIsWorking: oldWeekIsWorking,
-          workerHours: receivedWorkerHours,
-          storeWeekIsWorking: storeWeekIsWorking,
-          loading: false
-        })
-      }
-    });
+    this.props.getStoreHours(this.props.match.params.store_id)
   }
+
+  componentDidUpdate(prevProps) {
+
+    if (this.props.storeHours !== prevProps.storeHours) {
+
+      let receivedWorkerHours = this.props.storeHours.map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
+      let oldWeekIsWorking = this.state.weekIsWorking
+
+      for(let i = 0; i < receivedWorkerHours.length; i++){
+        if(receivedWorkerHours[i].start_time == null){
+          oldWeekIsWorking[i] = false
+        }
+      }
+
+      let storeWeekIsWorking = JSON.parse(JSON.stringify(oldWeekIsWorking))
+
+      this.setState({
+        storeHours: this.props.storeHours,
+        weekIsWorking: oldWeekIsWorking,
+        workerHours: receivedWorkerHours,
+        storeWeekIsWorking: storeWeekIsWorking,
+        loading: false
+      })
+    }
+
+    if (this.props.addedWorker != prevProps.addedWorker) {
+
+      this.triggerWorkerDisplay(this.props.addedWorker, this.state.workerHours)
+
+    }
+  }
+
 
   render() {
     const CreateStartTimesForDay = (props) => {
@@ -194,45 +194,24 @@ class AddWorkerForm extends React.Component {
               validationSchema={this.yupValidationSchema}
               onSubmit={(values, actions) => {
                 let store_id = this.props.match.params.store_id
-                let triggerWorkerDisplay = this.triggerWorkerDisplay
 
                 // modify worker hours for db
                 values.workerHours = values.workerHours.map((day, index) => {
                   if(values.weekIsWorking[index]){
                     return day
-                  } 
+                  }
                   else{
                     return {start_time: null, end_time: null}
                   }
                 })
 
-                // upload worker to db
-                fetch(fetchDomain + '/stores/addWorker/' + store_id, {
-                  method: "POST",
-                  headers: {
-                    'Content-type': 'application/json'
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify(values)
+                this.setState({
+                  workerHours: values.workerHours
                 })
-                .then(function (response) {
-                  if (response.status !== 200) {
-                    store.dispatch(addAlert(response))
-                    actions.setSubmitting(false);
-                  }
-                  else {
-                    return response.json();
-                  }
-                })
-                .then(function (data) {
-                  // upon successful worker upload, show the worker
-                  if (data) {
-                    triggerWorkerDisplay(data)
-                  }
-                  else{
-                    actions.setSubmitting(false);
-                  }
-                })
+
+                this.props.addWorker(store_id, values)
+
+                actions.setSubmitting(false)
               }}
 
             >
@@ -524,4 +503,17 @@ class AddWorkerForm extends React.Component {
   }
 }
 
-export default AddWorkerForm;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getStoreHours: (id) => getStoreHours(id),
+  addWorker: (id, values) => addWorker(id, values)
+}, dispatch)
+
+
+const mapStateToProps = state => ({
+  storeHours: state.workerReducer.storeHours,
+  addedWorker: state.workerReducer.worker
+})
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddWorkerForm);

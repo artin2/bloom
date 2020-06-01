@@ -570,6 +570,7 @@ async function addWorkerHours(workerHours, worker_id, store_id){
 }
 
 async function editWorker(req, res, next) {
+  console.log(req.body)
   let worker = null
   if (!req.body.noChange) {
     try {
@@ -764,7 +765,7 @@ async function editService(req, res, next) {
                     else{
                       newServices = [parseInt(req.params.service_id)]
                     }
-  
+
                     query = 'UPDATE workers SET services = $1 where id=$2 RETURNING *'
                     values = [newServices, resultSecond.rows[0].id]
 
@@ -781,7 +782,7 @@ async function editService(req, res, next) {
                   if(newServices.length === 0){
                     newServices = null
                   }
-                  
+
                   query = 'UPDATE workers SET services = $1 where id=$2 RETURNING *'
                   values = [newServices, resultSecond.rows[0].id]
 
@@ -1225,7 +1226,7 @@ async function getWorkersSchedulesInternal(store_id) {
     let query = 'SELECT * FROM worker_hours WHERE store_id = $1'
     let values = [store_id]
 
-    return new Promise(function(resolve, reject) { 
+    return new Promise(function(resolve, reject) {
       db.client.connect((err, client, done) => {
       // try to get the store item based on id
         db.client.query(query, values, (err, result) => {

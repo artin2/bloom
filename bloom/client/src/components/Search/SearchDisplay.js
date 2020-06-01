@@ -6,29 +6,23 @@ import MapContainer from '../Map/MapContainer'
 import SearchDisplayLoader from './SearchDisplayLoader'
 import SearchDisplayLoaderMobile from './SearchDisplayLoaderMobile'
 import {Switch} from '@material-ui/core'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getSearchResults } from './SearchHelper.js'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 class SearchDisplay extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      stores: [],
-      // center: {
-      //   lat: 0.0,
-      //   lng: 0.0
-      // },
+      stores: this.props.stores,
       zoom: 11,
       mapStyles: {
         width: '100%',
         height: '100%'
       },
-      center: {
-        lat: '',
-        lng: ''
-      },
-      loading: true,
+      center: this.props.center,
       query: this.props.location.search,
-      ownUpdate: false,
       checked: true
     }
 
@@ -41,77 +35,19 @@ class SearchDisplay extends React.Component {
     })
   }
 
-  componentDidMount() {
-    if (this.props.location.state && this.props.location.state.stores && this.props.location.state.center) {
-      this.setState({
-        stores: this.props.location.state.stores,
-        center: this.props.location.state.center,
-        loading: false
-      })
-    }
-    else {
-      let link = window.location.href.split("search")
-      let query = ""
-
-      if (link.length > 1) {
-        query = link[1]
-      }
-
-      this.getResults(false, query);
-    }
-  }
-
-  static getDerivedStateFromProps(nextProps, preState) {
-    if (preState.ownUpdate) {
-      return null
-    }
-    else {
-      if(nextProps.location.search !== preState.query) {
-        return {
-          loading: true
-        }
-      } else {
-        return null
-      }
-    }
-  }
-
   componentDidUpdate(prevProps) {
-    if (this.props.location) {
-      if (this.props.location.search !== prevProps.location.search) {
-        this.getResults(true, this.props.location.search);
-      }
-    }
-  }
 
-  getResults(update, query) {
-    fetch(fetchDomain + '/stores' + query, {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-      .then(function (response) {
-        if (response.status !== 200) {
-          // should throw an error here
-          console.log("ERROR!", response)
-        }
-        else {
-          return response.json();
-        }
-      })
-      .then(data => {
-        if (data) {
+      if (this.props.stores !== prevProps.stores) {
+
           this.setState({
-            stores: data.stores,
-            center: data.center,
-            loading: false,
-            ownUpdate: update
+            stores: this.props.stores,
+            center: this.props.center,
+
           })
         }
-      });
-  }
+
+    }
+
 
   render() {
     const RenderStoreCards = (props) => {
@@ -123,7 +59,7 @@ class SearchDisplay extends React.Component {
       ))
     }
     const DisplayWithLoading = (props) => {
-      if (this.state.loading) {
+      if (this.props.loading) {
         return <Row>
             <Col xs="12">
               <SearchDisplayLoader className={'d-none d-xl-block'}/>
@@ -162,7 +98,11 @@ class SearchDisplay extends React.Component {
       <div>
         <Row className="justify-content-center">
           <Col xs={12} className="d-block d-xl-none" style={{marginTop: 15, marginBottom: 15}}>
-            <Switch color="primary" checked={this.state.checked} onChange={this.toggleChecked}/>
+            <Row className="justify-content-center">
+              <p style={{marginTop: 5}}> Map View </p>
+              <Switch color="primary" checked={this.state.checked} onChange={this.toggleChecked}/>
+              <p style={{marginTop: 5}}> List View </p>
+            </Row>
           </Col>
         </Row>
         <Row className="restrict-viewport mx-0">
@@ -180,4 +120,15 @@ class SearchDisplay extends React.Component {
   }
 }
 
-export default SearchDisplay;
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getSearchResults: (query) => getSearchResults(query)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  stores: state.searchReducer.stores,
+  loading: state.searchReducer.isFetching,
+  center: state.searchReducer.center
+})
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(SearchDisplay);

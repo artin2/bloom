@@ -31,8 +31,8 @@ import ServiceEditForm from './components/Service/ServiceEditForm';
 import AppointmentDisplay from './components/Appointments/AppointmentDisplay';
 import {
   userLogout
-} from './reduxFolder/actions/user'
-import store from './reduxFolder/store';
+} from './redux/actions/user'
+import store from './redux/store';
 import UserAppointments from './components/Appointments/UserAppointments';
 
 function App() {

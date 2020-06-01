@@ -2,9 +2,12 @@ import React from 'react';
 import './Homepage.css';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { Image } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getSearchResults } from '../Search/SearchHelper.js'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 const helper = require('../Search/helper.js');
 
@@ -73,9 +76,6 @@ class Category extends React.Component {
       if (status === google.maps.GeocoderStatus.OK) {
         if (results[0]) {
           const add = results[0].formatted_address;
-          // const value = add.split(",");
-          // const count = value.length;
-          // const city = value[count - 3];
           console.log("My Current Location:", add)
           this.setState({
             address: add
@@ -106,38 +106,14 @@ class Category extends React.Component {
         [this.props.id]: true
       })
 
-      console.log(this.state)
-
       let query = helper.queryString(this.state)
+      this.props.getSearchResults(query)
 
-      fetch(fetchDomain + '/stores' + query, {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        }
+      this.props.history.push({
+        pathname: '/search',
+        search: query,
       })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        if(data){
-          let stateRep = this.state
-          stateRep.stores = data.stores
-          stateRep.redirect = true
 
-          this.props.history.push({
-            pathname: '/search',
-            search: query,
-            state: stateRep
-          })
-        }
-      });
     }
   }
 
@@ -155,4 +131,10 @@ class Category extends React.Component {
   }
 }
 
-export default Category;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getSearchResults: (query) => getSearchResults(query)
+}, dispatch)
+
+
+export default connect(null, mapDispatchToProps)(Category);

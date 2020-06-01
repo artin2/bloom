@@ -1,8 +1,8 @@
 import React from 'react';
-import store from '../../reduxFolder/store';
+import store from '../../redux/store';
 import {
   removeAlert
-} from '../../reduxFolder/actions/alert'
+} from '../../redux/actions/alert'
 import { connect } from 'react-redux';
 import './Flash.css';
 
@@ -13,7 +13,7 @@ class Alert extends React.Component {
     this.removeAlert = this.removeAlert.bind(this);
     this.alertClass = this.alertClass.bind(this);
   }
-  
+
   alertClass (status) {
     let classes = {
       400: 'alert-danger',
@@ -41,7 +41,7 @@ class Alert extends React.Component {
                 { alert.statusText }
               </div>
     }
- 
+
     return(
       <div className="alert-fixed" style={{ zIndex: 1}}>
         {alertTag}

@@ -6,8 +6,11 @@ import { withRouter } from "react-router-dom";
 import { Multiselect } from 'multiselect-react-dropdown';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getSearchResults } from './SearchHelper.js'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const helper = require('./helper.js');
@@ -16,6 +19,7 @@ class AdvancedSearch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+
       selected: [],
       address: '',
       distance: 1,
@@ -131,6 +135,7 @@ class AdvancedSearch extends React.Component {
     this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
   }
 
+
   handlePlaceSelect() {
     let addressObject = this.autocomplete.getPlace()
 
@@ -153,7 +158,7 @@ class AdvancedSearch extends React.Component {
     })
   }
 
-  handleSubmit(event) {
+  async handleSubmit(event) {
     // for some reason doesn't work without this..
     event.preventDefault();
 
@@ -164,44 +169,13 @@ class AdvancedSearch extends React.Component {
     let queryString = helper.queryString;
     let query = queryString(this.state)
 
-    // console.log(this.state);
-    // console.log(query);
-    // console.log("environment is: ", process.env.NODE_ENV)
-    // console.log("fetch prod is: ", process.env.REACT_APP_FETCH_DOMAIN_PROD)
-    // console.log("fetch dev is: ", process.env.REACT_APP_FETCH_DOMAIN_DEV)
-    // console.log("fetch domain is: ", fetchDomain)
-    fetch(fetchDomain + '/stores' + query, {
-      method: "GET",
-      headers: {
-          'Content-type': 'application/json'
-      }
-    })
-    .then(function(response){
-      if(response.status!==200){
-        // throw an error alert
-        store.dispatch(addAlert(response))
-      }
-      else{
-        return response.json();
-      }
-    })
-    .then(data => {
-      if(data){
-        let stateRep = this.state
-        stateRep.stores = data.stores
-        stateRep.redirect = true
-        // stateRep.center = {
-        //   lat: "34.277639",
-        //   lng: "-118.3741806"
-        // }
+    this.props.getSearchResults(query);
 
-        this.props.history.push({
-          pathname: '/search',
-          search: query,
-          state: stateRep
-        })
-      }
-    });
+    this.props.history.push({
+      pathname: '/search',
+      search: helper.queryString(this.state),
+    })
+
   }
 
   render() {
@@ -256,4 +230,9 @@ class AdvancedSearch extends React.Component {
   }
 }
 
-export default withRouter(AdvancedSearch);
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getSearchResults: (query) => getSearchResults(query)
+}, dispatch)
+
+
+export default withRouter(connect(null, mapDispatchToProps)(AdvancedSearch));

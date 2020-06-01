@@ -10,7 +10,7 @@ import { FaLockOpen, FaLock, FaUser, FaPhone } from 'react-icons/fa';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { bindActionCreators } from 'redux';
-import {editUser} from '../../reduxFolder/redux.js'
+import {editUser} from './UserHelper'
 import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { connect } from 'react-redux';
 import { css } from '@emotion/core'
@@ -69,16 +69,16 @@ class EditProfileForm extends React.Component {
           this.setModalShow(true);
           this.setState({image: (URL.createObjectURL(file))});
         },
-      
+
         // Callback set by FilePond
         // - should be called by the editor when user confirms editing
         // - should receive output object, resulting edit information
         onconfirm: output => {},
-      
+
         // Callback set by FilePond
         // - should be called by the editor when user cancels editing
         oncancel: () => {},
-      
+
         // Callback set by FilePond
         // - should be called by the editor when user closes the editor
         onclose: () => {}
@@ -166,7 +166,7 @@ class EditProfileForm extends React.Component {
       let picturesFetched = []
       try {
         picturesFetched = await getPictures('users/' + this.props.user.id + '/')
-  
+
         if(picturesFetched.length > 0){
           // check count!!!!!
           await this.setState({
@@ -196,7 +196,7 @@ class EditProfileForm extends React.Component {
       }
     }
   }
-    
+
   render() {
     if(this.state.isLoading){
       return <Row className="vertical-center">
@@ -302,7 +302,7 @@ class EditProfileForm extends React.Component {
                         });
                       }}
                       server={{
-                        // fetch the image from our server, a little buggy bc of s3 permissions issues related to cors and maybe browser caching. 
+                        // fetch the image from our server, a little buggy bc of s3 permissions issues related to cors and maybe browser caching.
                         load: (source, load) => {
                           var myRequest = new Request(source);
                           const options = {
@@ -333,12 +333,12 @@ class EditProfileForm extends React.Component {
                               <FaUser/>
                           </InputGroup.Text>
                       </InputGroup.Prepend>
-                      <Form.Control 
-                        type="text" 
+                      <Form.Control
+                        type="text"
                         name="first_name"
-                        value={values.first_name} 
-                        placeholder="First Name" 
-                        onChange={handleChange} 
+                        value={values.first_name}
+                        placeholder="First Name"
+                        onChange={handleChange}
                         onBlur={handleBlur}
                         className={touched.first_name && errors.first_name ? "error" : null}/>
                     </InputGroup>
@@ -354,10 +354,10 @@ class EditProfileForm extends React.Component {
                               <FaUser/>
                           </InputGroup.Text>
                       </InputGroup.Prepend>
-                      <Form.Control type="text" 
+                      <Form.Control type="text"
                       value={values.last_name}
-                      placeholder="Last Name" 
-                      name="last_name" 
+                      placeholder="Last Name"
+                      name="last_name"
                       onChange={handleChange}
                       onBlur={handleBlur}
                       className={touched.last_name && errors.last_name ? "error" : null}/>
@@ -374,11 +374,11 @@ class EditProfileForm extends React.Component {
                               <FaPhone/>
                           </InputGroup.Text>
                       </InputGroup.Prepend>
-                      <Form.Control type="text" 
-                        value={values.phone} 
-                        placeholder="Phone Number" 
-                        name="phone" 
-                        onChange={handleChange} 
+                      <Form.Control type="text"
+                        value={values.phone}
+                        placeholder="Phone Number"
+                        name="phone"
+                        onChange={handleChange}
                         onBlur={handleBlur}
                         className={touched.phone && errors.phone ? "error" : null}/>
                     </InputGroup>
@@ -394,12 +394,12 @@ class EditProfileForm extends React.Component {
                               <FaLockOpen/>
                           </InputGroup.Text>
                       </InputGroup.Prepend>
-                      <Form.Control 
-                        type="password" 
-                        value={values.password} 
-                        placeholder="Password" 
-                        name="password" 
-                        onChange={handleChange} 
+                      <Form.Control
+                        type="password"
+                        value={values.password}
+                        placeholder="Password"
+                        name="password"
+                        onChange={handleChange}
                         onBlur={handleBlur}
                         className={touched.password && errors.password ? "error" : null}/>
                     </InputGroup>
@@ -415,12 +415,12 @@ class EditProfileForm extends React.Component {
                               <FaLock/>
                           </InputGroup.Text>
                       </InputGroup.Prepend>
-                      <Form.Control 
-                        type="password" 
+                      <Form.Control
+                        type="password"
                         value={values.password_confirmation}
-                        placeholder="Confirm Password" 
-                        name="password_confirmation" 
-                        onChange={handleChange} 
+                        placeholder="Confirm Password"
+                        name="password_confirmation"
+                        onChange={handleChange}
                         onBlur={handleBlur}
                         className={touched.password_confirmation && errors.password_confirmation ? "error" : null}/>
                     </InputGroup>

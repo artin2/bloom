@@ -7,8 +7,8 @@ import Cookies from 'js-cookie';
 import { withRouter } from "react-router-dom";
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import { convertMinsToHrsMins } from '../helperFunctions'
@@ -114,7 +114,7 @@ class AppointmentDisplay extends React.Component {
               store_ids: data.store_ids,
               store_name_mappings: data.store_name_mappings,
               dates: data.dates,
-              start_times: data.start_times, 
+              start_times: data.start_times,
               end_times: data.end_times,
               costs: data.costs,
               group_ids: data.group_ids,
@@ -124,7 +124,7 @@ class AppointmentDisplay extends React.Component {
               hasAppointments: true
             })
           }
-          
+
         }
       });
   }

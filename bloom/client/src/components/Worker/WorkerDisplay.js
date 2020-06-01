@@ -13,6 +13,8 @@ import { getPictures } from '../s3'
 import { convertMinsToHrsMins } from '../helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -24,24 +26,11 @@ class WorkerDisplay extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      worker: {
-        id: 0,
-        store_id: 0,
-        services: [],
-        user_id: 0,
-        created_at: "",
-        first_name: "",
-        last_name: ""
-      },
-      serviceMapping: {
-        0: "Brazilian Blowout",
-        1: "Manicure"
-      },
+      worker: this.props.worker,
+      storeHours: this.props.storeHours,
+
       loading: true,
-      workerHours: [],
-      receivedServices: [],
       selectedOption: [],
-      storeHours: [],
       choice: 0,
       picture: null,
       daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -51,25 +40,32 @@ class WorkerDisplay extends React.Component {
   }
 
   updateWorkerHours = (newHours) => {
-    this.setState({
-      workerHours: newHours
-    })
+
+    this.setState(prevState => ({
+    ...prevState, worker: {
+        ...prevState.worker,
+        workerHours: newHours
+        }
+      })
+    )
   }
 
-  updateWorker = (worker, newHours, services) => {
-    let updateHours = this.state.workerHours.map((dayHours, index) =>{
-      if(newHours[index] != null) {
-        return newHours[index]
-      } else {
-        return dayHours
-      }
-    })
-    this.setState({
-      worker: worker,
-      workerHours: updateHours,
-      receivedServices: services
-    })
-  }
+  // updateWorker = (worker, newHours) => {
+  //   let updateHours = this.state.worker.workerHours.map((dayHours, index) =>{
+  //     if(newHours[index] != null) {
+  //       return newHours[index]
+  //     } else {
+  //       return dayHours
+  //     }
+  //   })
+  //   this.setState(prevState => ({
+  //   ...prevState, worker: {
+  //       ...prevState.worker,
+  //       workerHours: updateHours
+  //       }
+  //     })
+  //   )
+  // }
 
   updateContent = (selectedChoice) => {
     this.setState({
@@ -77,16 +73,25 @@ class WorkerDisplay extends React.Component {
     })
   };
 
+  componentDidUpdate(prevProps) {
+
+    if (this.props.worker !== prevProps.worker) {
+
+        this.updateWorkerHours(this.props.worker.workerHours)
+      }
+  }
+
   async componentDidMount() {
+
+
     let choice = 0
     if(this.props.location.state && this.props.location.state.edit) {
       choice = 1
     }
-    if (this.props.location && this.props.location.state && this.props.location.state.worker) {
       let picturesFetched = []
       try {
-        picturesFetched = await getPictures('users/' + this.props.location.state.worker.user_id + '/')
-  
+        picturesFetched = await getPictures('users/' + this.props.worker.user_id + '/')
+
         if(picturesFetched.length > 0){
           await this.setState({
             picture: picturesFetched[0],
@@ -101,109 +106,20 @@ class WorkerDisplay extends React.Component {
         console.log("Error getting pictures from s3!", e)
       }
 
-      // let convertedServices = this.props.location.state.worker.services.map((service) => ({ value: service, label: this.state.serviceMapping[service] }));
-      Promise.all([
-        fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/' + this.props.match.params.worker_id + '/hours', {
-          method: "GET",
-          headers: {
-            'Content-type': 'application/json'
-          },
-          credentials: 'include'
-        }).then(value => value.json()),
-        fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/storeHours", {
-          method: "GET",
-          headers: {
-            'Content-type': 'application/json'
-          },
-          credentials: 'include'
-        }).then(value => value.json())
-      ]).then(async allResponses => {
-        let receivedWorkerHours = allResponses[1].map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
-        if (allResponses[0] && allResponses[0].length === 7) {
-          receivedWorkerHours = allResponses[0]
-        } else {
-          this.setState({
-            newHours: receivedWorkerHours
-          })
-        }
+
         this.setState({
           choice: choice,
-          worker: this.props.location.state.worker,
-          receivedServices: this.props.location.state.worker.services,
-          storeHours: allResponses[1],
-          workerHours: receivedWorkerHours,
           loading: false
         })
-      })
-    }
-    else {
-      Promise.all([
-        fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/' + this.props.match.params.worker_id, {
-          method: "GET",
-          headers: {
-            'Content-type': 'application/json'
-          },
-          credentials: 'include'
-        }).then(value => value.json()),
-        fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/storeHours", {
-          method: "GET",
-          headers: {
-            'Content-type': 'application/json'
-          },
-          credentials: 'include'
-        }).then(value => value.json()),
-        fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/' + this.props.match.params.worker_id + '/hours', {
-          method: "GET",
-          headers: {
-            'Content-type': 'application/json'
-          },
-          credentials: 'include'
-        }).then(value => value.json())
-      ]).then(async allResponses => {
-        let picturesFetched = []
-        try {
-          picturesFetched = await getPictures('users/' + allResponses[0].user_id + '/')
-    
-          if(picturesFetched.length > 0){
-            await this.setState({
-              picture: picturesFetched[0],
-            })
-          }
-        } catch (e) {
-          console.log("Error getting pictures from s3!", e)
-        }
 
-        let convertedServices = allResponses[0].services.map((service) => ({ value: service, label: this.state.serviceMapping[service] }));
-        let receivedWorkerHours = allResponses[1].map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
-
-        // If worker hours are not complete, we default them to store hours. Worker hours should be complete though.
-        if (allResponses[2] && allResponses[2].length === 7) {
-          receivedWorkerHours = allResponses[2]
-        } else {
-          this.setState({
-            newHours: receivedWorkerHours
-          })
-        }
-        this.setState({
-          choice: choice,
-          picture: picturesFetched,
-          worker: allResponses[0],
-          receivedServices: allResponses[0].services,
-          selectedOption: convertedServices,
-          storeHours: allResponses[1],
-          workerHours: receivedWorkerHours,
-          loading: false
-        })
-      })
-    }
   }
 
   render() {
     const ListWorkingHours = () => {
       let items = [];
-      for (let i = 0; i < this.state.workerHours.length; i++) {
-        if (this.state.workerHours[i].start_time != null) {
-          items.push(<Col sm="11" md="10" key={i}><ListGroup.Item>{this.state.daysOfWeek[i]}: {convertMinsToHrsMins(this.state.workerHours[i].start_time)}-{convertMinsToHrsMins(this.state.workerHours[i].end_time)}</ListGroup.Item></Col>);
+      for (let i = 0; i < this.state.worker.workerHours.length; i++) {
+        if (this.state.worker.workerHours[i].start_time != null) {
+          items.push(<Col sm="11" md="10" key={i}><ListGroup.Item>{this.state.daysOfWeek[i]}: {convertMinsToHrsMins(this.state.worker.workerHours[i].start_time)}-{convertMinsToHrsMins(this.state.worker.workerHours[i].end_time)}</ListGroup.Item></Col>);
         }
         else {
           items.push(<Col sm="11" md="10" key={i}><ListGroup.Item>{this.state.daysOfWeek[i]}: Off</ListGroup.Item></Col>);
@@ -216,7 +132,7 @@ class WorkerDisplay extends React.Component {
       if(this.state.choice === 0) {
         return <Calendar role={this.state.worker.first_name + "'s"} id={this.state.worker.id} />
       } else if(this.state.choice === 1) {
-        return <WorkerEditForm updateWorkerHours={this.updateWorkerHours} worker={this.state.worker} receivedServices={this.state.receivedServices} selectedOption={this.state.selectedOption} storeHours={this.state.storeHours} workerHours={this.state.workerHours} updateWorker={this.updateWorker}/>
+        return <WorkerEditForm worker={this.state.worker} selectedOption={this.state.selectedOption} storeHours={this.state.storeHours} workerHours={this.state.workerHours} />
       } else {
         return <p>Past Appointments go here....</p>
       }
@@ -301,4 +217,11 @@ class WorkerDisplay extends React.Component {
   }
 }
 
-export default WorkerDisplay;
+
+
+const mapStateToProps = state => ({
+  storeHours: state.workerReducer.storeHours,
+  worker: state.workerReducer.worker
+})
+
+export default connect(mapStateToProps, null)(WorkerDisplay);

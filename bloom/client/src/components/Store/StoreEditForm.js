@@ -10,8 +10,8 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import {
   addAlert
-} from '../../reduxFolder/actions/alert'
-import store from '../../reduxFolder/store';
+} from '../../redux/actions/alert'
+import store from '../../redux/store';
 import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { Multiselect } from 'multiselect-react-dropdown';
 import { withRouter } from "react-router-dom";
@@ -148,7 +148,7 @@ class StoreEditForm extends React.Component {
       oldStoreHours[day].open_time = 540
       oldStoreHours[day].close_time = 1020
     }
-    
+
     this.setState({
       weekIsWorking: updateWeekIsWorking,
       storeHours: oldStoreHours
@@ -365,7 +365,7 @@ class StoreEditForm extends React.Component {
               values.storeHours = values.storeHours.map((day, index) => {
                 if(this.state.weekIsWorking[index] && (this.state.originalStoreHours[index].open_time !== day.open_time || this.state.originalStoreHours[index].close_time !== day.close_time)){
                   return day
-                } 
+                }
                 else if(this.state.weekIsWorking[index] && (this.state.originalStoreHours[index].open_time === day.open_time && this.state.originalStoreHours[index].close_time === day.close_time)){
                   return {}
                 }else if(this.state.weekIsWorking[index] === false && this.state.originalStoreHours[index].open_time === null){
