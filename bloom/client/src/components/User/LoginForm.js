@@ -91,7 +91,7 @@ class LoginForm extends React.Component {
   }
 
   render() {
-    return ( <Form className="formBody rounded p-5">
+    return ( <Form className="formBody rounded px-3 py-4">
               <h3>{this.props.title}</h3>
               <Form.Row className="justify-content-center">
               <Col xs={12} sm={10} md={9} lg={8}>
