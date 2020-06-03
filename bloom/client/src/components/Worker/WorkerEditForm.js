@@ -115,9 +115,15 @@ class WorkerEditForm extends React.Component {
       oldWorkerHours[day].end_time = 1020
     }
 
-    this.setState({
+    this.setState(prevState => ({
+    ...prevState, worker: {
+        ...prevState.worker,
+        workerHours: oldWorkerHours
+      },
       weekIsWorking: updateWeekIsWorking,
-    })
+      })
+    )
+  
   };
 
 

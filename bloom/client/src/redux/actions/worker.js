@@ -4,7 +4,6 @@ export const EDIT_WORKER_SUCCESS = 'EDIT_WORKER_SUCCESS'
 export const GET_WORKER_SUCCESS = 'GET_WORKER_SUCCESS'
 export const WORKER_FETCHING = 'WORKER_FETCHING'
 export const WORKER_FAILURE = 'WORKER_FAILURE'
-export const STORE_HOURS_SUCCESS = 'STORE_HOURS_SUCCESS'
 export const UPDATE_CURRENT_WORKER = 'UPDATE_CURRENT_WORKER'
 
 export function getWorkerOptionsSuccess(workerOptionsPassed) {
@@ -46,13 +45,6 @@ export function workerFetching(fetching) {
   return {
     type: WORKER_FETCHING,
     isFetching: fetching
-  }
-}
-
-export function storeHoursSuccess(storeHours) {
-  return {
-    type: STORE_HOURS_SUCCESS,
-    storeHours: storeHours
   }
 }
 

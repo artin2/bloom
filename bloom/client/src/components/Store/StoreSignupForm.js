@@ -13,7 +13,8 @@ import Cookies from 'js-cookie';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {updateRole} from '../../redux/actions/user.js'
-import {addStore} from '../../redux/actions/stores.js'
+import {addStore} from './StoreHelper'
+import {updateCurrentStore} from '../../redux/actions/stores'
 import {
   addAlert
 } from '../../redux/actions/alert'
@@ -94,6 +95,20 @@ class StoreSignupForm extends React.Component {
       weekIsWorking: updateWeekIsWorking
     })
   };
+  async componentDidUpdate(prevProps) {
+
+    if(prevProps.store !== this.props.store) {
+
+        let prefix = 'stores/' + this.props.store.id + '/images/'
+        if (this.state.selectedFiles.length > 0) {
+            await uploadHandler(prefix, this.state.selectedFiles)
+        }
+        this.props.updateRole(1)
+
+        this.triggerStoreDisplay(this.props.store, this.props.store.owners[0])
+    }
+
+  }
 
   componentDidMount() {
     const google = window.google;
@@ -116,11 +131,10 @@ class StoreSignupForm extends React.Component {
   // redirect to the store display page and pass the new store data
   triggerStoreDisplay(returnedStore, user_id) {
 
+    this.props.updateCurrentStore(returnedStore)
+
     this.props.history.push({
       pathname: '/users/' + user_id + '/stores',
-      state: {
-        store: returnedStore
-      }
     })
   }
 
@@ -191,37 +205,9 @@ class StoreSignupForm extends React.Component {
                 })
                 values.address = this.state.address
 
-                let triggerStoreDisplay = this.triggerStoreDisplay
+                this.props.addStore(this.props.match.params.store_id, values)
 
-                fetch(fetchDomain + '/addStore', {
-                  method: "POST",
-                  headers: {
-                    'Content-type': 'application/json',
-                    'Accept': 'application/json'
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify(values)
-                })
-                  .then(function (response) {
-                    if (response.status !== 200) {
-                      // throw an error alert
-                      store.dispatch(addAlert(response))
-                    }
-                    else {
-                      return response.json();
-                    }
-                  })
-                  .then(async data => {
-                    if (data) {
-                      let prefix = 'stores/' + data.id + '/images/'
-                      if (this.state.selectedFiles.length > 0) {
-                        await uploadHandler(prefix, this.state.selectedFiles)
-                      }
-                      this.props.updateRole(1)
-                      this.props.addStore(data)
-                      triggerStoreDisplay(data, values.owner_id)
-                    }
-                  });
+
               }}
             >
               {({ values,
@@ -703,8 +689,12 @@ class StoreSignupForm extends React.Component {
 
 const mapDispatchToProps = dispatch => bindActionCreators({
   updateRole: (role) => updateRole(role),
-  addStore: (store) => addStore(store),
+  addStore: (store, values) => addStore(store, values),
+  updateCurrentStore: (store) => updateCurrentStore(store)
 }, dispatch)
 
+const mapStateToProps = state => ({
+  store: state.storeReducer.store,
+})
 
-export default connect(null, mapDispatchToProps)(StoreSignupForm);
+export default connect(mapStateToProps, mapDispatchToProps)(StoreSignupForm);

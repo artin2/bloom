@@ -220,7 +220,7 @@ class WorkerDisplay extends React.Component {
 
 
 const mapStateToProps = state => ({
-  storeHours: state.workerReducer.storeHours,
+  storeHours: state.storeReducer.store.storeHours,
   worker: state.workerReducer.worker
 })
 

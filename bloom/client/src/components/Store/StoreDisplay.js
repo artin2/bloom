@@ -10,9 +10,12 @@ import {
 } from '../../redux/actions/alert'
 import store from '../../redux/store';
 import './StoreDisplay.css'
-import { /*getPictures,*/ defaultStorePictures } from '../s3'
+import { getPictures, defaultStorePictures } from '../s3'
 import {ListGroup} from 'react-bootstrap'
 import { FaEdit } from 'react-icons/fa';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getStore } from './StoreHelper.js'
 import { convertMinsToHrsMins } from '../helperFunctions'
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
@@ -20,25 +23,10 @@ const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_AP
 class StoreDisplay extends React.Component {
   constructor(props) {
     super(props);
-    this.state ={
-      store: {
-        id: "",
-        name: "",
-        address: "",
-        created_at: "",
-        category: [],
-        services: [],
-        workers: [],
-        owners: [],
-        phone: "",
-        clients: [],
-        pictures: [],
-        description: "",
-        lat: "",
-        lng: ""
-      },
-      pictures: [],
-      daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    this.state = {
+      store: this.props.store,
+      daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      loading: true
     }
   }
 
@@ -56,91 +44,43 @@ class StoreDisplay extends React.Component {
     })
   }
 
-  async componentDidMount() {
+  async fetchPictures(store) {
+
+    let pictures
+    try {
+      pictures = await getPictures('stores/' + this.props.match.params.store_id + '/images/')
+      if(pictures.length === 0){
+        pictures = defaultStorePictures()
+      }
+    } catch (e) {
+      pictures = defaultStorePictures()
+      console.log("Error! Could not get store images", e)
+    }
+    
+    store.pictures = pictures
+    this.setState({ store: store, loading: false })
+  }
+
+  componentDidUpdate(prevProps) {
+
+    if(this.props.store !== prevProps.store) {
+      this.fetchPictures(this.props.store)
+    }
+
+  }
+
+
+  componentDidMount() {
     // if we were passed the store data from calling component
-    let pictures = defaultStorePictures()
-    // let pictures
-    // try {
-    //   pictures = await getPictures('stores/' + this.props.match.params.store_id + '/images/')
-    //   if(pictures.length === 0){
-    //     pictures = defaultStorePictures()
-    //   }
-    // } catch (e) {
-    //   pictures = defaultStorePictures()
-    //   console.log("Error! Could not get store images", e)
-    // }
 
-    if(this.props.location.state && this.props.location.state.storeHours){
-      this.setState({
-        storeHours: this.props.location.state.storeHours,
-      })
-    }
-    else{
-      fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/storeHours', {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        if(data){
-          this.setState({
-            storeHours: data,
-          })
-        }
-      });
+    if (!this.props.store) {
+      this.props.getStore(this.props.match.params.user_id, this.props.match.params.store_id)
     }
 
-    if(this.props.location.state && this.props.location.state.store){
-      let convertedCategory = this.props.location.state.store.category.map((str) => ({ value: str.toLowerCase(), label: str }));
-      let appendedStore = this.props.location.state.store
-      appendedStore.pictures = pictures
-
-      this.setState({
-        store: appendedStore,
-        selectedOption: convertedCategory
-      })
+    else {
+      this.fetchPictures(this.props.store)
     }
-    else{
-      // retrieve the store data from the database
-      fetch(fetchDomain + '/stores/' + this.props.match.params.store_id , {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        if(data){
-          let convertedCategory = data.category.map((str) => ({ value: str.toLowerCase(), label: str }));
-          data.pictures = pictures
 
-          this.setState({
-            store: data,
-            selectedOption: convertedCategory
-          })
-        }
-      });
-    }
   }
 
   render() {
@@ -165,10 +105,13 @@ class StoreDisplay extends React.Component {
       return null
     }
 
-    return (
+    if(!this.state.loading) {
+      return (
       <Container fluid>
         <Row className="justify-content-md-center" style={{ marginTop: '20px', marginBottom: '15px'}}>
+
           <Col md={6} className="vertical-align-contents px-0 h-100 w-100">
+
             <Carousel interval="">
               {this.state.store.pictures.map((picture, index) => (
                 // style={{maxWidth: '100%', maxHeight: '100%'}}
@@ -192,7 +135,7 @@ class StoreDisplay extends React.Component {
               <h5>Store Hours</h5>
               <ListGroup variant="flush" style={{marginTop: "-30px"}}>
                 <Row className="justify-content-center mt-4">
-                  <ListWorkingHours storeHours={this.state.storeHours}/>
+                  <ListWorkingHours storeHours={this.state.store.storeHours}/>
                 </Row>
               </ListGroup>
             </Row>
@@ -204,8 +147,20 @@ class StoreDisplay extends React.Component {
           </Col>
         </Row>
       </Container>
-    );
+    )}
+    else {
+      return null
+    }
   }
 }
 
-export default withRouter(StoreDisplay);
+
+const mapStateToProps = state => ({
+  store: state.storeReducer.store,
+})
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getStore: (user_id, store_id) => getStore(user_id, store_id),
+}, dispatch)
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(StoreDisplay));

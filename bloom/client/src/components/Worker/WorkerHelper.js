@@ -1,37 +1,9 @@
-import {getWorkerSuccess, workerFailure, workerFetching, storeHoursSuccess, addWorkerSuccess, editWorkerSuccess} from '../../redux/actions/worker';
+import {getWorkerSuccess, workerFailure, workerFetching, addWorkerSuccess, editWorkerSuccess} from '../../redux/actions/worker';
 
 import {addAlert} from '../../redux/actions/alert';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 // WORKER FUNCTIONS
-
-export function getStoreHours(store_id){
-  return dispatch => {
-  fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
-    method: "GET",
-    headers: {
-      'Content-type': 'application/json'
-    },
-    credentials: 'include'
-  })
-  .then(function (response) {
-    if (response.status !== 200) {
-      // throw an error alert
-      dispatch(workerFailure(response))
-    }
-    else {
-      return response.json();
-    }
-  })
-  .then(data => {
-    // on successful retrieval of store data, map worker's potential valid hours accordingly
-        if (data) {
-          dispatch(storeHoursSuccess(data))
-          return data;
-        }
-      });
-    }
-}
 
 export function getWorkers(store_id) {
   return dispatch => {
@@ -82,7 +54,7 @@ function getWorkerHours(store_id, worker_id){
         // throw an error alert
         // store.dispatch(addAlert(response))
         //probably another action for worker hour errors
-        return response.json()
+        // return response.json()
       }
       else{
         return response.json();

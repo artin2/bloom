@@ -18,7 +18,8 @@ import GridLoader from 'react-spinners/GridLoader'
 import { convertMinsToHrsMins } from '../helperFunctions'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { getStoreHours, addWorker } from './WorkerHelper.js'
+import { addWorker } from './WorkerHelper.js'
+import { getStore } from '../Store/StoreHelper'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -100,7 +101,9 @@ class AddWorkerForm extends React.Component {
   componentDidMount() {
 
     // fetch store hours on mounting
-    this.props.getStoreHours(this.props.match.params.store_id)
+    if(!this.props.storeHours) {
+      this.props.getStore(this.props.match.params.store_id)
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -503,13 +506,13 @@ class AddWorkerForm extends React.Component {
 
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  getStoreHours: (id) => getStoreHours(id),
+  getStore: (id) => getStore(id),
   addWorker: (id, values) => addWorker(id, values)
 }, dispatch)
 
 
 const mapStateToProps = state => ({
-  storeHours: state.workerReducer.storeHours,
+  storeHours: state.storeReducer.store.storeHours,
   addedWorker: state.workerReducer.worker
 })
 

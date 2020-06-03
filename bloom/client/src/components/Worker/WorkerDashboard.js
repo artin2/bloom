@@ -10,7 +10,7 @@ import { Image } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup'
 import UserDashboardLoader from '../Store/UserStoresDashboardLoader';
 import workerImage from '../../assets/worker.png'
-// import { getPictures } from '../s3'
+import { getPictures } from '../s3'
 import { convertMinsToHrsMins } from '../helperFunctions'
 // import {
 //   addAlert
@@ -29,7 +29,7 @@ class WorkerDashboard extends React.Component {
       workers: this.props.workers,
       redirectToWorkerEditForm: null,
       redirectToWorkerDisplay: null,
-      loading: this.props.loading,
+      loading: true,
       daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     }
   }
@@ -63,46 +63,46 @@ class WorkerDashboard extends React.Component {
 
       if (this.props.workers !== prevProps.workers) {
 
-          this.setState({
-            workers: this.props.workers,
-          })
-      }
-
-      if (this.props.loading !== prevProps.loading) {
-
-        this.setState({
-          loading: this.props.loading,
-        })
+        this.fetchPictures(this.props.workers)
       }
 
   }
 
   componentDidMount() {
 
-    this.props.getWorkers(this.props.match.params.store_id)
-
-    // if(this.state.workers.length > 0) {
-    //     for (let i = 0; i < this.state.workers.length; i++) {
-    //       let picturesFetched = {}
-    //       try {
-    //         picturesFetched = await getPictures('users/' + this.state.workers[i].user_id + '/')
-    //         if(picturesFetched.length > 0){
-    //           picturesFetched = picturesFetched[0]
-    //         }
-    //         else{
-    //           picturesFetched = {}
-    //         }
-    //       } catch (e) {
-    //         console.log("Error getting pictures from s3!", e)
-    //       }
-    //
-    //       let stateCopy = Object.assign({}, this.state);
-    //       stateCopy.workers[i].picture = picturesFetched
-    //       this.setState(stateCopy)
-    //
-    //     }
-    //   }
+    if(!this.props.workers) {
+      this.props.getWorkers(this.props.match.params.store_id)
     }
+    else {
+      this.fetchPictures(this.props.workers)
+    }
+
+    }
+
+  async fetchPictures(workers) {
+
+    for (let i = 0; i < workers.length; i++) {
+      let picturesFetched = {}
+      try {
+          picturesFetched = await getPictures('users/' + workers[i].user_id + '/')
+          if(picturesFetched.length > 0){
+              picturesFetched = picturesFetched[0]
+          }
+          else{
+              picturesFetched = {}
+          }
+          } catch (e) {
+            console.log("Error getting pictures from s3!", e)
+          }
+
+          let stateCopy = Object.assign({}, this.state);
+          stateCopy.workers[i].picture = picturesFetched
+          this.setState(stateCopy)
+
+      }
+      this.setState({loading: false})
+
+  }
 
   render() {
     const ListWorkingHours = (props) => {
@@ -140,7 +140,7 @@ class WorkerDashboard extends React.Component {
           )
         }
         else{
-          console.log(this.props.workers)
+          // console.log(this.props.workers)
 
           return(
             <div>
@@ -195,7 +195,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 
 const mapStateToProps = state => ({
   workers: state.workerReducer.workers,
-  loading: state.workerReducer.isFetching,
+  // loading: state.workerReducer.isFetching,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(WorkerDashboard);

@@ -83,6 +83,7 @@ class ServiceDashboard extends React.Component {
 
       this.setState({
         services: appendedServices,
+        loading: false
       })
     }
   }
@@ -91,15 +92,12 @@ class ServiceDashboard extends React.Component {
     // retrieve the services, either passed or fetching directly from db
 
     if(!this.props.services){
-      this.props.getService(this.props.match.params.store_id)
+      this.props.getServices(this.props.match.params.store_id)
     }
     else {
       this.fetchPictures(this.props.services)
     }
 
-    this.setState({
-      loading: false
-    })
   }
 
   async componentDidUpdate(prevProps, prevState)  {

@@ -1,12 +1,11 @@
 import { GET_WORKER_OPTIONS_SUCCESS, WORKER_FETCHING, WORKER_FAILURE, ADD_WORKER_SUCCESS,
-  EDIT_WORKER_SUCCESS, GET_WORKER_SUCCESS, STORE_HOURS_SUCCESS, UPDATE_CURRENT_WORKER } from "../actions/worker"
+  EDIT_WORKER_SUCCESS, GET_WORKER_SUCCESS, UPDATE_CURRENT_WORKER } from "../actions/worker"
 
 const initialState = {
   workers: [],
   worker: [],
   isFetching: false,
   error: '',
-  storeHours: []
 }
 
 function workerReducer(state = initialState, action) {
@@ -31,12 +30,6 @@ function workerReducer(state = initialState, action) {
       return Object.assign({}, state, {
         error: action.error
       })
-
-    case STORE_HOURS_SUCCESS:
-      return Object.assign({}, state, {
-        storeHours: action.storeHours
-      })
-
 
     case ADD_WORKER_SUCCESS:
       let newWorkers = state.workers;

@@ -12,8 +12,9 @@ import {
 } from '../../redux/actions/alert'
 import store from '../../redux/store';
 import { connect } from 'react-redux';
-// import { bindActionCreators } from 'redux';
-// import {addStore} from '../../reduxFolder/actions/stores.js'
+import { bindActionCreators } from 'redux';
+import { getStores } from './StoreHelper.js'
+import { updateCurrentStore } from '../../redux/actions/stores'
 import UserStoresDashboardLoader from './UserStoresDashboardLoader';
 import { /*getPictures,*/ defaultStorePictures } from '../s3'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
@@ -24,41 +25,17 @@ class UserStoresDashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state ={
-      stores: [
-        {
-          id: "",
-          name: "",
-          address: "",
-          created_at: "",
-          category: [],
-          services: [],
-          workers: [],
-          owners: [],
-          phone: "",
-          clients: [],
-          description: "",
-          lat: "",
-          lng: ""
-        }
-      ],
-      redirectToWorkerForm: null,
-      store_id: null,
+      stores: this.props.stores,
       loading: true
     }
   }
 
-  triggerStoreEdit(passedStore) {
-    this.props.history.push({
-      pathname: '/stores/edit/' + passedStore.id,
-      state: {
-        store: passedStore
-      }
-    })
-  }
+  triggerStoreEdit(store) {
 
-  triggerAddWorker(id) {
+    this.props.updateCurrentStore(store)
+
     this.props.history.push({
-      pathname: '/stores/addWorker/' + id
+      pathname: '/stores/edit/' + store.id,
     })
   }
 
@@ -68,12 +45,12 @@ class UserStoresDashboard extends React.Component {
     })
   }
 
-  triggerStoreShow(passedStore) {
+  triggerStoreShow(store) {
+
+    this.props.updateCurrentStore(store)
+
     this.props.history.push({
-      pathname: '/stores/' + passedStore.id,
-      state: {
-        store: passedStore
-      }
+      pathname: '/stores/' + store.id,
     })
   }
 
@@ -83,70 +60,54 @@ class UserStoresDashboard extends React.Component {
     })
   }
 
-  triggerAddService(id) {
-    this.props.history.push({
-      pathname: '/stores/addService/' + id,
-    })
-  }
-
   triggerShowCalendar(store) {
+
+    this.props.updateCurrentStore(store)
     this.props.history.push({
       pathname: '/storeCalendar/' + store.id,
-      state: {
-        store: store
-      }
     })
   }
 
   componentDidMount() {
-    fetch(fetchDomain + '/stores/users/' + this.props.match.params.user_id , {
-      method: "GET",
-      headers: {
-          'Content-type': 'application/json'
-      },
-      credentials: 'include'
+
+    if(!this.props.stores) {
+      this.props.getStores(this.props.match.params.user_id)
+    }
+    else {
+      this.fetchPictures(this.props.stores)
+    }
+
+  }
+
+  componentDidUpdate(prevProps) {
+
+    if(this.props.stores != prevProps.stores) {
+      this.fetchPictures(this.props.stores)
+    }
+  }
+
+  async fetchPictures(stores) {
+
+
+    //why is this only returning default
+    let appendedStores = await Promise.all(stores.map(async (store): Promise<Object> => {
+      let newstore = Object.assign({}, store);
+      try {
+        let pictures = defaultStorePictures()
+
+        newstore.pictures = pictures;
+        return newstore;
+      } catch (error) {
+        newstore.pictures = defaultStorePictures();
+        return newstore
+      }
+    }));
+
+    await this.setState({
+      stores: appendedStores,
+      loading: false
     })
-    .then(function(response){
-      if(response.status!==200){
-        // throw an error alert
-        store.dispatch(addAlert(response))
-      }
-      else{
-        return response.json();
-      }
-    })
-    .then(async data => {
-      if(data){
-        // let convertedCategory = data.category.map((str) => ({ value: str.toLowerCase(), label: str }));
 
-        var appendedStores = await Promise.all(data.map(async (store): Promise<Object> => {
-          var newstore = Object.assign({}, store);
-          try {
-            let pictures = defaultStorePictures()
-            // let pictures = await getPictures('stores/' + store.id + '/images/')
-
-            // // once all data is clean and picture requirement is enforced we can remove this
-            // if(pictures.length === 0){
-            //   pictures = defaultStorePictures()
-            // }
-
-            // we can set pictures to defaultStorePictures to prevent s3 calls
-
-            newstore.pictures = pictures;
-            return newstore;
-          } catch (error) {
-            newstore.pictures = defaultStorePictures();
-            return newstore
-          }
-        }));
-
-        this.setState({
-          stores: appendedStores,
-          loading: false
-        })
-      }
-      // this.props.addStore(data);
-    });
   }
 
   render() {
@@ -208,13 +169,13 @@ class UserStoresDashboard extends React.Component {
 
 
 const mapStateToProps = state => ({
-  // stores: state.storeReducer.stores,
-  user: state.userReducer.user
+  stores: state.storeReducer.stores,
 })
 
-// const mapDispatchToProps = dispatch => bindActionCreators({
-//   addStore: (store) => addStore(store),
-// }, dispatch)
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getStores: (user_id) => getStores(user_id),
+  updateCurrentStore: (store) => updateCurrentStore(store),
+}, dispatch)
 
 
-export default connect(mapStateToProps/*, mapDispatchToProps*/)(UserStoresDashboard);
+export default connect(mapStateToProps, mapDispatchToProps)(UserStoresDashboard);

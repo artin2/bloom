@@ -19,6 +19,10 @@ import { convertMinsToHrsMins } from '../helperFunctions'
 import { css } from '@emotion/core'
 import { Image } from 'react-bootstrap';
 import GridLoader from 'react-spinners/GridLoader'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getStore, editStore } from './StoreHelper.js'
+import { updateCurrentStore } from '../../redux/actions/stores'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -30,33 +34,10 @@ class StoreEditForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      store: {
-        name: "",
-        description: "",
-        phone: "",
-        id: "",
-        address: "",
-        category: []
-      },
-      address: "",
-      storeHours: [{ open_time: 540, close_time: 1020 },
-      { open_time: 540, close_time: 1020 },
-      { open_time: 540, close_time: 1020 },
-      { open_time: 540, close_time: 1020 },
-      { open_time: 540, close_time: 1020 },
-      { open_time: 540, close_time: 1020 },
-      { open_time: 540, close_time: 1020 }],
-      originalStoreHours: [{ open_time: 540, close_time: 1020 },
-        { open_time: 540, close_time: 1020 },
-        { open_time: 540, close_time: 1020 },
-        { open_time: 540, close_time: 1020 },
-        { open_time: 540, close_time: 1020 },
-        { open_time: 540, close_time: 1020 },
-        { open_time: 540, close_time: 1020 }],
+      store: this.props.store,
+
       newHours: [],
       weekIsWorking: [true, true, true, true, true, true, true],
-      // selectedOption: [],
-      loading: true,
       pictures: [],
       selectedFiles: [],
       keys: [],
@@ -103,10 +84,18 @@ class StoreEditForm extends React.Component {
   }
 
   autocompleteChange(event, setFieldValue){
+
     setFieldValue("address", event.target.value)
-    this.setState({
-      address: event.target.value
-    })
+
+    let address = (event.target.value === '') ? "" : event.target.value
+
+    this.setState(prevState => ({
+      ...prevState, store: {
+      ...prevState.store,
+        address: address
+        },
+      })
+    )
   }
 
   handlePlaceSelect() {
@@ -115,18 +104,21 @@ class StoreEditForm extends React.Component {
                       return elem.long_name;
                   }).join(", ");
 
-    this.setState({
-      address: address
-    })
+    this.setState(prevState => ({
+      ...prevState, store: {
+      ...prevState.store,
+        address: address
+        },
+      })
+    )
   }
 
   // redirect to the store display page and pass the new store data
   triggerStoreDisplay(returnedStore) {
+
+    this.props.updateCurrentStore(returnedStore)
     this.props.history.push({
       pathname: '/stores/' + this.props.match.params.store_id,
-      state: {
-        store: returnedStore
-      }
     })
   }
 
@@ -143,16 +135,21 @@ class StoreEditForm extends React.Component {
       ...this.state.weekIsWorking.slice(day + 1)
     ]
 
-    let oldStoreHours = this.state.storeHours
-    if(this.state.storeHours[day].open_time == null){
+    let oldStoreHours = this.state.store.storeHours
+    if(this.state.store.storeHours[day].open_time == null){
       oldStoreHours[day].open_time = 540
       oldStoreHours[day].close_time = 1020
     }
 
-    this.setState({
+    this.setState(prevState => ({
+    ...prevState, store: {
+        ...prevState.store,
+        storeHours: oldStoreHours
+      },
       weekIsWorking: updateWeekIsWorking,
-      storeHours: oldStoreHours
-    })
+      })
+    )
+
   };
 
   handleSelectChange = (event) => {
@@ -166,35 +163,40 @@ class StoreEditForm extends React.Component {
       old_open_time = this.state.newHours[day].open_time
       old_close_time = this.state.newHours[day].close_time
     } else {
-      old_open_time = this.state.storeHours[day].open_time
-      old_close_time = this.state.storeHours[day].close_time
+      old_open_time = this.state.store.storeHours[day].open_time
+      old_close_time = this.state.store.storeHours[day].close_time
     }
     if(parseInt(event.target.querySelector('option').value) <= 840) {
-      if(this.state.storeHours[day].close_time == null){
+      if(this.state.store.storeHours[day].close_time == null){
         old_close_time = 1020
       }
       updateNewHours[day] = {open_time: parseInt(event.target.value), close_time: old_close_time}
       newStoreHours = [
-        ...this.state.storeHours.slice(0, day),
+        ...this.state.store.storeHours.slice(0, day),
         {open_time: parseInt(event.target.value), close_time: old_close_time},
-        ...this.state.storeHours.slice(day + 1)
+        ...this.state.store.storeHours.slice(day + 1)
       ]
     } else {
-      if(this.state.storeHours[day].open_time == null){
+      if(this.state.store.storeHours[day].open_time == null){
         old_open_time = 540
       }
       updateNewHours[day] = {open_time: old_open_time, close_time: parseInt(event.target.value)}
       newStoreHours = [
-        ...this.state.storeHours.slice(0, day),
+        ...this.state.store.storeHours.slice(0, day),
         {open_time: old_open_time, close_time: parseInt(event.target.value)},
-        ...this.state.storeHours.slice(day + 1)
+        ...this.state.store.storeHours.slice(day + 1)
       ]
     }
 
-    this.setState({
+    this.setState(prevState => ({
+    ...prevState, store: {
+        ...prevState.store,
+        storeHours: newStoreHours
+      },
       newHours: updateNewHours,
-      storeHours: newStoreHours
-    })
+      })
+    )
+
   };
 
   deleteFileChangeHandler = async (event, setFieldValue) => {
@@ -216,7 +218,8 @@ class StoreEditForm extends React.Component {
     this.setState({ selectedFiles: event.target.files })
   }
 
-  async componentDidMount() {
+  async fetchPictures() {
+
     let picturesFetched = []
     try {
       picturesFetched = await getPictures('stores/' + this.props.match.params.store_id + '/images/')
@@ -224,98 +227,74 @@ class StoreEditForm extends React.Component {
       console.log("Error! Could not get pictures from s3", e)
     }
 
+    this.setState({
+        pictures: picturesFetched,
+        isLoading: false,
+    })
+
+  }
+
+  convertCategory() {
+
+    let convertedCategory = this.props.store.category.map((str, indx) => ({ id: indx, name: helper.longerVersion(str)}));
+
+    this.setState({
+        selected: convertedCategory,
+    })
+  }
+
+  async componentDidMount() {
+
     // if we were given the existing data from calling component use that, else fetch
     // check if categories are empty, if they are then cache/store needs to be updated.
-    if (this.props.location.state && this.props.location.state.store) {
-      let convertedCategory = this.props.location.state.store.category.map((str, indx) => ({ id: indx, name: helper.longerVersion(str)}));
-
-      await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/storeHours', {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-      .then(function(response){
-        if(response.status!==200){
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else{
-          return response.json();
-        }
-      })
-      .then(data => {
-        let oldWeekIsWorking = this.state.weekIsWorking
-        for(let i = 0; i < data.length; i++){
-          if(data[i].open_time == null){
-            oldWeekIsWorking[i] = false
-          }
-        }
-
-        let dataCopy = JSON.parse(JSON.stringify(data))
-
-        this.setState({
-          store: this.props.location.state.store,
-          selected: convertedCategory,
-          address: this.props.location.state.store.address,
-          weekIsWorking: oldWeekIsWorking,
-          storeHours: data,
-          originalStoreHours: dataCopy,
-          isLoading: false,
-          pictures: picturesFetched
-        })
-      });
+    if (!this.props.store) {
+      this.props.getStore(this.props.match.params.store_id)
     }
     else {
-      await Promise.all([
-        fetch(fetchDomain + '/stores/' + this.props.match.params.store_id, {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      }).then(value => value.json()),
-      fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/storeHours', {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      }).then(value => value.json())
-      ]).then(allResponses => {
-        const response1 = allResponses[0]
-        const response2 = allResponses[1]
-
-        let convertedCategory = response1.category.map((str, indx) => ({ id: indx, name: helper.longerVersion(str)}) );
-
-        let oldWeekIsWorking = this.state.weekIsWorking
-        for(let i = 0; i < response2.length; i++){
-          if(response2[i].open_time == null){
-            oldWeekIsWorking[i] = false
-          }
-        }
-
-        let dataCopy = JSON.parse(JSON.stringify(response2))
-
-        this.setState({
-          store: response1,
-          selected: convertedCategory,
-          address: response1.address,
-          storeHours: response2,
-          originalStoreHours: dataCopy,
-          weekIsWorking: oldWeekIsWorking,
-          isLoading: false,
-          pictures: picturesFetched
-        })
-      })
+      this.convertStoreHours(this.props.store.storeHours)
+      this.convertCategory()
+      this.fetchPictures()
     }
 
     const google = window.google;
     this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
-
     this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
   }
+
+  componentDidUpdate(prevProps) {
+
+    if(this.props.store !== prevProps.store) {
+
+      this.convertStoreHours(this.props.store.storeHours)
+      this.convertCategory()
+      this.fetchPictures(this.props.store)
+    }
+
+    if(this.props.stores !== prevProps.stores) {
+      console.log(this.props.store)
+        this.triggerStoreDisplay(this.props.store)
+    }
+
+  }
+
+  convertStoreHours(storeHours) {
+
+    let oldWeekIsWorking = this.state.weekIsWorking
+
+    for(let i = 0; i < storeHours.length; i++){
+      if(storeHours[i].open_time == null){
+        oldWeekIsWorking[i] = false
+      }
+    }
+
+    this.setState({
+      originalStoreHours: JSON.parse(JSON.stringify(storeHours)),
+      weekIsWorking: oldWeekIsWorking,
+
+    })
+  }
+
+
 
   render() {
     if(this.state.isLoading){
@@ -345,7 +324,7 @@ class StoreEditForm extends React.Component {
               owners: null,
               pictures: [],
               pictureCount: this.state.pictures.length - this.state.keys.length + this.state.selectedFiles.length,
-              storeHours: this.state.storeHours
+              storeHours: this.state.store.storeHours
             }}
             validationSchema={this.yupValidationSchema}
             onSubmit={async (values) => {
@@ -362,7 +341,8 @@ class StoreEditForm extends React.Component {
               values.services = this.state.store.services
               values.owners = this.state.store.owners
               values.id = store_id
-              values.storeHours = values.storeHours.map((day, index) => {
+              values.storeHours = this.state.store.storeHours.map((day, index) => {
+
                 if(this.state.weekIsWorking[index] && (this.state.originalStoreHours[index].open_time !== day.open_time || this.state.originalStoreHours[index].close_time !== day.close_time)){
                   return day
                 }
@@ -376,7 +356,8 @@ class StoreEditForm extends React.Component {
                 }
               })
 
-              values.address = this.state.address
+
+              values.address = this.state.store.address
 
               // remove files from s3
               if(this.state.keys.length > 0){
@@ -397,32 +378,14 @@ class StoreEditForm extends React.Component {
                 }
               }
 
-              fetch(fetchDomain + '/stores/edit/' + store_id , {
-                method: "POST",
-                headers: {
-                  'Content-type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(values)
-              })
-              .then(function(response){
-                if(response.status!==200){
-                  store.dispatch(addAlert(response))
-                }
-                else {
-                  // redirect to home page signed in
-                  return response.json()
-                }
-              })
-              .then(data => {
-                if(data){
-                  triggerStoreDisplay(data)
-                }
-                else{
-                  console.log("should not be here, but going to redirect until this is fixed")
-                  triggerStoreDisplayNoResp()
-                }
-              });
+              this.props.editStore(store_id, values)
+
+                // }
+                // else{
+                //   console.log("should not be here, but going to redirect until this is fixed")
+                //   triggerStoreDisplayNoResp()
+                // }
+
             }}
           >
             {({ values,
@@ -511,7 +474,7 @@ class StoreEditForm extends React.Component {
                           autoComplete="new-password"
                           onChange={event => this.autocompleteChange(event, setFieldValue) }
                           className={touched.address && errors.address ? "error" : null}
-                          value={this.state.address}
+                          value={this.state.store.address}
                         />
                       </InputGroup>
                       {touched.address && errors.address ? (
@@ -551,7 +514,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[0]} value={this.state.storeHours[0].open_time === null ? 540 : this.state.storeHours[0].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[0]} value={this.state.store.storeHours[0].open_time === null ? 540 : this.state.store.storeHours[0].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -570,7 +533,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[0]} value={this.state.storeHours[0].close_time === null ? 1020 : this.state.storeHours[0].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[0]} value={this.state.store.storeHours[0].close_time === null ? 1020 : this.state.store.storeHours[0].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -599,7 +562,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[1]} value={this.state.storeHours[1].open_time === null ? 540 : this.state.storeHours[1].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[1]} value={this.state.store.storeHours[1].open_time === null ? 540 : this.state.store.storeHours[1].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -618,7 +581,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[1]} value={this.state.storeHours[1].close_time === null ? 1020 : this.state.storeHours[1].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[1]} value={this.state.store.storeHours[1].close_time === null ? 1020 : this.state.store.storeHours[1].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -648,7 +611,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[2]} value={this.state.storeHours[2].open_time === null ? 540 : this.state.storeHours[2].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[2]} value={this.state.store.storeHours[2].open_time === null ? 540 : this.state.store.storeHours[2].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -667,7 +630,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[2]} value={this.state.storeHours[2].close_time === null ? 1020 : this.state.storeHours[2].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[2]} value={this.state.store.storeHours[2].close_time === null ? 1020 : this.state.store.storeHours[2].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -696,7 +659,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[3]} value={this.state.storeHours[3].open_time === null ? 540 : this.state.storeHours[3].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[3]} value={this.state.store.storeHours[3].open_time === null ? 540 : this.state.store.storeHours[3].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -715,7 +678,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[3]} value={this.state.storeHours[3].close_time === null ? 1020 : this.state.storeHours[3].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[3]} value={this.state.store.storeHours[3].close_time === null ? 1020 : this.state.store.storeHours[3].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -745,7 +708,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[4]} value={this.state.storeHours[4].open_time === null ? 540 : this.state.storeHours[4].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[4]} value={this.state.store.storeHours[4].open_time === null ? 540 : this.state.store.storeHours[4].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -764,7 +727,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[4]} value={this.state.storeHours[4].close_time === null ? 1020 : this.state.storeHours[4].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[4]} value={this.state.store.storeHours[4].close_time === null ? 1020 : this.state.store.storeHours[4].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -793,7 +756,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[5]} value={this.state.storeHours[5].open_time === null ? 540 : this.state.storeHours[5].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[5]} value={this.state.store.storeHours[5].open_time === null ? 540 : this.state.store.storeHours[5].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -812,7 +775,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[5]} value={this.state.storeHours[5].close_time === null ? 1020 : this.state.storeHours[5].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[5]} value={this.state.store.storeHours[5].close_time === null ? 1020 : this.state.store.storeHours[5].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -842,7 +805,7 @@ class StoreEditForm extends React.Component {
                     />
                     <Form.Row>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[6]} value={this.state.storeHours[6].open_time === null ? 540 : this.state.storeHours[6].open_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[6]} value={this.state.store.storeHours[6].open_time === null ? 540 : this.state.store.storeHours[6].open_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={0}>{convertMinsToHrsMins(0)}</option>
                           <option value={60}>{convertMinsToHrsMins(60)}</option>
                           <option value={120}>{convertMinsToHrsMins(120)}</option>
@@ -861,7 +824,7 @@ class StoreEditForm extends React.Component {
                         </Form.Control>
                       </Col>
                       <Col>
-                        <Form.Control as="select" disabled={!this.state.weekIsWorking[6]} value={this.state.storeHours[6].close_time === null ? 1020 : this.state.storeHours[6].close_time} onChange={this.handleSelectChange.bind(this)}>
+                        <Form.Control as="select" disabled={!this.state.weekIsWorking[6]} value={this.state.store.storeHours[6].close_time === null ? 1020 : this.state.store.storeHours[6].close_time} onChange={this.handleSelectChange.bind(this)}>
                           <option value={900}>{convertMinsToHrsMins(900)}</option>
                           <option value={960}>{convertMinsToHrsMins(960)}</option>
                           <option value={1020}>{convertMinsToHrsMins(1020)}</option>
@@ -918,4 +881,17 @@ class StoreEditForm extends React.Component {
     }
   }
 }
-export default withRouter(StoreEditForm);
+
+
+const mapStateToProps = state => ({
+  store: state.storeReducer.store,
+  stores: state.storeReducer.stores
+})
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getStore: (user_id, store_id) => getStore(user_id, store_id),
+  editStore: (store_id, values) => editStore(store_id, values),
+  updateCurrentStore: (store) => updateCurrentStore(store)
+}, dispatch)
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(StoreEditForm));
