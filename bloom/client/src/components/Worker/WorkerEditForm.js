@@ -303,7 +303,6 @@ class WorkerEditForm extends React.Component {
                 newHours: this.state.newHours,
                 noChange: true
               }}
-              validationSchema={this.yupValidationSchema}
               onSubmit={(values) => {
 
                 let store_id = this.props.match.params.store_id ? this.props.match.params.store_id : this.props.store_id;

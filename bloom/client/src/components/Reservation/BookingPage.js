@@ -12,6 +12,7 @@ import { addAlert } from '../../redux/actions/alert'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import Cookies from 'js-cookie';
+import * as Yup from 'yup';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -23,12 +24,35 @@ class BookingPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstName: '',
-      lastName: '',
+      first_name: '',
+      last_name: '',
       phone: '',
       email: '',
       user_id: -1,
     };
+
+    // RegEx for phone number validation
+    this.phoneRegExp = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/
+
+    // Schema for yup
+    this.yupValidationSchema = Yup.object().shape({
+      first_name: Yup.string()
+        .min(2, "First name must have at least 2 characters")
+        .max(100, "First name can't be longer than 100 characters")
+        .required("First name is required"),
+      last_name: Yup.string()
+        .min(2, "Last name must have at least 2 characters")
+        .max(100, "Last name can't be longer than 100 characters")
+        .required("Last name is required"),
+      email: Yup.string()
+        .email("Must be a valid email address")
+        .max(100, "Email must be less than 100 characters")
+        .required("Email is required"),
+      phone: Yup.string()
+        .matches(this.phoneRegExp, "Phone number is not valid")
+        .required("Phone number is required")
+    });
+
     this.triggerAppointmentDisplay = this.triggerAppointmentDisplay.bind(this);
   }
 
@@ -46,8 +70,8 @@ class BookingPage extends React.Component {
     if(Cookies.get('user')){
       let user = JSON.parse(Cookies.get('user').substring(2))
       this.setState({
-        firstName: user.first_name,
-        lastName: user.last_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
         email: user.email,
         phone: user.phone,
         user_id: user.id
@@ -83,13 +107,14 @@ class BookingPage extends React.Component {
             <Row className='justify-content-center'>
               <Formik
                 initialValues={{
-                  firstName: this.state.firstName,
-                  lastName: this.state.lastName,
+                  first_name: this.state.first_name,
+                  last_name: this.state.last_name,
                   phone: this.state.phone,
                   email: this.state.email,
                   user_id: this.state.user_id
                 }}
-                onSubmit={(values) => {
+                validationSchema={this.yupValidationSchema}
+                onSubmit={(values, actions) => {
                   values.appointments = this.props.appointments
                   let triggerAppointmentDisplay = this.triggerAppointmentDisplay
 
@@ -102,20 +127,24 @@ class BookingPage extends React.Component {
                     credentials: 'include',
                     body: JSON.stringify(values)
                   })
-                    .then(function (response) {
-                      if (response.status !== 200) {
-                        // throw an error alert
-                        store.dispatch(addAlert(response))
-                      }
-                      else {
-                        return response.json();
-                      }
-                    })
-                    .then(async data => {
-                      if (data) {
-                        triggerAppointmentDisplay(data.group_id)
-                      }
-                    });
+                  .then(function (response) {
+                    if (response.status !== 200) {
+                      // throw an error alert
+                      store.dispatch(addAlert(response))
+                      actions.setSubmitting(false);
+                    }
+                    else {
+                      return response.json();
+                    }
+                  })
+                  .then(async data => {
+                    if (data) {
+                      triggerAppointmentDisplay(data.group_id)
+                    }
+                    else{
+                      actions.setSubmitting(false);
+                    }
+                  });
                 }}
               >
                 {({ values,
@@ -124,11 +153,11 @@ class BookingPage extends React.Component {
                   handleChange,
                   handleBlur,
                   handleSubmit,
-                  setFieldValue
+                  isSubmitting
                 }) => (
                     <Form className="form-style">
 
-                      <Form.Group controlId="formFirstName">
+                      <Form.Group controlId="formfirst_name">
                         <InputGroup>
                           <InputGroup.Prepend>
                             <InputGroup.Text>
@@ -137,19 +166,19 @@ class BookingPage extends React.Component {
                           </InputGroup.Prepend>
                           <Form.Control
                             type="text"
-                            name="firstName"
-                            value={values.firstName}
+                            name="first_name"
+                            value={values.first_name}
                             placeholder="First Name"
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            className={touched.firstName && errors.firstName ? "error" : null} />
+                            className={touched.first_name && errors.first_name ? "error" : null} />
                         </InputGroup>
-                        {touched.firstName && errors.firstName ? (
-                          <div className="error-message">{errors.firstName}</div>
+                        {touched.first_name && errors.first_name ? (
+                          <div className="error-message">{errors.first_name}</div>
                         ) : null}
                       </Form.Group>
 
-                      <Form.Group controlId="formLastName">
+                      <Form.Group controlId="formlast_name">
                         <InputGroup>
                           <InputGroup.Prepend>
                             <InputGroup.Text>
@@ -158,15 +187,15 @@ class BookingPage extends React.Component {
                           </InputGroup.Prepend>
                           <Form.Control
                             type="text"
-                            name="lastName"
-                            value={values.lastName}
+                            name="last_name"
+                            value={values.last_name}
                             placeholder="Last Name"
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            className={touched.lastName && errors.lastName ? "error" : null} />
+                            className={touched.last_name && errors.last_name ? "error" : null} />
                         </InputGroup>
-                        {touched.lastName && errors.lastName ? (
-                          <div className="error-message">{errors.lastName}</div>
+                        {touched.last_name && errors.last_name ? (
+                          <div className="error-message">{errors.last_name}</div>
                         ) : null}
                       </Form.Group>
 
@@ -215,7 +244,7 @@ class BookingPage extends React.Component {
                         <Button block style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={() => this.props.handleSubmit(false)}>Previous</Button>
                         </Col>
                         <Col xs="11" lg="3">
-                        <Button block style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                        <Button disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} block style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                         </Col>
                       </Row>
                     </Form>

@@ -178,7 +178,7 @@ class AddServiceForm extends React.Component {
                   pictureCount: this.state.selectedFiles.length
                 }}
                 validationSchema={this.yupValidationSchema}
-                onSubmit={async (values, {setSubmitting }) => {
+                onSubmit={async (values, actions) => {
                   let store_id = this.props.match.params.store_id
                   // let selectedFiles = this.state.selectedFiles
                   // let triggerServiceDisplay = this.triggerServiceDisplay
@@ -193,7 +193,7 @@ class AddServiceForm extends React.Component {
                   })
 
                   this.props.addService(store_id, values)
-                  setSubmitting(false)
+                  actions.setSubmitting(false)
                 }}
               >
               {( {values,
@@ -202,7 +202,8 @@ class AddServiceForm extends React.Component {
                   handleChange,
                   handleBlur,
                   handleSubmit,
-                  setFieldValue}) => (
+                  setFieldValue,
+                  isSubmitting}) => (
                 <Form className="formBody rounded p-5">
                   <h3>Add Service</h3>
 
@@ -333,8 +334,8 @@ class AddServiceForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
                   </Form.Group>
-
-                  <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+  
+                  <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}
               </Formik>

@@ -74,7 +74,6 @@ class ServiceEditForm extends React.Component {
 
     this.triggerServiceDisplay = this.triggerServiceDisplay.bind(this);
     this.onChange = this.onChange.bind(this);
-
   }
 
   // redirect to the service display page and pass the new store data
@@ -87,20 +86,23 @@ class ServiceEditForm extends React.Component {
     })
   }
 
-  deleteFileChangeHandler = async (event) => {
+  deleteFileChangeHandler = async (event, setFieldValue) => {
     if(event.target.checked){
       var joined = this.state.keys.concat(event.target.id);
       this.setState({
         keys: joined
       })
+      setFieldValue("pictureCount", this.state.pictures.length - joined.length + this.state.selectedFiles.length)
     }
     else{
       this.setState({keys: this.state.keys.filter(item => item !== event.target.id)});
+      setFieldValue("pictureCount", this.state.pictures.length - this.state.keys.filter(item => item !== event.target.id).length + this.state.selectedFiles.length)
     }
   }
 
-  fileChangedHandler = async (event) => {
+  fileChangedHandler = async (event, setFieldValue) => {
     this.setState({ selectedFiles: event.target.files })
+    setFieldValue("pictureCount", this.state.pictures.length - this.state.keys.length + event.target.files.length)
   }
 
   async fetchPictures() {
@@ -246,7 +248,7 @@ class ServiceEditForm extends React.Component {
                   store_id: this.props.match.params.store_id
                 }}
                 validationSchema={this.yupValidationSchema}
-                onSubmit={async (values) => {
+                onSubmit={async (values, actions) => {
                   let store_id = this.props.match.params.store_id
                   let service_id = this.props.match.params.service_id
 
@@ -280,7 +282,7 @@ class ServiceEditForm extends React.Component {
                   }
 
                   await this.props.editService(store_id, service_id, values)
-
+                  actions.setSubmitting(false)
                 }}
               >
               {( {values,
@@ -289,7 +291,8 @@ class ServiceEditForm extends React.Component {
                   handleChange,
                   handleBlur,
                   handleSubmit,
-                  setFieldValue}) => (
+                  setFieldValue,
+                  isSubmitting}) => (
                 <Form className="formBody rounded p-5">
                   <h3>Edit Service</h3>
 
@@ -420,7 +423,7 @@ class ServiceEditForm extends React.Component {
                           // style={{marginLeft: 30}}
                           id={picture.key}
                           label={picture.key.split('/').slice(-1)[0]}
-                          onChange={event => this.deleteFileChangeHandler(event)}
+                          onChange={event => this.deleteFileChangeHandler(event, setFieldValue)}
                         />
                       </div>
                     ))}
@@ -430,7 +433,7 @@ class ServiceEditForm extends React.Component {
                     <Form.Label>Add Images</Form.Label>
                     <br/>
                     <input
-                      onChange={event => this.fileChangedHandler(event)}
+                      onChange={event => this.fileChangedHandler(event, setFieldValue)}
                       type="file"
                       multiple
                       className={touched.pictures && errors.pictures ? "error" : null}
@@ -439,8 +442,8 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
                   </Form.Group>
-
-                  <Button onClick={handleSubmit}>Submit</Button>
+  
+                  <Button disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}
               </Formik>
