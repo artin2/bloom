@@ -13,6 +13,9 @@ import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import Cookies from 'js-cookie';
 import * as Yup from 'yup';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { addNewAppointment } from './ReservationHelper.js'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -58,6 +61,7 @@ class BookingPage extends React.Component {
 
   // redirect to the appointment display page and pass the new store data
   triggerAppointmentDisplay(returnedAppointment) {
+
     this.props.history.push({
       pathname: '/appointments/' + returnedAppointment,
       state: {
@@ -76,6 +80,13 @@ class BookingPage extends React.Component {
         phone: user.phone,
         user_id: user.id
       })
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+
+    if(this.props.appointment !== prevProps.appointment) {
+      this.triggerAppointmentDisplay(this.props.appointment.group_id)
     }
   }
 
@@ -116,35 +127,8 @@ class BookingPage extends React.Component {
                 validationSchema={this.yupValidationSchema}
                 onSubmit={(values, actions) => {
                   values.appointments = this.props.appointments
-                  let triggerAppointmentDisplay = this.triggerAppointmentDisplay
 
-                  fetch(fetchDomain + '/stores/' + this.props.store_id + '/appointments/new', {
-                    method: "POST",
-                    headers: {
-                      'Content-type': 'application/json',
-                      'Accept': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(values)
-                  })
-                  .then(function (response) {
-                    if (response.status !== 200) {
-                      // throw an error alert
-                      store.dispatch(addAlert(response))
-                      actions.setSubmitting(false);
-                    }
-                    else {
-                      return response.json();
-                    }
-                  })
-                  .then(async data => {
-                    if (data) {
-                      triggerAppointmentDisplay(data.group_id)
-                    }
-                    else{
-                      actions.setSubmitting(false);
-                    }
-                  });
+                  this.props.addNewAppointment(this.props.store_id, values)
                 }}
               >
                 {({ values,
@@ -262,4 +246,13 @@ class BookingPage extends React.Component {
   }
 }
 
-export default BookingPage;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  addNewAppointment: (store_id, values) => addNewAppointment(store_id, values)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  appointment: state.reservationReducer.appointment,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(BookingPage);

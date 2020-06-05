@@ -14,6 +14,9 @@ import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import { convertMinsToHrsMins } from '../helperFunctions'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getAppointments, deleteAppointment } from './AppointmentHelper.js'
 const override = css`
   display: block;
   margin: 0 auto;
@@ -38,45 +41,6 @@ class AppointmentDisplay extends React.Component {
     }
   }
 
-  deleteAppointment = () => {
-    fetch(fetchDomain + '/appointments/delete/' + this.props.match.params.group_id, {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-      .then(function (response) {
-        if (response.status !== 200) {
-          store.dispatch(addAlert(response))
-        }
-        else {
-          return response.json()
-        }
-      })
-      .then(data => {
-        store.dispatch(addAlert('Deleted Appointment'))
-        this.props.history.push({
-          pathname: '/'
-        })
-      });
-  }
-
-  triggerAppointmentCancel = () => {
-    confirmAlert({
-      title: 'Are you sure?',
-      message: 'You will be charged a cancellation fee by this store.',
-      buttons: [
-        {
-          label: 'Yes',
-          onClick: () => this.deleteAppointment()
-        },
-        {
-          label: 'No'
-        }
-      ]
-    });
-  }
 
   triggerAppointmentDisplay = (group_id) => {
     this.props.history.push({
@@ -84,33 +48,18 @@ class AppointmentDisplay extends React.Component {
     })
   }
 
-  componentDidMount() {
-    // retrieve the appointment data from the database
-    fetch(fetchDomain + '/appointments/' + JSON.parse(Cookies.get('user').substring(2)).id, {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-      .then(function (response) {
-        if (response.status !== 200) {
-          // throw an error alert
-          store.dispatch(addAlert(response))
-        }
-        else {
-          return response.json();
-        }
-      })
-      .then(data => {
-        if (data) {
-          if(Object.keys(data).length === 0 && data.constructor === Object) {
-            this.setState({
-              loading: false,
-              hasAppointments: false
-            })
-          } else {
-            this.setState({
+  componentDidUpdate(prevProps) {
+
+    if(this.props.appointments !== prevProps.appointments) {
+
+      let data = this.props.appointments
+      if(Object.keys(data).length === 0 && data.constructor === Object) {
+          this.setState({
+            loading: false,
+            hasAppointments: false
+          })
+        } else {
+          this.setState({
               store_ids: data.store_ids,
               store_name_mappings: data.store_name_mappings,
               dates: data.dates,
@@ -123,10 +72,14 @@ class AppointmentDisplay extends React.Component {
               loading: false,
               hasAppointments: true
             })
-          }
-
         }
-      });
+    }
+
+  }
+
+  componentDidMount() {
+
+    this.props.getAppointments(JSON.parse(Cookies.get('user').substring(2)).id)
   }
 
   render() {
@@ -210,4 +163,13 @@ class AppointmentDisplay extends React.Component {
   }
 }
 
-export default withRouter(AppointmentDisplay);
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getAppointments: (user_id) => getAppointments(user_id),
+}, dispatch)
+
+const mapStateToProps = state => ({
+  appointments: state.appointmentReducer.appointments,
+})
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AppointmentDisplay));

@@ -5,6 +5,7 @@ export const GET_WORKER_SUCCESS = 'GET_WORKER_SUCCESS'
 export const WORKER_FETCHING = 'WORKER_FETCHING'
 export const WORKER_FAILURE = 'WORKER_FAILURE'
 export const UPDATE_CURRENT_WORKER = 'UPDATE_CURRENT_WORKER'
+export const WORKER_SCHEDULE_SUCCESS = 'WORKER_SCHEDULE_SUCCESS'
 
 export function getWorkerOptionsSuccess(workerOptionsPassed) {
   return {
@@ -52,5 +53,12 @@ export function updateCurrentWorker(workerPassed) {
   return {
     type: UPDATE_CURRENT_WORKER,
     worker: workerPassed
+  }
+}
+
+export function workerSchedulesSuccess(schedules) {
+  return {
+    type: WORKER_SCHEDULE_SUCCESS,
+    schedules: schedules
   }
 }

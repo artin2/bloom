@@ -20,36 +20,36 @@ class MapContainer extends Component {
     this.onClose = this.onClose.bind(this);
   }
 
-  displayMarkers() { 
+  displayMarkers() {
     if(this.props.stores && this.props.stores.length > 0) {
-      return this.props.stores.map((store, index) => { 
-        return <Marker key={"store-" + index} id={index} position={{ 
-                       lat: store.lat, 
-                       lng: store.lng }} 
+      return this.props.stores.map((store, index) => {
+        return <Marker key={"store-" + index} id={index} position={{
+                       lat: store.lat,
+                       lng: store.lng }}
                        onClick={this.onMarkerClick}
-                       name={store.name} /> 
-      }) 
+                       name={store.name} />
+      })
     } else {
       return null
     }
-  } 
+  }
 
-  displayCurrentLocation() { 
+  displayCurrentLocation() {
     if(this.props.center) {
       const google = window.google;
-      return <Marker key={"current-location"} 
-                     id={"cur-loc"} 
-                     position={{ 
-                       lat: this.props.center.lat, 
-                       lng: this.props.center.lng }} 
+      return <Marker key={"current-location"}
+                     id={"cur-loc"}
+                     position={{
+                       lat: this.props.center.lat,
+                       lng: this.props.center.lng }}
                      icon={{
                         url: blueCompass,
                         scaledSize: new google.maps.Size(24,24)
-                      }}/> 
+                      }}/>
     } else {
       return null
     }
-  } 
+  }
 
   onMarkerClick = (props, marker, e) =>
   this.setState({
@@ -69,10 +69,10 @@ class MapContainer extends Component {
   };
 
   onInfoWindowOpen(props, e) {
-    const button = (<Button style={{backgroundColor: '#8CAFCA', border: 0}} onClick={() => this.props.onClickFunctionBook(this.props.stores[this.state.activeMarkerIndex].id)}>Book Now</Button>);
+    const button = (<Button style={{backgroundColor: '#8CAFCA', border: 0}} onClick={() => this.props.onClickFunctionBook(this.props.stores[this.state.activeMarkerIndex])}>Book Now</Button>);
     ReactDOM.render(React.Children.only(button), document.getElementById("iwc"));
 
-    const title = (<h5 className="m-2" style={{cursor: 'pointer'}} onClick={() => this.props.onClickFunctionStore(this.props.stores[this.state.activeMarkerIndex].id)}>{this.props.stores[this.state.activeMarkerIndex].name}</h5>)
+    const title = (<h5 className="m-2" style={{cursor: 'pointer'}} onClick={() => this.props.onClickFunctionStore(this.props.stores[this.state.activeMarkerIndex])}>{this.props.stores[this.state.activeMarkerIndex].name}</h5>)
     ReactDOM.render(React.Children.only(title), document.getElementById("iwt"));
   }
 
@@ -91,7 +91,7 @@ class MapContainer extends Component {
         return null
       }
     }
-    
+
     return (
       <Map
         google={this.props.google}

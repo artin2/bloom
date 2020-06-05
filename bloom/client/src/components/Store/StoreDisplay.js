@@ -56,7 +56,7 @@ class StoreDisplay extends React.Component {
       pictures = defaultStorePictures()
       console.log("Error! Could not get store images", e)
     }
-    
+
     store.pictures = pictures
     this.setState({ store: store, loading: false })
   }
@@ -73,13 +73,14 @@ class StoreDisplay extends React.Component {
   componentDidMount() {
     // if we were passed the store data from calling component
 
-    if (!this.props.store) {
-      this.props.getStore(this.props.match.params.user_id, this.props.match.params.store_id)
-    }
+    // console.log(this.props.match.params.store_id)
+    // if (!this.props.store) {
+      this.props.getStore(this.props.match.params.store_id)
+    // }
 
-    else {
+    // else {
       this.fetchPictures(this.props.store)
-    }
+    // }
 
   }
 
@@ -160,7 +161,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  getStore: (user_id, store_id) => getStore(user_id, store_id),
+  getStore: (store_id) => getStore(store_id),
 }, dispatch)
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(StoreDisplay));

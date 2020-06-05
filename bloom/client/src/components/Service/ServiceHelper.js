@@ -1,4 +1,5 @@
 import {getCategoriesSuccess, serviceFailure, serviceFetching, addServiceSuccess, getServiceSuccess, updateCurrentService, editServiceSuccess} from '../../redux/actions/service';
+import {getSearchServices, searchFailure} from '../../redux/actions/search'
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -93,7 +94,7 @@ export function getService(store_id, service_id) {
   }
 }
 
-export function getServices(store_id) {
+export function getServices(store_id, mode) {
   return dispatch => {
     fetch(fetchDomain + '/stores/' + store_id + "/services/", {
       method: "GET",
@@ -105,7 +106,12 @@ export function getServices(store_id) {
     .then(function(response){
       if(response.status!==200){
         // throw an error alert
-        dispatch(serviceFailure(response))
+        if(mode=="search") {
+          dispatch(searchFailure(response))
+        }else {
+          dispatch(serviceFailure(response))
+        }
+
       }
       else{
         return response.json();
@@ -114,7 +120,14 @@ export function getServices(store_id) {
     .then(function(data){
 
       if(data){
-        dispatch(getServiceSuccess(data))
+
+        if(mode=="search") {
+          dispatch(getSearchServices(data))
+        }
+        else {
+          dispatch(getServiceSuccess(data))
+        }
+
         return data
       }
     })

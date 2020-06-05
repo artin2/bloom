@@ -11,6 +11,9 @@ import { addAlert } from '../../redux/actions/alert'
 import { convertMinsToHrsMins } from '../helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getAppointments } from './ReservationHelper.js'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -26,42 +29,19 @@ class DateSelection extends React.Component {
       currDate: new Date(),
       selectedTime: 540,
       loading: true,
-      appointments: []
+      appointments: this.props.appointments
     };
   }
 
   handleDateChange = date => {
     if (date.getMonth() !== this.state.startDate.getMonth()) {
       this.setState({
+        currDate: date,
+        startDate: date,
         loading: true
       })
-      fetch(fetchDomain + '/stores/' + this.props.store_id + '/appointments/month/' + (parseInt(date.getMonth()) + 1), {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      })
-        .then(function (response) {
-          if (response.status !== 200) {
-            store.dispatch(addAlert(response))
-          }
-          else {
-            return response.json()
-          }
-        })
-        .then(data => {
-          let parsedData = data.map(appointment => {
-            appointment.date = new Date(appointment.date)
-            return appointment
-          })
-          this.setState({
-            appointments: parsedData,
-            currDate: date,
-            startDate: date,
-            loading: false
-          })
-        });
+
+      this.props.getAppointments(this.props.store_id, (parseInt(date.getMonth()) + 1))
     }
     this.setState({
       currDate: date
@@ -80,31 +60,19 @@ class DateSelection extends React.Component {
   }
 
   componentDidMount() {
-    fetch(fetchDomain + '/stores/' + this.props.store_id + '/appointments/month/' + (parseInt(this.state.startDate.getMonth()) + 1), {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-      .then(function (response) {
-        if (response.status !== 200) {
-          store.dispatch(addAlert(response))
-        }
-        else {
-          return response.json()
-        }
-      })
-      .then(data => {
-        let parsedData = data.map(appointment => {
-          appointment.date = new Date(appointment.date + ' UTC')
-          return appointment
-        })
-        this.setState({
-          appointments: parsedData,
-          loading: false
-        })
+
+    this.props.getAppointments(this.props.store_id, (parseInt(this.state.startDate.getMonth()) + 1))
+
+  }
+
+  componentDidUpdate(prevProps) {
+
+    if(prevProps.appointments !== this.props.appointments) {
+      this.setState({
+        appointments: this.props.appointments,
+        loading: false
       });
+    }
   }
 
   render() {
@@ -263,4 +231,13 @@ class DateSelection extends React.Component {
   }
 }
 
-export default DateSelection;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getAppointments: (store_id, month) => getAppointments(store_id, month)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  appointments: state.reservationReducer.appointments,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(DateSelection);

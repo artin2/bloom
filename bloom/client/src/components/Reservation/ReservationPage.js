@@ -11,6 +11,11 @@ import BookingPage from './BookingPage';
 import RedirectToLogin from './RedirectToLogin'
 import Cookies from 'js-cookie';
 import HorizontalLinearStepper from './BookingStepper';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getWorkerSchedules } from '../Worker/WorkerHelper.js'
+import { getServices } from '../Service/ServiceHelper.js'
+import { getStore } from '../Store/StoreHelper'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -22,7 +27,7 @@ class ReservationPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      storeName: null,
+      storeName: this.props.store.name,
       total: 0,
       time: 0,
       currentStep: 1,
@@ -32,7 +37,6 @@ class ReservationPage extends React.Component {
       loading: true,
       workers: [],
       workersSchedules: [],
-      storeHours: [],
       appointments: "original value"
     };
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -103,67 +107,88 @@ class ReservationPage extends React.Component {
     return rhours + " " + this.pluralize(rhours, 'hour') + " and " + rminutes + " " + this.pluralize(rminutes, 'minute');
   }
 
-  prefetchSchedules = () => {
-    Promise.all([
-      fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/schedules', {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      }).then(value => value.json()),
-      fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/storeHours", {
-        method: "GET",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        credentials: 'include'
-      }).then(value => value.json())
-    ]).then(allResponses => {
+  // prefetchSchedules = () => {
+  //   Promise.all([
+  //     fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/workers/schedules', {
+  //       method: "GET",
+  //       headers: {
+  //         'Content-type': 'application/json'
+  //       },
+  //       credentials: 'include'
+  //     }).then(value => value.json()),
+  //     fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/storeHours", {
+  //       method: "GET",
+  //       headers: {
+  //         'Content-type': 'application/json'
+  //       },
+  //       credentials: 'include'
+  //     }).then(value => value.json())
+  //   ]).then(allResponses => {
+  //     this.setState({
+  //       storeHours: allResponses[1],
+  //       workersSchedules: allResponses[0]
+  //     })
+  //   })
+  // }
+
+  componentDidUpdate(prevProps) {
+
+    if(this.props.services !== prevProps.services) {
+
+      const unique = [...new Set(this.props.services.map(service => service.category))];
+      // if(this.props.location.currentStep && this.props.location.appointments) {
+        this.setState({
+          // appointments: this.props.appointments,
+          // currentStep: this.props.currentStep,
+          services: this.props.services,
+          categories: unique
+        })
+      // }
+    }
+    if(this.props.workerSchedules !== prevProps.workerSchedules) {
+      console.log(this.props.workerSchedules)
       this.setState({
-        storeHours: allResponses[1],
-        workersSchedules: allResponses[0]
+        workerSchedules: this.props.workerSchedules,
+        loading: false
       })
-    })
+    }
+    if(this.props.store !== prevProps.store) {
+      this.setState({
+        store: this.props.store,
+
+      })
+      console.log(this.props.store)
+    }
   }
 
   componentDidMount() {
-    // need to get store category, fetch?
-    Promise.all([
-      fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/services", {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    }).then(value => value.json()),
-    fetch(fetchDomain + '/stores/' + this.props.match.params.store_id, {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    }).then(value => value.json())
-    ]).then(allResponses => {
-      const response1 = allResponses[0]
-      const response2 = allResponses[1]
-      const unique = [...new Set(response1.map(service => service.category))];
-      if(this.props.location.currentStep && this.props.location.appointments) {
-        this.setState({
-          appointments: this.props.appointments,
-          currentStep: this.props.currentStep
-        })
-      }
-      this.setState({
-        services: response1,
-        storeName: response2.name,
-        workers: response2.workers,
-        categories: unique,
-        loading: false
-      })
-    })
 
-    this.prefetchSchedules()
+    // // need to get store category, fetch?
+    // Promise.all([
+    //   fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + "/services", {
+    //   method: "GET",
+    //   headers: {
+    //     'Content-type': 'application/json'
+    //   },
+    //   credentials: 'include'
+    // }).then(value => value.json()),
+    // fetch(fetchDomain + '/stores/' + this.props.match.params.store_id, {
+    //   method: "GET",
+    //   headers: {
+    //     'Content-type': 'application/json'
+    //   },
+    //   credentials: 'include'
+    // }).then(value => value.json())
+    // ]).then(allResponses => {
+    //   const response1 = allResponses[0]
+    //   const response2 = allResponses[1]
+    //
+    // console.log(this.props.store)
+    this.props.getStore(this.props.match.params.store_id, "search")
+    this.props.getServices(this.props.match.params.store_id, "search")
+    this.props.getWorkerSchedules(this.props.match.params.store_id)
+
+    // this.prefetchSchedules()
   }
 
   static getDerivedStateFromProps(nextProps, preState) {
@@ -198,7 +223,7 @@ class ReservationPage extends React.Component {
         if (this.state.currentStep === 1) {
           return <ServiceSelection services={this.state.services} categories={this.state.categories} updateReservation={this.updateReservation} selectedServices={this.state.selectedServices} time={this.state.time} total={this.state.total} handleSubmit={this.handleSubmit} timeConvert={this.timeConvert} pluralize={this.pluralize} />
         } else if(this.state.currentStep === 2) {
-          return <DateSelection time={this.state.time}  store_id={this.props.match.params.store_id} selectedServices={this.state.selectedServices} storeHours={this.state.storeHours} workersSchedules={this.state.workersSchedules} handleSubmit={this.handleSubmit} updateAppointments={this.updateAppointments}/>
+          return <DateSelection time={this.state.time}  store_id={this.props.match.params.store_id} selectedServices={this.state.selectedServices} storeHours={this.state.store.storeHours} workersSchedules={this.state.workerSchedules} handleSubmit={this.handleSubmit} updateAppointments={this.updateAppointments}/>
         } else {
           if(Cookies.get('user')){
             return <BookingPage handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} history={this.props.history}/>
@@ -295,4 +320,18 @@ class ReservationPage extends React.Component {
   }
 }
 
-export default ReservationPage;
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getServices: (store_id, mode) => getServices(store_id, mode),
+  getWorkerSchedules: (store_id) => getWorkerSchedules(store_id),
+  getStore: (store_id, mode) => getStore(store_id, mode)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  stores: state.searchReducer.stores,
+  store: state.searchReducer.store,
+  workerSchedules: state.workerReducer.workerSchedules,
+  services: state.searchReducer.services
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(ReservationPage);

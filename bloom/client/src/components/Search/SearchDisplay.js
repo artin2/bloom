@@ -9,6 +9,7 @@ import {Switch} from '@material-ui/core'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getSearchResults } from './SearchHelper.js'
+import { updateSelectedStore } from '../../redux/actions/search'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 class SearchDisplay extends React.Component {
@@ -48,13 +49,31 @@ class SearchDisplay extends React.Component {
 
     }
 
+  onClickFunctionBook(store) {
+
+    this.props.updateSelectedStore(store)
+    this.props.history.push({
+      pathname: '/book/' + store.id,
+    })
+
+  }
+
+  onClickFunctionStore(store) {
+
+    this.props.updateSelectedStore(store)
+    this.props.history.push({
+      pathname: '/stores/' + store.id,
+    })
+
+  }
+
 
   render() {
     const RenderStoreCards = (props) => {
       return this.state.stores.map(store => (
           <SearchCard key={"store-" + store.id} store={store}
-            onClickFunctionBook={() => window.location.href = '/book/' + store.id}
-            onClickFunctionStore={() => window.location.href = '/stores/' + store.id}
+            onClickFunctionBook={() => this.onClickFunctionBook(store)}
+            onClickFunctionStore={() => this.onClickFunctionStore(store)}
           />
       ))
     }
@@ -84,14 +103,15 @@ class SearchDisplay extends React.Component {
     }
 
     const DisplayMapDynamic = (props) => {
+
         return <MapContainer style={{position: 'relative'}}
         google={window.google}
         stores={this.state.stores}
         center={this.state.center}
         zoom={this.state.zoom}
         mapStyles={this.state.mapStyles}
-        onClickFunctionBook={(store_id) => window.location.href = '/book/' + store_id}
-        onClickFunctionStore={(store_id) => window.location.href = '/stores/' + store_id}/>
+        onClickFunctionBook={(store) => this.onClickFunctionBook(store)}
+        onClickFunctionStore={(store) => this.onClickFunctionStore(store)}/>
     }
 
     return (
@@ -121,7 +141,8 @@ class SearchDisplay extends React.Component {
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  getSearchResults: (query) => getSearchResults(query)
+  getSearchResults: (query) => getSearchResults(query),
+  updateSelectedStore: (store) => updateSelectedStore(store)
 }, dispatch)
 
 const mapStateToProps = state => ({

@@ -1,4 +1,4 @@
-import {getWorkerSuccess, workerFailure, workerFetching, addWorkerSuccess, editWorkerSuccess} from '../../redux/actions/worker';
+import {getWorkerSuccess, workerFailure, workerFetching, addWorkerSuccess, editWorkerSuccess, workerSchedulesSuccess} from '../../redux/actions/worker';
 
 import {addAlert} from '../../redux/actions/alert';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
@@ -19,8 +19,8 @@ export function getWorkers(store_id) {
     .then(function(response){
       if(response.status!==200){
         // throw an error alert
-        dispatch(workerFailure(response))
-        dispatch(workerFetching(false))
+          dispatch(workerFailure(response))
+          dispatch(workerFetching(false))
       }
       else{
         return response.json();
@@ -32,8 +32,9 @@ export function getWorkers(store_id) {
           workerHours: await getWorkerHours(store_id, worker.id)
       })))
 
-      dispatch(getWorkerSuccess(result))
-      dispatch(workerFetching(false))
+        dispatch(getWorkerSuccess(result))
+        dispatch(workerFetching(false))
+
       return data
     })
 
@@ -129,5 +130,34 @@ export function editWorker(store_id, worker_id, values) {
           return data;
         }
       });
+  }
+}
+
+export function getWorkerSchedules(store_id) {
+  return dispatch => {
+    fetch(fetchDomain + '/stores/' + store_id + '/workers/schedules', {
+          method: "GET",
+          headers: {
+            'Content-type': 'application/json'
+          },
+          credentials: 'include'
+        })
+        .then(function (response) {
+          if (response.status !== 200) {
+            dispatch(workerFailure(response))
+          }
+          else {
+            // redirect to worker page
+            return response.json()
+          }
+        })
+        .then(async data => {
+
+          if (data) {
+
+            dispatch(workerSchedulesSuccess(data))
+            return data;
+          }
+        });
   }
 }

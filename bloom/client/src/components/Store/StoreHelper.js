@@ -1,6 +1,7 @@
 import {getStoresSuccess, storesFailure, storesFetching, addStoreSuccess, updateCurrentStore, storeHoursSuccess, editStoreSuccess} from '../../redux/actions/stores';
 import {getWorkerSuccess} from '../../redux/actions/worker';
 import {getServiceSuccess, getCategoriesSuccess} from '../../redux/actions/service';
+import {updateSelectedStore, searchFailure} from '../../redux/actions/search'
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -36,7 +37,7 @@ function getStoreHours(store_id){
 }
 
 
-export function getStore(store_id){
+export function getStore(store_id, mode){
   return dispatch => {
     fetch(fetchDomain + '/stores/' + store_id , {
        method: "GET",
@@ -48,7 +49,12 @@ export function getStore(store_id){
      .then(function(response){
        if(response.status!==200){
          // throw an error alert
-        dispatch(storesFailure(response))
+        if(mode=="search") {
+          dispatch(searchFailure(response))
+        }
+        else {
+          dispatch(storesFailure(response))
+        }
        }
        else{
          return response.json();
@@ -59,7 +65,13 @@ export function getStore(store_id){
 
          data.storeHours = await getStoreHours(data.id)
 
-         dispatch(updateCurrentStore(data))
+         if(mode=="search") {
+           dispatch(updateSelectedStore(data))
+         }
+         else {
+           dispatch(updateCurrentStore(data))
+         }
+
          return data
 
        }
