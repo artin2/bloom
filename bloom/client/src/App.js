@@ -34,6 +34,7 @@ import {
 } from './redux/actions/user'
 import store from './redux/store';
 import UserAppointments from './components/Appointments/UserAppointments';
+import NotFoundPage from './components/StaticPages/NotFoundPage';
 
 function App() {
   function handleLogout() {
@@ -77,6 +78,8 @@ function App() {
             <Route path="/stores/:store_id" component={StoreDisplay}/>
 
             <Route path="/appointments/:group_id" component={redirectWithoutAuth(AppointmentDisplay)}/>
+
+            <Route component={NotFoundPage}/>
 
           </Switch>
         </div>
