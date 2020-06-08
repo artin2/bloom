@@ -159,7 +159,7 @@ async function getSignedUrl(s3, params){
       if (err) reject(err)
       resolve(url);
     })
-});
+  });
 }
 
 function defaultStorePictures() {
@@ -177,5 +177,5 @@ module.exports = {
   getImagesLocal: getImagesLocal,
   deleteImages: deleteImages,
   defaultStorePictures: defaultStorePictures,
-  getImageObject: getImageObject
+  getImageObject: getImageObject,
 };

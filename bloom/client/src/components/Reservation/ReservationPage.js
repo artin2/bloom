@@ -226,7 +226,7 @@ class ReservationPage extends React.Component {
           return <DateSelection time={this.state.time}  store_id={this.props.match.params.store_id} selectedServices={this.state.selectedServices} storeHours={this.state.store.storeHours} workersSchedules={this.state.workerSchedules} handleSubmit={this.handleSubmit} updateAppointments={this.updateAppointments}/>
         } else {
           if(Cookies.get('user')){
-            return <BookingPage handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} history={this.props.history}/>
+            return <BookingPage handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} store={this.props.store} services={this.state.services} history={this.props.history}/>
           } else {
             return <RedirectToLogin handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} history={this.props.history}/>
           }

@@ -12,6 +12,7 @@ const appointments = require('./routes/appointments.js')
 const users = require('./routes/users.js');
 const jwt = require('jsonwebtoken');
 const s3 = require('./routes/s3');
+const email = require('./routes/email');
 const fileUpload = require('express-fileupload')
 
 
@@ -286,6 +287,13 @@ app.get('/profiles/:user_id', async(req, res) => {
   // await s3.getProfilePic(req, res);
 })
 
+// emails
+app.post('/signupConfirmation', async(req, res) => {
+  console.log("hit the signup confirmation route")
+  console.log("req.body is: ", req.body)
+  console.log("req.files is: ", req.files)
+  await email.sendEmail(req, res)
+})
 
 //Need to fix this: not sure what name of cookie is
 // EDIT: don't think we even need this..
