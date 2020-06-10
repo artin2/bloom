@@ -27,7 +27,6 @@ export function addNewAppointment(store_id, values){
     })
     .then(async data => {
       if (data) {
-
         dispatch(addAppointmentSuccess(data))
         return data
       }

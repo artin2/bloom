@@ -16,6 +16,8 @@ import * as Yup from 'yup';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { addNewAppointment } from './ReservationHelper.js'
+import { convertMinsToHrsMins } from '.././helperFunctions'
+import alertReducer from '../../redux/reducers/alert';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -127,6 +129,22 @@ class BookingPage extends React.Component {
                 validationSchema={this.yupValidationSchema}
                 onSubmit={(values, actions) => {
                   values.appointments = this.props.appointments
+                  values.store_name = this.props.store.name
+                  values.address = this.props.store.address
+                  values.services = this.props.services
+                  values.price = 0
+
+                  for (let i = 0; i < values.appointments.length; i++) {
+                    values.price += values.appointments[i].price
+
+                    if(i === 0){
+                      values.start_time = convertMinsToHrsMins(values.appointments[i].start_time)
+                    }
+                    
+                    if(i + 1 === values.appointments.length){
+                      values.end_time = convertMinsToHrsMins(values.appointments[i].end_time)
+                    }
+                  }
 
                   this.props.addNewAppointment(this.props.store_id, values)
                 }}

@@ -1,6 +1,7 @@
 const helper = require('../helper.js')
 const db = require('../db.js');
 const auth = require('../auth.js');
+const email = require('./email');
 
 async function login(req, res) {
   if (req.body.email && req.body.password) {
@@ -118,7 +119,20 @@ async function signup(req, res) {
               // await auth.generateToken(res, result.rows[0]);
               let tokenGen = await auth.generateToken(res, result.rows[0])
               delete result.rows[0].password
-              helper.querySuccess(res, {user: result.rows[0], token: tokenGen}, "Successfully Created User!");
+              try{
+                let params = {
+                  first_name: result.rows[0].first_name,
+                  last_name: result.rows[0].last_name,
+                  email: result.rows[0].email,
+                  user_id: result.rows[0].id
+                }
+
+                await email.signupConfirmation(params)
+                helper.querySuccess(res, {user: result.rows[0], token: tokenGen}, "Successfully Created User!");
+              }
+              catch(err){
+                helper.queryError(res, "Could not send confirmation email!")
+              }
             }
             catch (err) {
               helper.queryError(res, err);

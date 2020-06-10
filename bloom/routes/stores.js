@@ -2,6 +2,7 @@ const helper = require('../helper.js')
 const db = require('../db.js');
 const auth = require('../auth.js');
 const s3 = require('./s3.js')
+const email = require('./email');
 
 const NodeGeocoder = require('node-geocoder');
 const options = {
@@ -1168,7 +1169,28 @@ async function insertAppointments(req, res, group_id) {
           throw e;
         } finally {
           if (!failed) {
-            helper.querySuccess(resp, {group_id: group_id, appointment: appoint.rows[0]}, 'Successfully added appointment!');
+            try {
+              let params = {
+                group_id: group_id,
+                first_name: request.body.first_name,
+                last_name: request.body.last_name,
+                user_id: request.body.user_id,
+                store_name: request.body.store_name,
+                address: request.body.address, 
+                start_time: request.body.start_time,
+                end_time: request.body.end_time,
+                services: request.body.services,
+                email: request.body.email,
+                price: request.body.price
+              }
+
+              console.log("PARAMS ARE:", params)
+
+              await email.bookingConfirmation(params)
+              helper.querySuccess(resp, {group_id: group_id, appointment: appoint.rows[0]}, 'Successfully added appointment!');
+            } catch (error) {
+              helper.queryError(resp, "Unable to send confirmation email!");
+            }
           } else {
             helper.queryError(res, "Unable to add appointments!");
           }
