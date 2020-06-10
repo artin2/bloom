@@ -69,6 +69,7 @@ export function getStore(store_id, mode){
            dispatch(updateSelectedStore(data))
          }
          else {
+           console.log(data)
            dispatch(updateCurrentStore(data))
          }
 
@@ -103,9 +104,9 @@ export function getStores(user_id){
       if(data){
 
         dispatch(getStoresSuccess(data))
-        dispatch(getWorkerSuccess(data.workers))
-        dispatch(getServiceSuccess(data.services))
-        dispatch(getCategoriesSuccess(data.category))
+        // dispatch(getWorkerSuccess(data.workers))
+        // dispatch(getServiceSuccess(data.services))
+        // dispatch(getCategoriesSuccess(data.category))
 
         return data
       }

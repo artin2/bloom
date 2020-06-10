@@ -2,7 +2,7 @@ import {addAppointmentSuccess, appointmentFailure, getAppointmentSuccess} from '
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
-// SEARCH FUNCTIONS
+// RESERVATION FUNCTIONS
 
 export function addNewAppointment(store_id, values){
 

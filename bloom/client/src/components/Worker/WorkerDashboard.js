@@ -26,7 +26,7 @@ class WorkerDashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state ={
-      workers: this.props.workers,
+      workers: [],
       redirectToWorkerEditForm: null,
       redirectToWorkerDisplay: null,
       loading: true,
@@ -61,7 +61,7 @@ class WorkerDashboard extends React.Component {
 
   componentDidUpdate(prevProps) {
 
-      if (this.props.workers !== prevProps.workers) {
+      if (this.props.workers !== prevProps.workers && this.props.workers) {
 
         this.fetchPictures(this.props.workers)
       }
@@ -95,9 +95,9 @@ class WorkerDashboard extends React.Component {
             console.log("Error getting pictures from s3!", e)
           }
 
-          let stateCopy = Object.assign({}, this.state);
-          stateCopy.workers[i].picture = picturesFetched
-          this.setState(stateCopy)
+          // let stateCopy = Object.assign({}, this.state);
+          workers[i].picture = picturesFetched
+          this.setState({workers: workers})
 
       }
       this.setState({loading: false})

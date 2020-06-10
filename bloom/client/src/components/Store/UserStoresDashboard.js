@@ -13,10 +13,10 @@ import {
 import store from '../../redux/store';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { getStores } from './StoreHelper.js'
+import { getStores, getStore } from './StoreHelper.js'
 import { updateCurrentStore } from '../../redux/actions/stores'
 import UserStoresDashboardLoader from './UserStoresDashboardLoader';
-import { /*getPictures,*/ defaultStorePictures } from '../s3'
+import {getPictures, defaultStorePictures } from '../s3'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 // ***** NOTE: fix to properly display all the stores
@@ -62,7 +62,8 @@ class UserStoresDashboard extends React.Component {
 
   triggerShowCalendar(store) {
 
-    this.props.updateCurrentStore(store)
+    this.props.getStore(store.id)
+
     this.props.history.push({
       pathname: '/storeCalendar/' + store.id,
     })
@@ -70,12 +71,12 @@ class UserStoresDashboard extends React.Component {
 
   componentDidMount() {
 
-    if(!this.props.stores) {
+    // if(!this.props.stores) {
       this.props.getStores(this.props.match.params.user_id)
-    }
-    else {
+    // }
+    // else {
       this.fetchPictures(this.props.stores)
-    }
+    // }
 
   }
 
@@ -174,6 +175,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => bindActionCreators({
   getStores: (user_id) => getStores(user_id),
+  getStore: (store_id) => getStore(store_id),
   updateCurrentStore: (store) => updateCurrentStore(store),
 }, dispatch)
 

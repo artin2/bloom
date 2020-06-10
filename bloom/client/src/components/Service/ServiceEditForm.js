@@ -67,9 +67,9 @@ class ServiceEditForm extends React.Component {
       .required("Worker is required"),
       category: Yup.array()
       .required("Category is required"),
-      // pictureCount: Yup.number()
-      // .required("Pictures are required")
-      // .min(1, "Must have at least one picture")
+      pictureCount: Yup.number()
+      .required("Pictures are required")
+      .min(1, "Must have at least one picture")
     });
 
     this.triggerServiceDisplay = this.triggerServiceDisplay.bind(this);
@@ -442,7 +442,7 @@ class ServiceEditForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
                   </Form.Group>
-  
+
                   <Button disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}

@@ -11,99 +11,120 @@ import { Multiselect } from 'multiselect-react-dropdown';
 import { FiSearch} from 'react-icons/fi';
 import { withRouter } from "react-router"
 import moment from 'moment';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { getServices } from '../Service/ServiceHelper.js'
+import { getWorkers } from '../Worker/WorkerHelper.js'
+import { getAppointments } from './CalendarHelper.js'
+import { getStore } from '../Store/StoreHelper'
+import { withStyles, Theme, createStyles } from '@material-ui/core';
+import { fade } from '@material-ui/core/styles/colorManipulator';
+import classNames from 'clsx';
+import store from '../../redux/store';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
-const isWeekEnd = (date: Date): boolean => date.getDay() === 0 || date.getDay() === 6;
+const isWeekEnd = (date) => {
+  const state = store.getState();
+  let start_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].open_time
+  return start_time == null;
+}
 
-//new Date(2018, 6, 1, 10, 0) start and end dates
+const isRestTime = (date) => {
+    const state = store.getState();
+    let start_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].open_time
+    let end_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].close_time
 
-// const Root = ({
-//   children, style, ...restProps
-// }) => (
-//   <div
-//     {...restProps}
-//     style={{
-//       ...style,
-//       width: '1000px',
-//     }}
-//   >
-//     {children}
-//   </div>
-// );
+    return start_time == null || date.getHours() < start_time/60 || date.getHours() >= end_time/60;
+}
 
-// const recurringIcon = () => <div />
 
-// const ResourceSwitcher = ({ styles,
-//     mainResourceName, onChange, classes, resources,
-//   }) => (
-//     <div >
-//       <Row className="justify-content-center text-xs-center text-sm-left pl-2">
-//       <p style={{fontSize: 20, marginRight:10, marginTop:2}}>
-//         Filter By:
-//       </p>
-//       <Select
-//         value={mainResourceName}
-//         onChange={e => onChange(e.target.value)}
-//         style={{paddingLeft: 60, height: 35}}
-//       >
-//         {resources.map(resource => (
-//           <MenuItem key={resource.fieldName} value={resource.fieldName}>
-//             {resource.title}
-//           </MenuItem>
-//         ))}
-//       </Select>
-//       </Row>
-//     </div>
-//   );
+
 
 const BooleanEditor = ({
   ...restProps }) => {
-  // eslint-disable-next-line react/destructuring-assignment
-  // console.log(restProps);
-
   return null;
-  // if (restProps.type === 'endRepeat') {
-  //   console.log("BO");
-  //   return null;
-  //
-  // } else {console.log("HELO"); return <AppointmentForm.WeeklyRecurrenceSelectorComponent readOnly={true} {...restProps} />};
 };
+
 
 const TextEditor = (props) => {
-  // eslint-disable-next-line react/destructuring-assignment
-  // if (props.type === 'multilineTextEditor') {
     return null;
-  // } return <AppointmentForm.TextEditor {...props} />;
 };
 
-const DayScaleCell = ({
+const styles = ({ palette }: Theme) => createStyles({
+  weekEndCell: {
+    backgroundColor: fade(palette.action.disabledBackground, 0.04),
+    '&:hover': {
+      backgroundColor: fade(palette.action.disabledBackground, 0.04),
+    },
+    '&:focus': {
+      backgroundColor: fade(palette.action.disabledBackground, 0.04),
+    },
+  },
+  weekEndDayScaleCell: {
+    backgroundColor: fade(palette.action.disabledBackground, 0.06),
+  },
+});
+
+const DayScaleCell = withStyles(styles)(({
   startDate, classes, ...restProps
 }: DayScaleCellProps) => (
   <MonthView.DayScaleCell
-    // className={classNames({
-    //   [classes.weekEndDayScaleCell]: isWeekEnd(startDate),
-    // })}
-    className={isWeekEnd(startDate) ? 'weekend' : null}
-
-    // style={isWeekEnd(startDate) ? 'background-color: grey' : 'background-color: white'}
+    className={classNames({
+      [classes.weekEndDayScaleCell]: isWeekEnd(startDate),
+    })}
     startDate={startDate}
     {...restProps}
   />
-);
+));
 
-const TimeTableCell = (
-  { startDate, classes, ...restProps }: TimeTableCellProps,
-) => (
-  <MonthView.TimeTableCell
-    className={isWeekEnd(startDate) ? 'weekend' : null}
+const TimeTableCell = withStyles(styles, { name: 'TimeTableCell' })(({ classes, data, ...restProps }) => {
+  const { startDate, onDoubleClick } = restProps;
 
-    startDate={startDate}
-    {...restProps}
-  />
-);
+  if (isWeekEnd(startDate)) {
+    return <MonthView.TimeTableCell {...restProps} onDoubleClick={()=>null} className={classes.weekEndCell} />;
+  }
+  return <MonthView.TimeTableCell {...restProps} />;
+});
+
+const TimeTableCellWeek = withStyles(styles, { name: 'TimeTableCell' })(({ classes, ...restProps }) => {
+  const { startDate, onDoubleClick } = restProps;
+
+  if (isRestTime(startDate)) {
+    return <WeekView.TimeTableCell {...restProps} onDoubleClick={()=>null} className={classes.weekEndCell} />;
+  }
+  return <WeekView.TimeTableCell {...restProps} />;
+});
+
+const DayScaleCellWeek = withStyles(styles, { name: 'DayScaleCell' })(({ classes, ...restProps }) => {
+  const { startDate } = restProps;
+  if (isWeekEnd(startDate)) {
+    return <WeekView.DayScaleCell {...restProps} className={classes.weekEndDayScaleCell} />;
+  }
+  return <WeekView.DayScaleCell {...restProps} />;
+});
+
+
+const TimeTableCellDay = withStyles(styles, { name: 'TimeTableCell' })(({ classes, data, ...restProps }) => {
+  const { startDate, onDoubleClick } = restProps;
+
+  if (isRestTime(startDate)) {
+    return <DayView.TimeTableCell {...restProps} onDoubleClick={()=>null} className={classes.weekEndCell} />;
+  }
+  return <DayView.TimeTableCell {...restProps} />;
+});
+
+const DayScaleCellDay = withStyles(styles, { name: 'DayScaleCell' })(({ classes, ...restProps }) => {
+  const { startDate, onDoubleClick } = restProps;
+  // Calendar.demoFunction()
+  if (isWeekEnd(startDate)) {
+    return <DayView.DayScaleCell {...restProps} onDoubleClick={()=>null} className={classes.weekEndDayScaleCell} />;
+  }
+  return <DayView.DayScaleCell {...restProps} />;
+});
+
 
 const BasicLayout = ({ appointmentData, onFieldChange,
    ...restProps }) => {
-     console.log(">>", appointmentData, restProps)
+     // console.log(">>", appointmentData, restProps)
 
    const onCustomFieldChange = (nextValue) => {
      onFieldChange({ price: nextValue });
@@ -161,11 +182,11 @@ const RecurrenceLayout = ({
 
 };
 
+
 const Appointment = ({
   children, style,
   ...restProps
 }) => {
-  // console.log(restProps);
   return (
     <Appointments.Appointment
       {...restProps}
@@ -186,7 +207,7 @@ class Calendar extends React.Component {
   constructor(props) {
     super(props);
        this.state = {
-
+         store_id: (this.props.match.params.store_id) ? (this.props.match.params.store_id) : this.props.store_id,
          services: [],
          workers: [],
          worker_map: {},
@@ -209,14 +230,9 @@ class Calendar extends React.Component {
               allowMultiple: false,
               instances: [],
             },
-            {
-              fieldName: 'users',
-              title: 'Users',
-              allowMultiple: false,
-              instances: [],
-            },
           ],
-         currentDate: moment(new Date()).format('YYYY-MM-DD')
+        currentDate: moment(new Date()).format('YYYY-MM-DD'),
+        loading: true
        }
 
        this.commitChanges = this.commitChanges.bind(this);
@@ -227,36 +243,23 @@ class Calendar extends React.Component {
        this.onRemoveService = this.onRemoveService.bind(this);
        this.onSearch = this.onSearch.bind(this);
        this.onAppointmentChanges = this.onAppointmentChanges.bind(this);
+       // this.func = this.func.bind(this)
   }
 
-  timeConvert = (n) => {
-    var num = n;
-    var hours = (num / 60);
-    var rhours = Math.floor(hours);
-    var minutes = (hours - rhours) * 60;
-    var rminutes = Math.round(minutes);
-    return [rhours, rminutes];
+  componentDidMount() {
+
+    this.props.getServices(this.state.store_id)
+
   }
 
-  // get appointments and set them as active appointments
-  getAppointments = async (store_id) => {
-    await fetch(fetchDomain + '/stores/' + store_id + '/appointments' , {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(value => value.json())
-    .then(data => {
+  componentDidUpdate(prevProps) {
+
+    if(this.props.appointments !== prevProps.appointments) {
+
       let appointments = []
-
-      data.map((appointment, index) => {
+      this.props.appointments.map((appointment, index) => {
         // if this is the store's calendar or if this is the worker's calendar and the worker's appointment
         if(!this.props.id || (this.props.id && appointment.worker_id === this.props.id)) {
-          let date = new Date(appointment.date);
-          let startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.timeConvert(appointment.start_time)[0], this.timeConvert(appointment.start_time)[1]);
-          let endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.timeConvert(appointment.end_time)[0], this.timeConvert(appointment.end_time)[1]);
 
           appointments.push({
             id: appointment.id,
@@ -264,187 +267,153 @@ class Calendar extends React.Component {
             workers: appointment.worker_id,
             services: appointment.service_id,
             price: appointment.price,
-            startDate: startDate,
-            endDate: endDate,
-            users: appointment.user_id,
+            startDate: appointment.start_time,
+            endDate: appointment.end_time,
+            // users: appointment.user_id,
             group_id: appointment.group_id
           })
         }
-
         return appointment
       })
 
       this.setState({
         appointments: appointments,
-        selectedAppointments: appointments
+        selectedAppointments: appointments,
+        loading: false
       })
-    })
-  }
+    }
 
-  getServices = async (store_id) => {
-    let services = []
-    await fetch(fetchDomain + '/stores/' + store_id + "/services", {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(function (response) {
-        if (response.status !== 200) {
-          console.log("Error!", response)
-        }
-        else {
-          return response.json();
-        }
-    })
-    .then(async data => {
-      if (data) {
-        if(!this.props.id) {
-          services = data;
 
-          let service_instances = []
-          let service_map = {}
-  
-          services.map((service, indx) => {
+    if(this.props.services !== prevProps.services) {
+      let services = this.props.services;
+      let service_instances = []
+      let service_map = {}
+
+      if(!this.props.id) {
+
+        services.map((service, indx) => {
+          service_instances.push({id: service.id, text: service.name})
+          service_map[service.id] = service.name
+        })
+
+      }
+      else{
+
+        services.map((service, indx) => {
+          if(service.workers.includes(this.props.id)){
             service_instances.push({id: service.id, text: service.name})
             service_map[service.id] = service.name
-  
-            return service
-          })
-  
-          this.setState({
-            services: service_instances,
-            service_map: service_map
-          })
-        }
-        else{
-          services = data;
+          }
 
-          let service_instances = []
-          let service_map = {}
-  
-          services.map((service, indx) => {
-            if(service.workers.includes(this.props.id)){
-              service_instances.push({id: service.id, text: service.name})
-              service_map[service.id] = service.name
-            }
-  
-            return service
-          })
-  
-          this.setState({
-            services: service_instances,
-            service_map: service_map
-          })
-        }
+        })
+
       }
-    });
-  }
 
-  getWorkers = async (store_id) => {
-    let workers = []
-    let worker_to_services = {}
+      this.setState(({resources}) => ({
+        resources: [
+            // ...resources.slice(0,1),
+        {
+            ...resources[0],
+            instances: service_instances,
+        },
+        ...resources.slice(1)
+        ]
+      }));
 
-    await fetch(fetchDomain + '/stores/' + store_id + '/workers', {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(async function (response) {
-      if (response.status !== 200) {
-        // throw an error alert
-        console.log("error")
+      this.setState({
+        services: service_instances,
+        service_map: service_map,
+      })
+
+      this.props.getWorkers(this.state.store_id)
+    }
+
+    if(this.props.workers !== prevProps.workers) {
+      let workers = this.props.workers;
+      let worker_to_services = []
+      let worker_instances = []
+      let worker_map = {}
+
+      if(!this.props.id) {
+
+        workers.map((worker, indx) => {
+          worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
+          worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
+          worker_to_services[worker.id] = worker.services
+
+        })
+
       }
-      else {
-        return response.json();
-      }
-    })
-    .then(async data => {
-      if (data) {
-        if(!this.props.id) {
-          workers = data;
+      else{
 
-          let worker_instances = []
-          let worker_map = {}
-          workers.map((worker, indx) => {
+        workers.map((worker, indx) => {
+          if(worker.id === this.props.id){
             worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
             worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
             worker_to_services[worker.id] = worker.services
-  
-            return worker
-          })
-          this.setState({
-            workers: worker_instances,
-            worker_map: worker_map,
-            worker_to_services: worker_to_services
-          })
-        }
-        else{
-          workers = data;
-
-          let worker_instances = []
-          let worker_map = {}
-          workers.map((worker, indx) => {
-            if(worker.id === this.props.id){
-              worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
-              worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
-              worker_to_services[worker.id] = worker.services
-            }
-  
-            return worker
-          })
-          
-          this.setState({
-            workers: worker_instances,
-            worker_map: worker_map,
-            worker_to_services: worker_to_services
-          })
-        }
+          }
+        })
       }
-    })
+
+      this.setState({
+        workers: worker_instances,
+        worker_map: worker_map,
+        worker_to_services: worker_to_services,
+      })
+
+      this.setState(({resources}) => ({
+        resources: [
+            ...resources.slice(0,1),
+        {
+            ...resources[1],
+            instances: worker_instances,
+        },
+        // ...resources.slice(2)
+        ]
+      }));
+      this.props.getAppointments(this.state.store_id);
+    }
+
   }
 
   // eventually should be users that were previously at the salon?
-  getUsers = async () => {
-    let users = []
-    await fetch(fetchDomain + '/allUsers', {
-      method: "GET",
-      headers: {
-        'Content-type': 'application/json'
-      },
-      credentials: 'include'
-    })
-    .then(async function (response) {
-      if (response.status !== 200) {
-        // throw an error alert
-        console.log("error")
-      }
-      else {
-        return response.json();
-      }
-    })
-    .then(async data => {
-      if (data) {
-        users = data;
-
-        let user_instances = []
-
-        users.map((user, indx) => {
-          user_instances.push({id: user.id, text: user.first_name + ' ' + user.last_name})
-          
-          return user
-        })
-
-        this.setState({
-          users: user_instances,
-
-        })
-      }
-    })
-  }
+  // getUsers = async () => {
+  //   let users = []
+  //   await fetch(fetchDomain + '/allUsers', {
+  //     method: "GET",
+  //     headers: {
+  //       'Content-type': 'application/json'
+  //     },
+  //     credentials: 'include'
+  //   })
+  //   .then(async function (response) {
+  //     if (response.status !== 200) {
+  //       // throw an error alert
+  //       console.log("error")
+  //     }
+  //     else {
+  //       return response.json();
+  //     }
+  //   })
+  //   .then(async data => {
+  //     if (data) {
+  //       users = data;
+  //
+  //       let user_instances = []
+  //
+  //       users.map((user, indx) => {
+  //         user_instances.push({id: user.id, text: user.first_name + ' ' + user.last_name})
+  //
+  //         return user
+  //       })
+  //
+  //       this.setState({
+  //         users: user_instances,
+  //
+  //       })
+  //     }
+  //   })
+  // }
 
   // triggered when adding or deleting appointment
   onAppointmentChanges(key, string) {
@@ -460,28 +429,6 @@ class Calendar extends React.Component {
     })
   }
 
-  async componentDidMount() {
-    let store_id = (this.props.match.params.store_id) ? (this.props.match.params.store_id) : this.props.store_id;
-    let new_workers = []
-    let new_services = []
-    let new_users = []
-
-    await this.getServices(store_id)
-    await this.getWorkers(store_id)
-    await this.getUsers()
-    await this.getAppointments(store_id);
-
-    new_services = this.state.resources[0]
-    new_services.instances = this.state.services;
-    new_workers = this.state.resources[1]
-    new_workers.instances = this.state.workers;
-    new_users = this.state.resources[2]
-    new_users.instances = this.state.users;
-
-    this.setState({
-      resources: [new_services, new_workers, new_users]
-    })
-  }
 
   changeMainResource(mainResourceName) {
     this.setState({ mainResourceName });
@@ -581,10 +528,10 @@ class Calendar extends React.Component {
       .then(async data => {
         if (data) {
           // console.log("Before!", this.state.appointments)
-          await this.setState({appointments: this.state.appointments.filter(function(appointment) { 
+          await this.setState({appointments: this.state.appointments.filter(function(appointment) {
             return appointment.id !== deleted
           })});
-          
+
           onSearch()
         }
       });
@@ -640,7 +587,7 @@ class Calendar extends React.Component {
           end_time: added.endDate.getHours()*60,
           date: added.startDate
         }],
-        user_id: added.users,
+        // user_id: added.users,
       }
 
       fetch(fetchDomain + '/stores/' + store_id + '/appointments/new', {
@@ -663,29 +610,7 @@ class Calendar extends React.Component {
       })
       .then(async data => {
         if (data) {
-          // note, we need to update the appointments in the calendar at this point
-          // seems it is already updated, but the problem is the worker gets messed up..
 
-          // let date = new Date(data.appointment.date);
-          // let startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.timeConvert(data.appointment.start_time)[0], this.timeConvert(data.appointment.start_time)[1]);
-          // let endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.timeConvert(data.appointment.end_time)[0], this.timeConvert(data.appointment.end_time)[1]);
-
-          // let { appointments } = this.state;
-          // console.log("appointments are:", appointments)
-          // console.log("data.appointment is:", data.appointment)
-          // appointments.push({
-          //   id: data.appointment.id,
-          //   title: this.state.service_map[data.appointment.service_id] + " with " + this.state.worker_map[data.appointment.worker_id],
-          //   workers: [data.appointment.worker_id],
-          //   services: data.appointment.service_id,
-          //   price: data.appointment.price,
-          //   startDate: startDate,
-          //   endDate: endDate,
-          //   users: data.appointment.user_id,
-          //   group_id: data.group_id
-          // })
-          // await this.setState({appointments: appointments}, ()=> console.log("after:", this.state.appointments))
-          // onSearch()
         }
       });
     }
@@ -712,7 +637,7 @@ class Calendar extends React.Component {
           id: id,
           store_id: parseInt(store_id)
         }],
-        user_id: selectedAppointments[appointment_id].users,
+        // user_id: selectedAppointments[appointment_id].users,
       }
 
       fetch(fetchDomain + '/stores/' + store_id + '/appointments/update', {
@@ -741,7 +666,7 @@ class Calendar extends React.Component {
           let endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.timeConvert(data.end_time)[0], this.timeConvert(data.end_time)[1]);
 
           await this.setState({
-            appointments: this.state.appointments.map(appointment => (appointment.id === data.id ? Object.assign({}, appointment, 
+            appointments: this.state.appointments.map(appointment => (appointment.id === data.id ? Object.assign({}, appointment,
               {
                 id: data.id,
                 title: this.state.service_map[data.service_id] + " with " + this.state.worker_map[data.worker_id],
@@ -750,7 +675,7 @@ class Calendar extends React.Component {
                 price: data.price,
                 startDate: startDate,
                 endDate: endDate,
-                users: data.user_id,
+                // users: data.user_id,
                 group_id: data.group_id
               }) : appointment))
           });
@@ -763,18 +688,16 @@ class Calendar extends React.Component {
 
   render() {
 
-    // console.log("---", this.state.resources);
     let resources;
     if(this.state.resources[1].instances.length>0) {
-      // console.log(this.state.resources)
-      resources = [this.state.resources[0], this.state.resources[1], this.state.resources[2]]
+      resources = [this.state.resources[0], this.state.resources[1]]
     }
     else {
          resources = this.state.resources
     }
 
     let name = (this.props.role) ? this.props.role : "your";
-    // console.log(this.props.role)
+
     name = name.charAt(0).toUpperCase() + name.slice(1);
     return (
       <Container fluid>
@@ -811,7 +734,7 @@ class Calendar extends React.Component {
            <Paper className="react-calendar">
           <Scheduler
             data={this.state.selectedAppointments}
-
+            hours={this.state.selectedAppointments}
           >
           <ViewState
             defaultCurrentDate={this.state.currentDate}
@@ -825,9 +748,11 @@ class Calendar extends React.Component {
          <IntegratedEditing />
 
             <WeekView
-             startDayHour={8}
+             startDayHour={6}
              endDayHour={24}
              cellDuration={60}
+             timeTableCellComponent={TimeTableCellWeek}
+             dayScaleCellComponent={DayScaleCellWeek}
            />
            <MonthView
              dayScaleCellComponent={DayScaleCell}
@@ -837,6 +762,8 @@ class Calendar extends React.Component {
             startDayHour={8}
             endDayHour={24}
             cellDuration={60}
+            dayScaleCellComponent={DayScaleCellDay}
+            timeTableCellComponent={TimeTableCellDay}
           />
 
 
@@ -849,7 +776,8 @@ class Calendar extends React.Component {
             appointmentComponent={Appointment}/>
             <AppointmentTooltip
             showCloseButton
-            showOpenButton/>
+            showOpenButton
+            />
             <AppointmentForm
             isRecurrence={false}
             basicLayoutComponent={BasicLayout}
@@ -872,4 +800,19 @@ class Calendar extends React.Component {
   }
 }
 
-export default withRouter(Calendar);
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+  getAppointments: (store_id) => getAppointments(store_id),
+  getServices: (store_id) => getServices(store_id),
+  getWorkers: (store_id) => getWorkers(store_id),
+  getStore: (store_id) => getStore(store_id)
+}, dispatch)
+
+const mapStateToProps = state => ({
+  appointments: state.calendarReducer.appointments,
+  workers: state.workerReducer.workers,
+  services: state.serviceReducer.services,
+  store: state.storeReducer.store
+})
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Calendar));

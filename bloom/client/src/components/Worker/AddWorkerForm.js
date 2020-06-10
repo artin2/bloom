@@ -101,9 +101,9 @@ class AddWorkerForm extends React.Component {
   componentDidMount() {
 
     // fetch store hours on mounting
-    if(!this.props.storeHours) {
+    // if(!this.props.storeHours) {
       this.props.getStore(this.props.match.params.store_id)
-    }
+    // }
   }
 
   componentDidUpdate(prevProps) {

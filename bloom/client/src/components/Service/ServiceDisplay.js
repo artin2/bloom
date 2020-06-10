@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col'
 import Cookies from 'js-cookie';
 import { FaEdit, FaHourglassHalf, FaDollarSign } from 'react-icons/fa';
 import {Carousel, Image } from 'react-bootstrap'
-import { /*getPictures,*/ defaultServicePictures } from '../s3'
+import { getPictures, defaultServicePictures } from '../s3'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 import { connect } from 'react-redux';
@@ -29,23 +29,23 @@ class ServiceDisplay extends React.Component {
 
   async componentDidMount(): Promise<void> {
     // retrieve the pictures from s3
-    // let picturesFetched
-    // try {
-    //   picturesFetched = await getPictures('stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id + '/')
-    //   if(picturesFetched.length === 0){
-    //     picturesFetched = defaultServicePictures()
-    //   }
-    // } catch (e) {
-    //   console.log("Error geting service images!", e)
-    //   picturesFetched = defaultServicePictures()
-    // }
+    let picturesFetched
+    try {
+      picturesFetched = await getPictures('stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id + '/')
+      if(picturesFetched.length === 0){
+        picturesFetched = defaultServicePictures()
+      }
+    } catch (e) {
+      console.log("Error geting service images!", e)
+      picturesFetched = defaultServicePictures()
+    }
 
-    // if(picturesFetched.length === 0){
-    //   picturesFetched = defaultServicePictures()
-    // }
+    if(picturesFetched.length === 0){
+      picturesFetched = defaultServicePictures()
+    }
 
     // can put/putting this for now so we don't have to interact with s3
-    let picturesFetched = defaultServicePictures()
+    // let picturesFetched = defaultServicePictures()
 
     // retrieve the service, either passed or fetching directly from db
     if(this.props.service){
@@ -54,21 +54,7 @@ class ServiceDisplay extends React.Component {
         pictures: picturesFetched,
       })
     }
-    // else{
-    //   const serviceResponse = await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id + '/services/' + this.props.match.params.service_id, {
-    //     method: "GET",
-    //     headers: {
-    //         'Content-type': 'application/json'
-    //     },
-    //     credentials: 'include'
-    //   })
-    //   const serviceFetched = await serviceResponse.json()
-    //
-    //   this.setState({
-    //     service: serviceFetched,
-    //     pictures: picturesFetched,
-    //   })
-    // }
+
 
     // get the store so we can check if the current user is an owner
     let storeResponse = await fetch(fetchDomain + '/stores/' + this.props.match.params.store_id, {

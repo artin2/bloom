@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { Button, Carousel, Image } from 'react-bootstrap';
 import './Services.css';
-import { /*getPictures,*/ defaultServicePictures } from '../s3'
+import { getPictures, defaultServicePictures } from '../s3'
 import { FaEdit } from 'react-icons/fa';
 import LinesEllipsis from 'react-lines-ellipsis'
 import { css } from '@emotion/core'
@@ -57,20 +57,21 @@ class ServiceDashboard extends React.Component {
   async fetchPictures(services) {
 
     // if there are services, retrieve the pictures of the services
+    let appendedServices = []
     if(services.length > 0){
-      var appendedServices = await Promise.all(services.map(async (service): Promise<Object> => {
+      appendedServices = await Promise.all(services.map(async (service): Promise<Object> => {
         var newService = Object.assign({}, service);
         try {
-          // // fetch the pictures from s3
-          // let picturesFetched = await getPictures('stores/' + service.store_id + '/services/' + service.id + '/')
+          // fetch the pictures from s3
+          let picturesFetched = await getPictures('stores/' + service.store_id + '/services/' + service.id + '/')
 
-          // // if the service doesn't have any pictures, give it default service pictures
-          // if(picturesFetched.length === 0){
-          //   picturesFetched = defaultServicePictures()
-          // }
+          // if the service doesn't have any pictures, give it default service pictures
+          if(picturesFetched.length === 0){
+            picturesFetched = defaultServicePictures()
+          }
 
           // can put/putting this for now so we don't have to interact with s3
-          let picturesFetched = defaultServicePictures()
+          // let picturesFetched = defaultServicePictures()
 
           newService.pictures = picturesFetched;
           return newService;
@@ -80,12 +81,11 @@ class ServiceDashboard extends React.Component {
           return newService
         }
       }));
-
-      this.setState({
-        services: appendedServices,
-        loading: false
-      })
     }
+    this.setState({
+      services: appendedServices,
+      loading: false
+    })
   }
 
   async componentDidMount() {

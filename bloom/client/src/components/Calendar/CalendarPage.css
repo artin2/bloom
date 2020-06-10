@@ -23,9 +23,17 @@
 }
 .weekend {
 
-  background-color: #cbd1d6;
+  /* background-color: fade(palette.action.disabledBackground, 0.04); */
 
 }
+/*
+.weekend:hover {
+  background-color: fade(palette.action.disabledBackground, 0.04);
+}
+
+.weekend:focus {
+  background-color: fade(palette.action.disabledBackground, 0.04);
+}, */
 
 .title {
   font-size: 30px;

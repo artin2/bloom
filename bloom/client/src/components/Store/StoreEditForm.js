@@ -34,7 +34,7 @@ class StoreEditForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      store: this.props.store,
+      store: [],
 
       newHours: [],
       weekIsWorking: [true, true, true, true, true, true, true],
@@ -247,14 +247,16 @@ class StoreEditForm extends React.Component {
 
     // if we were given the existing data from calling component use that, else fetch
     // check if categories are empty, if they are then cache/store needs to be updated.
-    if (!this.props.store) {
+
+    // console.log(this.props.store)
+    // if (!this.props.store) {
       this.props.getStore(this.props.match.params.store_id)
-    }
-    else {
-      this.convertStoreHours(this.props.store.storeHours)
-      this.convertCategory()
-      this.fetchPictures()
-    }
+    // // }
+    // else {
+    //   this.convertStoreHours(this.props.store.storeHours)
+    //   this.convertCategory()
+    //   this.fetchPictures()
+    // }
 
     const google = window.google;
     this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
@@ -265,6 +267,7 @@ class StoreEditForm extends React.Component {
 
     if(this.props.store !== prevProps.store) {
 
+      this.setState({store: this.props.store})
       this.convertStoreHours(this.props.store.storeHours)
       this.convertCategory()
       this.fetchPictures(this.props.store)
