@@ -140,7 +140,7 @@ class BookingPage extends React.Component {
                     if(i === 0){
                       values.start_time = convertMinsToHrsMins(values.appointments[i].start_time)
                     }
-                    
+
                     if(i + 1 === values.appointments.length){
                       values.end_time = convertMinsToHrsMins(values.appointments[i].end_time)
                     }

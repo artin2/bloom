@@ -1,4 +1,4 @@
-import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS } from "../actions/calendar"
+import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS } from "../actions/calendar"
 
 const initialState = {
   error: '',
@@ -25,6 +25,18 @@ function calendarReducer(state = initialState, action) {
     //   return Object.assign({}, state, {
     //     deleted: action.deleted
     //   })
+
+    case ADD_APPOINTMENT_SUCCESS:
+    let newAppointments = state.appointments
+    if(newAppointments) {
+      newAppointments.push(action.appointment);
+    }
+    else {
+      newAppointments = [action.appointment]
+    }
+    return Object.assign({}, state, {
+      appointments: newAppointments
+    })
 
 
     default:

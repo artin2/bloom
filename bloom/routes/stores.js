@@ -1156,9 +1156,9 @@ async function insertAppointments(req, res, group_id) {
         let appoint
         try {
           await hourDb.query("BEGIN");
-          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;'
+          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *;'
           for (let i = 0; i < appointments.length; i++) {
-            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id]
+            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email]
             appoint = await hourDb.query(query, values);
           }
           await hourDb.query("COMMIT");
@@ -1176,7 +1176,7 @@ async function insertAppointments(req, res, group_id) {
                 last_name: request.body.last_name,
                 user_id: request.body.user_id,
                 store_name: request.body.store_name,
-                address: request.body.address, 
+                address: request.body.address,
                 start_time: request.body.start_time,
                 end_time: request.body.end_time,
                 services: request.body.services,

@@ -21,19 +21,7 @@
 .makeStyles-mainTable-190 .makeStyles-mainTable-204 {
   z-index: 3 !important;
 }
-.weekend {
 
-  /* background-color: fade(palette.action.disabledBackground, 0.04); */
-
-}
-/*
-.weekend:hover {
-  background-color: fade(palette.action.disabledBackground, 0.04);
-}
-
-.weekend:focus {
-  background-color: fade(palette.action.disabledBackground, 0.04);
-}, */
 
 .title {
   font-size: 30px;

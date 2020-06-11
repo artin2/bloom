@@ -37,12 +37,26 @@ const isRestTime = (date) => {
 }
 
 
-
-
 const BooleanEditor = ({
   ...restProps }) => {
   return null;
 };
+//
+// const AppointmentLayoutForm = ({
+//   appointmentData, ...restProps }) => {
+//     return (
+//       <AppointmentForm.Layout
+//         // onFieldChange={onFieldChange}
+//         appointmentData={appointmentData}
+//         {...restProps}
+//       >
+//       <AppointmentForm.Label
+//          text="Email"
+//          type="title"
+//        />
+//       </AppointmentForm.Layout>
+//     );
+// };
 
 
 const TextEditor = (props) => {
@@ -130,6 +144,10 @@ const BasicLayout = ({ appointmentData, onFieldChange,
      onFieldChange({ price: nextValue });
    };
 
+   const onCustomFieldChangeEmail = (nextValue) => {
+     onFieldChange({ email: nextValue });
+   };
+
   return (
     <AppointmentForm.BasicLayout
       onFieldChange={onFieldChange}
@@ -138,22 +156,28 @@ const BasicLayout = ({ appointmentData, onFieldChange,
     >
 
     <AppointmentForm.Label
+       text="Email"
+       type="title"
+     />
+     <AppointmentForm.TextEditor
+      style={{width: '50%'}}
+       value={appointmentData.email}
+       onValueChange={onCustomFieldChangeEmail}
+       placeholder="Customer email"
+     />
+
+    <AppointmentForm.Label
        text="Price"
        type="title"
      />
-     <Row className="justify-content-center">
+
      <AppointmentForm.TextEditor
       style={{width: '50%'}}
        value={appointmentData.price}
        onValueChange={onCustomFieldChange}
-       placeholder="Price"
+       placeholder="Price, in dollars"
      />
-     <AppointmentForm.Label
-        style={{marginTop: 15, marginLeft: 10, fontSize: 20}}
-        text="$"
-        type="text"
-      />
-      </Row>
+
     </AppointmentForm.BasicLayout>
   );
 };
@@ -162,7 +186,7 @@ const messages = {
   allDayLabel : '',
   repeatLabel : '',
   moreInformationLabel: '',
-  detailsLabel: 'Date'
+  detailsLabel: 'Appointment Date'
 }
 
 const RecurrenceLayout = ({
@@ -220,13 +244,13 @@ class Calendar extends React.Component {
           resources: [
             {
               fieldName: 'services',
-              title: 'Services',
+              title: 'Service',
               allowMultiple: false,
               instances: [],
             },
             {
               fieldName: 'workers',
-              title: 'Workers',
+              title: 'Employee',
               allowMultiple: false,
               instances: [],
             },
@@ -269,7 +293,7 @@ class Calendar extends React.Component {
             price: appointment.price,
             startDate: appointment.start_time,
             endDate: appointment.end_time,
-            // users: appointment.user_id,
+            email: appointment.email,
             group_id: appointment.group_id
           })
         }
@@ -376,45 +400,6 @@ class Calendar extends React.Component {
 
   }
 
-  // eventually should be users that were previously at the salon?
-  // getUsers = async () => {
-  //   let users = []
-  //   await fetch(fetchDomain + '/allUsers', {
-  //     method: "GET",
-  //     headers: {
-  //       'Content-type': 'application/json'
-  //     },
-  //     credentials: 'include'
-  //   })
-  //   .then(async function (response) {
-  //     if (response.status !== 200) {
-  //       // throw an error alert
-  //       console.log("error")
-  //     }
-  //     else {
-  //       return response.json();
-  //     }
-  //   })
-  //   .then(async data => {
-  //     if (data) {
-  //       users = data;
-  //
-  //       let user_instances = []
-  //
-  //       users.map((user, indx) => {
-  //         user_instances.push({id: user.id, text: user.first_name + ' ' + user.last_name})
-  //
-  //         return user
-  //       })
-  //
-  //       this.setState({
-  //         users: user_instances,
-  //
-  //       })
-  //     }
-  //   })
-  // }
-
   // triggered when adding or deleting appointment
   onAppointmentChanges(key, string) {
     if(!key.hasOwnProperty("services")){
@@ -423,6 +408,12 @@ class Calendar extends React.Component {
 
     let resources = this.state.resources
     resources[1].instances = this.state.workers.filter(worker => this.state.worker_to_services[worker.id] && this.state.worker_to_services[worker.id].includes(key.services) ? worker : null);
+
+    console.log(this.state.workers, resources[1].instances, key.services, this.state.worker_to_services)
+
+    if(resources[1].instances.length == 0) {
+      resources[1].instances = [{id: 0, text: "No available employees"}]
+    }
 
     this.setState({
       resources: resources
@@ -490,20 +481,16 @@ class Calendar extends React.Component {
   }
 
   async commitChanges({ added, changed, deleted }) {
-    let store_id = (this.props.match.params.store_id) ? (this.props.match.params.store_id) : this.props.store_id;
-    let onSearch = this.onSearch
 
     if(deleted !== undefined) {
+
       let selectedAppointments = this.state.selectedAppointments;
       let appointment_id = null;
 
       selectedAppointments.map((appointment, indx) => {
-        // id = deleted[appointment.id] ? appointment.id : id;
         appointment_id = deleted === appointment.id ? indx : appointment_id;
         return appointment
       });
-
-      // console.log("appointment id", appointment_id, deleted)
 
       let group_id = selectedAppointments[appointment_id].group_id;
 
@@ -532,7 +519,7 @@ class Calendar extends React.Component {
             return appointment.id !== deleted
           })});
 
-          onSearch()
+          this.onSearch()
         }
       });
     }
@@ -587,32 +574,10 @@ class Calendar extends React.Component {
           end_time: added.endDate.getHours()*60,
           date: added.startDate
         }],
-        // user_id: added.users,
+        email: added.email,
       }
 
-      fetch(fetchDomain + '/stores/' + store_id + '/appointments/new', {
-        method: "POST",
-        headers: {
-          'Content-type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(values)
-      })
-      .then(function (response) {
-        if (response.status !== 200) {
-          // throw an error alert
-          // store.dispatch(addAlert(response))
-        }
-        else {
-          return response.json();
-        }
-      })
-      .then(async data => {
-        if (data) {
-
-        }
-      });
+      this.props.addAppointment(this.state.store_id, values)
     }
 
     if(changed) {
@@ -635,12 +600,12 @@ class Calendar extends React.Component {
           end_time: (selectedAppointments[appointment_id].endDate.getHours()*60 + selectedAppointments[appointment_id].endDate.getMinutes()),
           date: selectedAppointments[appointment_id].startDate,
           id: id,
-          store_id: parseInt(store_id)
+          store_id: parseInt(this.state.store_id)
         }],
-        // user_id: selectedAppointments[appointment_id].users,
+        email: selectedAppointments[appointment_id].email,
       }
 
-      fetch(fetchDomain + '/stores/' + store_id + '/appointments/update', {
+      fetch(fetchDomain + '/stores/' + this.state.store_id + '/appointments/update', {
         method: "POST",
         headers: {
           'Content-type': 'application/json',
@@ -675,12 +640,12 @@ class Calendar extends React.Component {
                 price: data.price,
                 startDate: startDate,
                 endDate: endDate,
-                // users: data.user_id,
+                email: data.email,
                 group_id: data.group_id
               }) : appointment))
           });
 
-          onSearch()
+          this.onSearch()
         }
       });
     }
@@ -785,6 +750,7 @@ class Calendar extends React.Component {
             textEditorComponent={TextEditor}
             messages={messages}
             booleanEditorComponent={BooleanEditor}
+            // layoutComponent={AppointmentLayoutForm}
             />
             <Resources
               data={resources}
