@@ -94,36 +94,42 @@ async function getStores(req, res, next) {
                   < ` + distance + ` AND services IS NOT NULL AND category && ` + categoryQuery + `
                 ORDER BY distance;`
 
+    console.log("query 1 is:", query)
+
     db.client.connect((err, client, done) => {
       // try to get search results
       db.client.query(query, async (err, result) => {
-        done()
-          if (err) {
-            helper.queryError(res, err);
+        if (err) {
+          helper.queryError(res, err);
+        }
+
+        // we were able to get search results
+        if (result) {
+          for (let i = 0; i < result.rows.length; i++) {
+            let pictures
+            try {
+              pictures = s3.defaultStorePictures()
+              // pictures = await s3.getImagesLocal('stores/' + result.rows[i].id + '/images/')
+              // if(pictures.length == 0){
+              //   pictures = s3.defaultStorePictures()
+              // }
+            } catch (e) {
+              console.log("Error in getting pictures.")
+              pictures = s3.defaultStorePictures()
+            }
+            result.rows[i].pictures = pictures
           }
 
-          // we were able to get search results
-          if (result) {
-            for (let i = 0; i < result.rows.length; i++) {
-              let pictures
-              try {
-                pictures = s3.defaultStorePictures()
-                // pictures = await s3.getImagesLocal('stores/' + result.rows[i].id + '/images/')
-                // if(pictures.length == 0){
-                //   pictures = s3.defaultStorePictures()
-                // }
-              } catch (e) {
-                console.log("Error in getting pictures.")
-                pictures = s3.defaultStorePictures()
-              }
-              result.rows[i].pictures = pictures
-            }
-            helper.querySuccess(res, {stores: result.rows, center: {lat: lat, lng: lng}}, "Successfully got Search Results!");
-          }
-          else {
-            helper.queryError(res, "Some sort of search error!");
-          }
-        });
+          // now we are going to filter by additional filters
+          console.log("query is:", req.query)
+          let filteredStoresInternal = filterStores(req, result.rows, categoryQuery)
+          done()
+          helper.querySuccess(res, {stores: result.rows, center: {lat: lat, lng: lng}, filteredStores: filteredStoresInternal}, "Successfully got Search Results!");
+        }
+        else {
+          helper.queryError(res, "Some sort of search error!");
+        }
+      });
       if (err) {
         helper.dbConnError(res, err);
       }
@@ -132,6 +138,305 @@ async function getStores(req, res, next) {
   catch (err) {
     helper.authError(res, err);
   }
+};
+
+async function filterStores(req, stores, categoryQuery) {
+  console.log("now filtering stores:", stores, "based on date:", req.query.date, "and times:", req.query.from, req.query.to)
+  // for now, we can tell if there were filters by date being ''
+  let date = req.query.dateWithoutTimezone
+  let dayOfWeek = req.query.dayOfWeek
+  let from = req.query.from
+  let to = req.query.to
+  let filteredStores = []
+
+  if(date !== ''){
+    console.log("We do need to filter")
+    ; (async (request, response) => {
+      const filterDb = await db.client.connect();
+      try {
+        let validStores = []
+
+        // go through each store one by one
+        for (let i = 0; i < stores.length; i++) {
+          let storeCopy = JSON.parse(JSON.stringify(stores[i]))
+          storeCopy.services = new Set()
+
+          // NOTE: this will need to be updated when we add one off days...
+          let storeHours = await getStoreHoursInternalById(stores[i].id)
+          console.log("looking at store:", stores[i], "with store hours:", storeHours)
+          let openTime = storeHours[dayOfWeek].open_time
+          let closeTime = storeHours[dayOfWeek].close_time
+          console.log("the open time and close time for the day you chose:", dayOfWeek, openTime, closeTime)
+
+          // first, we need to check if the store is open at some point in the time frame of that day
+          if (openTime != null && (openTime >= from && openTime <= to)) {
+            console.log("the store is working at the time you want it to be working, now lets get services for the category/ies you want")
+            
+            let query = 'SELECT * FROM services WHERE store_id=' + stores[i].id + ' AND category = ANY(' + categoryQuery + ')'
+            console.log("query is:", query)
+            let result = await filterDb.query(query)
+            
+            // now lets check to see if there are any services that match that category for that specific time
+            if(result.rows && result.rows.length > 0){
+              let services = result.rows
+              console.log("the services are:", services)
+
+              // add potential worker and invalid services array to navigate later
+              let potentialWorkers = {}
+              for (let a = 0; a < stores[i].workers.length; a++) {
+                potentialWorkers[stores[i].workers[a]] =  {services: [], start_time: '', end_time: ''}
+              }
+
+              let workerHours = await getWorkersSchedulesInternalSpecificDate(stores[i].id, dayOfWeek, from, to)
+              console.log("worker hours for this store at this date/time:", workerHours)
+
+              // go through each service to see if any are technically possible
+              for (let j = 0; j < services.length; j++) {
+                console.log("checking if worker(s) associated with the following service is working:", services[j])
+
+                // we need to check if any worker for this service can theoretically take the appointment
+                for (let k = 0; k < services[j].workers.length; k++) {
+                  let worker = services[j].workers[k];
+
+                  if(worker != null){
+                    console.log("checking worker schedule for:", worker)
+  
+                    for (let l = 0; l < workerHours.length; l++) {
+                      // if this is the right worker on the right day and they are working at the right time and won't finish before the service is over
+                      if(workerHours[l].worker_id === worker && workerHours[l].start_time + services[j].duration <= workerHours[l].end_time){
+                        console.log("found a worker with desired service that can work at the time specified:", worker)
+                        potentialWorkers[worker].services.push(services[j])
+                        potentialWorkers[worker].start_time = workerHours[l].start_time
+                        potentialWorkers[worker].end_time = workerHours[l].end_time
+  
+                        l = workerHours.length
+                      }
+                      else{
+                        console.log("worker is not available!", workerHours[l].worker_id, "===", worker, ":", workerHours[l].worker_id === worker, workerHours[l].start_time, "+", services[j].duration, "<=", workerHours[l].end_time, ":", workerHours[l].start_time + services[j].duration <= workerHours[l].end_time)
+                      }
+                    }
+                  }
+                  else{
+                    console.log("NO WORKER!")
+                  }
+                }
+              }
+
+              console.log("now checking if the workers found (if any) have any availabilities")
+              // go through each worker
+              for(var worker_id in potentialWorkers) {
+                let potentialWorker = potentialWorkers[worker_id]
+
+                // make sure they do indeed have a desired service
+                if(potentialWorker.services.length > 0){
+                  console.log("looking at worker", potentialWorker, "services")
+
+                  // now lets check if this worker has any conflicting appointments
+                  // NOTE *** date might be wrong
+                  // start time and end time conditions are prob wrong
+                  let query2 = 'SELECT * FROM appointments WHERE store_id=' + stores[i].id + " AND CAST(date as DATE) = CAST('" + date + "' as DATE) AND ((end_time >= " + from + " AND start_time <= " + from + ") OR (start_time <= " + to + " AND end_time <= " + to + ")) AND worker_id = " + worker_id + " ORDER BY start_time"
+                  console.log("query2 is:", query2)
+                  let appointmentResult = await filterDb.query(query2)
+                  console.log("appointments for the store (in the future), on the day of, for the worker with potential services, with a conflicting time are:", appointmentResult.rows)
+                  let validServices = []
+
+                  // check if they have appointments
+                  if(appointmentResult.rows && appointmentResult.rows.length > 0){
+                    console.log("worker does have conflicting appointments")
+                    // for each service, check if there is a potential time slot
+                    for (let m = 0; m < potentialWorker.services.length; m++) {
+                      // look through appointments
+                      for (let n = 0; n < appointmentResult.rows.length; n++) {
+                        let appointment = appointmentResult.rows[n];
+
+                        // is there an appointment after, within the desired time frame?
+                        if(n + 1 < appointmentResult.rows.length){
+                          // if so, then we need to see if there is a suitable gap between the two appointments for this service
+                          if(appointmentResult.rows[n + 1].start_time - appointment.end_time >= potentialWorker.services[m].duration){
+                            // found a suitable time slot!
+                            console.log("suitable time slot between appointments, prev appointment ends:", appointment.end_time, "next appointment starts:", appointmentResult.rows[n + 1].start_time + "this service takes:", potentialWorker.services[m].duration)
+                            validServices.push(potentialWorker.services[m])
+                          }
+                        }
+                        else{
+                          // there is no appointment after, check if the worker is free after
+                          if(potentialWorker.end_time - appointment.end_time >= potentialWorker.services[m].duration){
+                            // found a suitable time slot!
+                            console.log("suitable time slot after last appointment, prev appointment ends:", appointment.end_time, "worker ends:", potentialWorker.end_time + "this service takes:", potentialWorker.services[m].duration)
+                            validServices.push(potentialWorker.services[m])
+                          }
+                        }
+                      }
+                    }
+                  }
+                  else{
+                    // the worker is free, add the services the worker can de before shift ends
+                    console.log("no appointments for worker found! The worker's services are:", potentialWorker.services)
+
+                    for (let o = 0; o < potentialWorker.services.length; o++) {
+                      console.log("looking at service:", potentialWorker.services[o])
+                      let curTime = parseInt(from)
+                      console.log("curTime is", curTime, "duration is:", potentialWorker.services[o].duration, "+ duration is:", curTime + potentialWorker.services[o].duration, "worker end time is:", potentialWorker.end_time)
+                      while(curTime + potentialWorker.services[o].duration < potentialWorker.end_time){
+                        console.log("Checking if this time will work:", curTime)
+                        // check if there is a suitable time slot
+                        if(potentialWorker.services[o].duration + curTime <= potentialWorker.end_time){
+                          // found a suitable time slot!
+                          console.log("suitable time slot:", curTime)
+                          validServices.push(potentialWorker.services[o])
+                          curTime = potentialWorker.end_time
+                        }
+                        else{
+                          curTime += potentialWorker.services[o].duration
+                        }
+                      }
+                    }
+                  }
+                  
+                  if(validServices.length > 0){
+                    for (let p = 0; p < validServices.length; p++) {
+                      storeCopy.services.add(validServices[p])
+                    }
+                    console.log("found valid services, appended it to store copy!", storeCopy, storeCopy.services)
+                  }
+                }
+                else{
+                  console.log("this worker did not have any services! moving on...")
+                }
+              }
+            }
+            else{
+              console.log("No matching services found! for store:", stores[i].id)
+            }
+          }
+          else{
+            console.log("store is closed at that time!", stores[i].id)
+          }
+
+          if(storeCopy.services.size > 0){
+            console.log("adding valid store!", storeCopy, storeCopy.services)
+            validStores.push(storeCopy)
+          }
+        }
+
+        console.log("the valid stores are:", validStores)
+        return validStores
+      } catch (e) {
+        // await hourDb.query("ROLLBACK", e);
+        // failed = true
+        console.log("here!", e)
+        throw e;
+      } finally {
+        console.log("there!")
+        // if (!failed) {
+        //   helper.querySuccess(resp, store, 'Successfully updated store!');
+        // } else {
+        //   helper.queryError(resp, "Unable to Update Store!");
+        // }
+        // hourDb.release();
+      }
+    })().catch(e => console.log("there2!", e));
+  }
+  else{
+    console.log("We don't need to filter")
+  }
+
+  return filteredStores
+};
+
+async function getStoreHoursInternal(req, res, next) {
+  // query for store item
+  let query = 'SELECT open_time, close_time FROM store_hours WHERE store_id = $1 ORDER BY day_of_the_week'
+  console.log("store hours internal!")
+  let values = [req.params.store_id]
+
+  db.client.connect((err, client, done) => {
+    // try to get the store item based on id
+    db.client.query(query, values, (err, result) => {
+      done()
+        if (err) {
+          return err
+        }
+        // we were successfuly able to get the store item
+        if (result && result.rows.length > 0) {
+          return result.rows
+        }
+        else {
+          return new Error("Could not find store hours!")
+        }
+      });
+    if (err) {
+      return err
+    }
+  });
+};
+
+async function getStoreHoursInternalById(store_id) {
+  try {
+    // console.log("looking for store!")
+    let query = 'SELECT open_time, close_time FROM store_hours WHERE store_id = $1 ORDER BY day_of_the_week'
+    // console.log("store hours internal!", query)
+    let values = [store_id]
+    let failed = true
+
+    const hourDb = await db.client.connect();
+    // console.log("connect")
+    try {
+      await hourDb.query("BEGIN");
+      // console.log("began")
+
+      let result = await hourDb.query(query, values);
+      // await hourDb.query("COMMIT");
+      // console.log("commit")
+      failed = false
+
+      if (result && result.rows.length > 0) {
+        // console.log("result is:", result)
+        return result.rows
+      }
+      else {
+        return new Error("Could not find store hours!")
+      }
+    } catch (e) {
+      // await hourDb.query("ROLLBACK");
+      // console.log('##########Rolling Back#############', e)
+      console.log("error!", e)
+      failed = true
+      return e
+    } finally {
+      // console.log("releasing")
+      hourDb.release();
+    }
+  } catch (err) {
+    // console.log("couldn't connect?", err)
+    return err
+  }
+
+  // // query for store item
+  // let query = 'SELECT open_time, close_time FROM store_hours WHERE store_id = $1 ORDER BY day_of_the_week'
+  // console.log("store hours internal!")
+  // let values = [store_id]
+
+  // await db.client.connect(async (err, client, done) => {
+  //   // try to get the store item based on id
+  //   await db.client.query(query, values, (err, result) => {
+  //     done()
+  //       if (err) {
+  //         return err
+  //       }
+  //       // we were successfuly able to get the store item
+  //       if (result && result.rows.length > 0) {
+  //         console.log("result is:", result)
+  //         return result.rows
+  //       }
+  //       else {
+  //         return new Error("Could not find store hours!")
+  //       }
+  //     });
+  //   if (err) {
+  //     return err
+  //   }
+  // });
 };
 
 async function getUserStores(req, res, next) {
@@ -1009,7 +1314,6 @@ async function getStoreHours(req, res, next) {
   });
 };
 
-
 async function getCategories(req, res, next) {
   try{
     // add join to get worker ids from store id
@@ -1156,9 +1460,9 @@ async function insertAppointments(req, res, group_id) {
         let appoint
         try {
           await hourDb.query("BEGIN");
-          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;'
+          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *;'
           for (let i = 0; i < appointments.length; i++) {
-            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id]
+            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email]
             appoint = await hourDb.query(query, values);
           }
           await hourDb.query("COMMIT");
@@ -1239,6 +1543,46 @@ async function getWorkerInfo(worker_id) {
     client.release()
   }
   return res.rows[0]
+};
+
+async function getWorkersSchedulesInternalSpecificDate(store_id, day_of_the_week, from, to) {
+  try{
+    console.log("store id is:", store_id)
+    // add join to get worker ids from store id
+    let query = 'SELECT * FROM worker_hours WHERE store_id = $1 AND day_of_the_week = $2 AND ((start_time <= $3 AND end_time > $3) OR (start_time > $3 AND start_time < $4)) ORDER BY worker_id'
+    let values = [store_id, day_of_the_week, from, to]
+
+    return new Promise(function(resolve, reject) {
+      db.client.connect((err, client, done) => {
+      // try to get the store item based on id
+        db.client.query(query, values, (err, result) => {
+          done()
+            if (err) {
+              console.log("query error", err)
+              reject(err)
+            }
+
+            // we were successfuly able to get the store item
+            if (result && result.rows.length > 0) {
+              console.log("got the worker hours")
+              resolve(result.rows)
+            }
+            else {
+              console.log("no worker hours")
+              resolve(result.rows)
+            }
+          });
+        if (err) {
+          console.log("connect error", err)
+          reject(err)
+        }
+      });
+    })
+  }
+  catch(err){
+    console.log("Some sort of error!", err);
+    reject(err)
+  }
 };
 
 async function getWorkersSchedulesInternal(store_id) {
