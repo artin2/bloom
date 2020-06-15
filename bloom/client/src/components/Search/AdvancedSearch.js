@@ -221,10 +221,18 @@ class AdvancedSearch extends React.Component {
   }
 
   handleDateChange = dateSelected => {
-    this.setState({
-      date: dateSelected,
-      dayOfWeek: dateSelected.getDay()
-    });
+    if(dateSelected === null){
+      this.setState({
+        date: '',
+        dayOfWeek: '',
+      });
+    }
+    else{
+      this.setState({
+        date: dateSelected,
+        dayOfWeek: dateSelected.getDay()
+      });
+    }
   };
 
   handleChange(event) {
@@ -241,8 +249,8 @@ class AdvancedSearch extends React.Component {
       }
 
       if(event.target.id === 'from'){
-        let curFrom = this.convertHoursToMin(event.target.value)/60
-        let curTo = this.convertHoursToMin(this.state.to)/60
+        let curFrom = this.convertHoursToMin(event.target.value, true)/60
+        let curTo = this.convertHoursToMin(this.state.to, false)/60
         if(event.target.value === 'Any'){
           this.setState({
             from: event.target.value,
@@ -279,7 +287,7 @@ class AdvancedSearch extends React.Component {
 
     let from = this.convertHoursToMin(this.state.from, true)
     let to = this.convertHoursToMin(this.state.to, false)
-    let dateWithoutTimezone
+    let dateWithoutTimezone = ''
 
     if(this.state.date !== ''){
       dateWithoutTimezone = this.state.date.toUTCString()

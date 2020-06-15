@@ -121,12 +121,18 @@ async function getStores(req, res, next) {
           }
 
           // now we are going to filter by additional filters
-          // console.log("query is:", req.query)
+          console.log("query is:", req.query)
           console.log("--------------------------------------------")
-          let filteredStoresInternal = await filterStores(req, result.rows, categoryQuery)
+          let filteredStores = await filterStores(req, result.rows, categoryQuery)
           console.log("--------------------------------------------")
           done()
-          helper.querySuccess(res, {stores: result.rows, center: {lat: lat, lng: lng}, filteredStores: filteredStoresInternal}, "Successfully got Search Results!");
+
+          if(req.query.dateWithoutTimezone !== ''){
+            helper.querySuccess(res, {stores: filteredStores, center: {lat: lat, lng: lng}, allStores: result.rows}, "Successfully got Search Results!");
+          }
+          else{
+            helper.querySuccess(res, {stores: result.rows, center: {lat: lat, lng: lng}}, "Successfully got Search Results!");
+          }
         }
         else {
           helper.queryError(res, "Some sort of search error!");
@@ -153,8 +159,8 @@ async function filterStores(req, stores, categoryQuery) {
     let validStores = []
     let failed = true
 
-    if(date !== ''){
-      console.log("We do need to filter")
+    if(date !== ""){
+      console.log("We do need to filter", date)
       const filterDb = await db.client.connect();
       try {
         // go through each store one by one
