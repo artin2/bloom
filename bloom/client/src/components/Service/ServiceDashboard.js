@@ -91,7 +91,7 @@ class ServiceDashboard extends React.Component {
   }
 
   async fetchPictures(services) {
-    console.log("about to fetch photographs")
+    // console.log("about to fetch photographs")
 
     // if there are services, retrieve the pictures of the services
     let appendedServices = []
@@ -121,11 +121,12 @@ class ServiceDashboard extends React.Component {
         }
       }));
     }
-    console.log("about to set state")
-    console.log(Array.from(categorySet))
+    // console.log("about to set state")
+    // console.log(Array.from(categorySet))
     this.setState({
       services: appendedServices,
-      categories: Array.from(categorySet)
+      categories: Array.from(categorySet),
+      loading: false
     })
   }
 
@@ -135,43 +136,39 @@ class ServiceDashboard extends React.Component {
     window.addEventListener('scroll', this.onScroll, true);
 
     if(!this.props.services || this.props.services.length == 0 || (this.props.services.length > 0 && this.props.services[0].store_id != this.props.match.params.store_id)){
-      console.log("no services")
+      // console.log("no services")
       await this.props.getServices(this.props.match.params.store_id)
     }
-    // else {
-      console.log("serviees are: ", this.props.services)
+    else {
+      // console.log("serviees are: ", this.props.services)
       await this.fetchPictures(this.props.services)
 
-      console.log("got photos")
-
-      this.setState({
-        loading: false
-      })
-    // }
+      // console.log("got photos")
+    }
 
   }
 
   async componentDidUpdate(prevProps, prevState)  {
-    console.log("state update?")
+    // console.log("state update?")
     if (prevProps.services !== this.props.services) {
       this.fetchPictures(this.props.services)
     }
   }
 
   async componentWillUnmount() {
-    console.log("trying to remove")
+    // console.log("trying to remove")
     // console.log(this.observer)
     window.removeEventListener("click", this.onScroll, true);
     // this.observer.disconnect()
-    console.log("removed")
+    // console.log("removed")
   }
 
   render() {
     let services = null;
     function AddCategories(props) {
-      console.log("props is: ", props)
+      // console.log("props is: ", props)
         const categoriesList = props.categories.map((category) => {
-          return <ListGroup.Item className="p-3 hvr-underline-reveal" action id={category} key={category} href={'#' + category}>
+          return <ListGroup.Item className="p-3 list-categories" action id={category} key={category} href={'#' + category}>
             {category}
           </ListGroup.Item>
         });
@@ -202,7 +199,7 @@ class ServiceDashboard extends React.Component {
                         <Col>
                           <div className="title_container mt-4" style={{ backgroundColor: 'rgb(240,240,240)' }}>
                             <span className="service_title" id={service.name} onClick={() => this.triggerServiceDisplay(service)}> {service.name} </span>
-                            <FaEdit className="edit mb-1" size={15} onClick={() => this.triggerServiceEdit(service)} />
+                            <FaEdit className="edit hvr-forward mb-1" size={20} onClick={() => this.triggerServiceEdit(service)} />
                           </div>
                           <Row className="justify-content-center">
                             <Col xs={4} className="text-left ml-lg-5">
@@ -303,17 +300,17 @@ class ServiceDashboard extends React.Component {
             <Col xs={12} lg={3} className="d-none d-lg-block">
               <nav className="section-nav add-shadow">
               <ListGroup defaultActiveKey={'#' + this.state.categories[0]}>
-              <ListGroup.Item><Button className="hvr-icon-forward" style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={() => this.triggerAddService()}>Add&nbsp;Service&nbsp;&nbsp;<FaPlusCircle className="hvr-icon mb-1"/></Button></ListGroup.Item>
+              <ListGroup.Item className="services-nav-title">
+                <Row>
+                <Col xs={6} style={{fontWeight: "bold"}} className="text-left">
+                Services
+                </Col> 
+                <Col xs={6} className="text-right">
+                <FaPlusCircle color={"#fff"} size={20} onClick={() => this.triggerAddService()} style={{cursor: "pointer"}} className="text-right hvr-float"/>
+                </Col>
+                </Row>
+              </ListGroup.Item>
               <AddCategories categories={this.state.categories}/>
-              {/* <ListGroup.Item className="p-3 hvr-underline-reveal" action id={this.state.categories[0]} href={'#' + this.state.categories[0]}>
-              {this.state.categories[0]}
-              </ListGroup.Item>
-              <ListGroup.Item className="p-3 hvr-underline-reveal" action id={this.state.categories[1]} href={'#' + this.state.categories[1]}>
-              {this.state.categories[1]}
-              </ListGroup.Item>
-              <ListGroup.Item className="p-3 hvr-underline-reveal" action id={this.state.categories[2]} href={'#' + this.state.categories[2]}>
-              {this.state.categories[2]}
-              </ListGroup.Item> */}
             </ListGroup>
               </nav>
             </Col>

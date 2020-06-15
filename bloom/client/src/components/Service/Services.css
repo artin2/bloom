@@ -34,12 +34,22 @@
 }
 
 .fun_style {
+  margin-bottom: 150px;
   margin-top: 43px;
   margin-left: 5%;
   position: absolute;
   width: 81%;
   height: 82%;
   border: 1px solid black;
+}
+
+.services-nav-title {
+  background-color: #3e4e69;
+  border: 0px;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 0px;
+  color: #fff !important;
 }
 
 .title_container {
@@ -94,9 +104,22 @@
   color: black;
 }
 
+.list-categories:hover {
+  background-color: #3e4e69 !important;
+  border-color: #3e4e69 !important;
+  color: #fff !important;
+}
+
+.list-group-item.active:hover {
+  background-color: #106cd6 !important;
+  border-color: #106cd6 !important;
+  color: #fff !important;
+}
+
 .list-group-item.active {
-  background-color: rgb(140, 175, 203);
-  border-color: lightgray;
+  background-color: #3e4e69 !important;
+  border-color: #3e4e69 !important;
+  font-weight: bold;
 }
 
 /* 3. ScrollSpy active styles (see JS tab for activation) */

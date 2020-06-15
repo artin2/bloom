@@ -151,7 +151,7 @@ class WorkerDisplay extends React.Component {
           </Col>
         </Row>
       } else {
-        return <Row className="justify-content-center">
+        return <Row className="justify-content-center my-4 pb-5">
         <Col xs="11" md="3" className="mb-4">
         <div className="profile-sidebar">
             {/* <!-- SIDEBAR USERPIC --> */}
@@ -210,7 +210,7 @@ class WorkerDisplay extends React.Component {
       }
     }
     return (
-      <Container fluid>
+      <Container fluid className="my-4 pb-5">
         <DisplayWithLoading/>
       </Container>
     );
