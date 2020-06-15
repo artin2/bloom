@@ -4,8 +4,9 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Cookies from 'js-cookie';
 import { FaEdit, FaHourglassHalf, FaDollarSign } from 'react-icons/fa';
-import {Carousel, Image } from 'react-bootstrap'
+import {Carousel, Image, Card } from 'react-bootstrap'
 import { getPictures, defaultServicePictures } from '../s3'
+import pluralize from '../helperFunctions'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 import { connect } from 'react-redux';
@@ -27,7 +28,7 @@ class ServiceDisplay extends React.Component {
     }
   }
 
-  async componentDidMount(): Promise<void> {
+  async componentDidMount() {
     // retrieve the pictures from s3
     let picturesFetched
     try {
@@ -86,7 +87,7 @@ class ServiceDisplay extends React.Component {
   render() {
     let editButton;
     if(Cookies.get('user') && this.state.store.owners.indexOf(JSON.parse(Cookies.get('user').substring(2)).id) > -1){
-      editButton = <FaEdit className="edit mb-3" style={{marginTop: "40px"}} size={25} onClick={() => this.triggerServiceEdit()}/>
+      editButton = <FaEdit className="edit" size={25} onClick={() => this.triggerServiceEdit()}/>
     }
 
     // display loading screen while the page is loading
@@ -106,42 +107,44 @@ class ServiceDisplay extends React.Component {
       // display the page once finished loading
       return (
         <Container fluid>
+          <Card className="my-3 add-shadow">
           <Row className="justify-content-center">
-            <Col md={6} className="vertical-align-contents px-0 h-100 w-100">
+            <Col md={5} className="vertical-align-contents px-0 h-100 w-100">
               <Carousel interval="">
                 {this.state.pictures.map((picture, index) => (
                   <Carousel.Item key={"pic-" + index}>
-                    <Image fluid src={picture.url} alt={"Slide " + index} />
+                    <Image fluid style={{width: '100%'}}src={picture.url} alt={"Slide " + index} />
                   </Carousel.Item>
                 ))}
               </Carousel>
             </Col>
-            <Col md={5}>
-              <Row className={"justify-content-center"}>
+            <Col md={7}>
+              <Row className="justify-content-center vertical-align-contents">
                 <p className="name">{this.state.service.name}</p>
                 {editButton}
               </Row>
-              <Row className={"justify-content-center"} style={{marginTop: "75px"}}>
+              <Row className={"justify-content-center"}>
                 <p className="address-large">{this.state.service.description}</p>
               </Row>
               <Row className={"justify-content-center"}>
-                <Col md={1}>
+                <Col xs={1} className="ml-4">
                   <FaDollarSign/>
                 </Col>
-                <Col md={1}>
-                  <p className={"address-small"}>{this.state.service.cost}</p>
+                <Col xs={4} sm={3} md={4} xl={3} className="pl-1 text-left">
+                  <p className={"address-small"} style={{marginTop: '0.1rem'}}>{this.state.service.cost}&nbsp;{pluralize(this.state.service.cost, "dollar")}</p>
                 </Col>
               </Row>
               <Row className={"justify-content-center"}>
-                <Col md={1}>
+                <Col xs={1} className="ml-4">
                   <FaHourglassHalf/>
                 </Col>
-                <Col md={1}>
-                  <p className={"address-small"}>{this.state.service.duration}</p>
+                <Col xs={4} sm={3} md={4} xl={3} className="pl-1 text-left">
+                  <p className={"address-small"} style={{marginTop: '0.1rem'}}>{this.state.service.duration}&nbsp;{pluralize(this.state.service.duration, "minute")}</p>
                 </Col>
               </Row>
             </Col>
           </Row>
+          </Card>
         </Container>
       );
     }

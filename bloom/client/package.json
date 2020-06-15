@@ -29,6 +29,7 @@
     "glyphicons": "^0.2.0",
     "google-map-react": "^1.1.6",
     "google-maps-react": "^2.0.2",
+    "hover.css": "^2.3.2",
     "js-cookie": "^2.2.1",
     "jwt-decode": "^2.2.0",
     "mdbootstrap": "^4.12.0",

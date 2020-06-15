@@ -125,7 +125,7 @@ class Homepage extends React.Component {
         <div>
           <ScreenWidth>
             {(position) =>
-              <img src={paint} alt="paint" className="adaptive-height" style={{ filter: 'brightness(85%)', top: 80, left: 0, position: 'absolute', width: '100%', transform: `perspective(600px) rotateX(${position.xys[0] / 10}deg) rotateY(${position.xys[1] / 10}deg) scale(${position.xys[2]})` }}
+              <img src={paint} alt="paint" className="adaptive-height" style={{ filter: 'brightness(85%)', left: 0, position: 'absolute', width: '100%', transform: `perspective(600px) rotateX(${position.xys[0] / 10}deg) rotateY(${position.xys[1] / 10}deg) scale(${position.xys[2]})` }}
               />
             }
           </ScreenWidth>

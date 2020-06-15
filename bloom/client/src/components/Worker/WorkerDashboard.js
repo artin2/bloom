@@ -25,7 +25,7 @@ const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_AP
 class WorkerDashboard extends React.Component {
   constructor(props) {
     super(props);
-    this.state ={
+    this.state = {
       workers: [],
       redirectToWorkerEditForm: null,
       redirectToWorkerDisplay: null,
@@ -61,60 +61,57 @@ class WorkerDashboard extends React.Component {
 
   componentDidUpdate(prevProps) {
 
-      if (this.props.workers !== prevProps.workers && this.props.workers) {
-
-        this.fetchPictures(this.props.workers)
-      }
-
-  }
-
-  componentDidMount() {
-
-    if(!this.props.workers) {
-      this.props.getWorkers(this.props.match.params.store_id)
-    }
-    else {
+    if (this.props.workers !== prevProps.workers && this.props.workers) {
+      console.log("update call")
       this.fetchPictures(this.props.workers)
     }
 
+  }
+
+  async componentDidMount() {
+    if (!this.props.workers || this.props.workers.length == 0 || (this.props.workers.length > 0 && this.props.workers[0].store_id != this.props.match.params.store_id)) {
+      this.props.getWorkers(this.props.match.params.store_id)
+    } else {
+      this.fetchPictures(this.props.workers)
     }
+  }
 
   async fetchPictures(workers) {
 
     for (let i = 0; i < workers.length; i++) {
       let picturesFetched = {}
       try {
-          picturesFetched = await getPictures('users/' + workers[i].user_id + '/')
-          if(picturesFetched.length > 0){
-              picturesFetched = picturesFetched[0]
-          }
-          else{
-              picturesFetched = {}
-          }
-          } catch (e) {
-            console.log("Error getting pictures from s3!", e)
-          }
-
-          // let stateCopy = Object.assign({}, this.state);
-          workers[i].picture = picturesFetched
-          this.setState({workers: workers})
-
+        picturesFetched = await getPictures('users/' + workers[i].user_id + '/')
+        if (picturesFetched.length > 0) {
+          picturesFetched = picturesFetched[0]
+        }
+        else {
+          picturesFetched = {}
+        }
+      } catch (e) {
+        console.log("Error getting pictures from s3!", e)
       }
-      this.setState({loading: false})
+
+      // let stateCopy = Object.assign({}, this.state);
+      workers[i].picture = picturesFetched
+      this.setState({ workers: workers })
+
+    }
+    this.setState({ loading: false })
 
   }
 
   render() {
     const ListWorkingHours = (props) => {
 
-      if(props.workerHours){
+      if (props.workerHours) {
         let items = [];
         for (let i = 0; i < props.workerHours.length; i++) {
           if (props.workerHours[i].start_time != null) {
-            items.push(<Col sm="11" md="10" key={i} style={{backgroundColor: "#bdcddb"}}><ListGroup.Item className={"py-1"} style={{backgroundColor: "#bdcddb"}}>{this.state.daysOfWeek[i]}: {convertMinsToHrsMins(props.workerHours[i].start_time)}-{convertMinsToHrsMins(props.workerHours[i].end_time)}</ListGroup.Item></Col>);
+            items.push(<Col sm="11" md="10" key={i} style={{ backgroundColor: "#bdcddb" }}><ListGroup.Item className={"py-1"} style={{ backgroundColor: "#bdcddb" }}>{this.state.daysOfWeek[i]}: {convertMinsToHrsMins(props.workerHours[i].start_time)}-{convertMinsToHrsMins(props.workerHours[i].end_time)}</ListGroup.Item></Col>);
           }
           else {
-            items.push(<Col sm="11" md="10" key={i} style={{backgroundColor: "#bdcddb"}}><ListGroup.Item className={"py-1"} style={{backgroundColor: "#bdcddb"}}>{this.state.daysOfWeek[i]}: Off</ListGroup.Item></Col>);
+            items.push(<Col sm="11" md="10" key={i} style={{ backgroundColor: "#bdcddb" }}><ListGroup.Item className={"py-1"} style={{ backgroundColor: "#bdcddb" }}>{this.state.daysOfWeek[i]}: Off</ListGroup.Item></Col>);
           }
         }
         return items;
@@ -126,23 +123,23 @@ class WorkerDashboard extends React.Component {
 
       if (this.state.loading) {
         return <Row className="mt-5">
-            <Col xs="12">
-              <UserDashboardLoader/>
-            </Col>
-          </Row>
+          <Col xs="12">
+            <UserDashboardLoader />
+          </Col>
+        </Row>
       } else {
-        if(this.state.workers.length === 0){
-          return(
+        if (this.state.workers.length === 0) {
+          return (
             <div>
               <p className="noResults">No Workers!</p>
               <Button className="update_button" onClick={() => this.triggerAddWorker()}>Add Worker</Button>
             </div>
           )
         }
-        else{
+        else {
           // console.log(this.props.workers)
 
-          return(
+          return (
             <div>
               <p className="workers_title">My Workers </p>
               <Button className="update_button" onClick={() => this.triggerAddWorker()}>Add Worker</Button>
@@ -152,22 +149,22 @@ class WorkerDashboard extends React.Component {
                     <Col md={4} className="vertical-align-contents">
                       {/* <Carousel className="dashboard-carousel" interval="">
                         <Carousel.Item key={"pic-" + index}> */}
-                          <Image className="dashboard-carousel" fluid src={worker.picture && Object.keys(worker.picture).length !== 0 && worker.picture.constructor === Object ? worker.picture.url : workerImage} alt={"alt-" + index}/>
-                        {/* </Carousel.Item>
+                      <Image className="dashboard-carousel" fluid src={worker.picture && Object.keys(worker.picture).length !== 0 && worker.picture.constructor === Object ? worker.picture.url : workerImage} alt={"alt-" + index} />
+                      {/* </Carousel.Item>
                       </Carousel> */}
                     </Col>
                     <Col md={4}>
                       <Row className={"justify-content-center"}>
                         <Col sm={12}>
-                          <span className={"workerName"} onClick={() => this.triggerWorkerDisplay(worker)} style={{cursor: 'pointer'}}> {worker.first_name + " " + worker.last_name} </span>
-                          <FaEdit className="edit mb-3" size={25} onClick={() => this.triggerWorkerEditForm(worker)}/>
+                          <span className={"workerName"} onClick={() => this.triggerWorkerDisplay(worker)} style={{ cursor: 'pointer' }}> {worker.first_name + " " + worker.last_name} </span>
+                          <FaEdit className="edit mb-3 hvr-forward" size={25} onClick={() => this.triggerWorkerEditForm(worker)} />
                         </Col>
                       </Row>
                       <Row className={"justify-content-center"}>
                         <ListGroup variant="flush">
                           <Row className="justify-content-center mt-4">
                             <h5>Working Hours</h5>
-                            <ListWorkingHours workerHours={worker.workerHours}/>
+                            <ListWorkingHours workerHours={worker.workerHours} />
                           </Row>
                         </ListGroup>
                       </Row>
@@ -182,7 +179,7 @@ class WorkerDashboard extends React.Component {
     }
     return (
       <Container fluid>
-        <DisplayWithLoading/>
+        <DisplayWithLoading />
       </Container>
     );
   }

@@ -21,6 +21,7 @@ export function addStoreSuccess(store) {
 }
 
 export function getStoresSuccess(stores) {
+  console.log("stoer successq@#@#!#")
   return {
     type: GET_STORES_SUCCESS,
     stores: stores,
@@ -28,6 +29,7 @@ export function getStoresSuccess(stores) {
 }
 
 export function storesFetching(fetching) {
+  console.log("store fetching!#@#!@#")
   return {
     type: STORES_FETCHING,
     isFetching: fetching,
@@ -42,6 +44,7 @@ export function storesFailure(error) {
 }
 
 export function updateCurrentStore(store) {
+  console.log("updated current store !@#!@#!")
   return {
     type: UPDATE_CURRENT_STORE,
     store: store,
@@ -49,6 +52,7 @@ export function updateCurrentStore(store) {
 }
 
 export function storeHoursSuccess(storeHours) {
+  console.log("store hours success@!#@!#!@#!")
   return {
     type: STORE_HOURS_SUCCESS,
     storeHours: storeHours

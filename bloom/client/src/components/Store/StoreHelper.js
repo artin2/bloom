@@ -7,9 +7,10 @@ const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_AP
 
 // SERVICE FUNCTIONS
 
-function getStoreHours(store_id){
-
-  return fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
+export function getStoreHours(store_id){
+  console.log("getting store hours")
+  return dispatch => {
+    fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
     method: "GET",
     headers: {
       'Content-type': 'application/json'
@@ -19,7 +20,7 @@ function getStoreHours(store_id){
   .then(function (response) {
     if (response.status !== 200) {
       // throw an error alert
-      // dispatch(storesFailure(response))
+      dispatch(storesFailure(response))
       // return response.json()
     }
     else {
@@ -29,11 +30,12 @@ function getStoreHours(store_id){
   .then(data => {
     // on successful retrieval of store data, map worker's potential valid hours accordingly
         if (data) {
-          // dispatch(storeHoursSuccess(data))
+          console.log("data is: ", data)
+          dispatch(storeHoursSuccess(data))
           return data;
         }
   });
-
+  }
 }
 
 

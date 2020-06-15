@@ -218,8 +218,8 @@ class EditProfileForm extends React.Component {
       document.getElementsByClassName("filepond--action-edit-item")[0] && (document.getElementsByClassName("filepond--action-edit-item")[0].dataset.align = "bottom right")
       return (
         <Container fluid>
-          <Row className="justify-content-center my-5">
-            <Col xs={12} lg={5}>
+          <Row className="justify-content-center my-4">
+            <Col xs={12} lg={8}>
               <Formik
                 // enableReinitialize
                 initialValues={{

@@ -19,12 +19,13 @@
 
 .App-body {
   background-color: #f0f0f0;
-  position: absolute;
+  position: fixed;
   overflow:auto;
   overflow-x: hidden;
   height:100%;
   width:100%;
-  padding-top: 78px;
+  margin-top: 78px;
+  overflow-y: scroll;
 }
 
 

@@ -16,6 +16,7 @@ import { bindActionCreators } from 'redux';
 import { getWorkerSchedules } from '../Worker/WorkerHelper.js'
 import { getServices } from '../Service/ServiceHelper.js'
 import { getStore } from '../Store/StoreHelper'
+import pluralize from '../helperFunctions'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
@@ -91,20 +92,13 @@ class ReservationPage extends React.Component {
     })
   }
 
-  pluralize = (val, word, plural = word + 's') => {
-    const _pluralize = (num, word, plural = word + 's') =>
-      [1, -1].includes(Number(num)) ? word : plural;
-    if (typeof val === 'object') return (num, word) => _pluralize(num, word, val[word]);
-    return _pluralize(val, word, plural);
-  };
-
   timeConvert = (n) => {
     var num = n;
     var hours = (num / 60);
     var rhours = Math.floor(hours);
     var minutes = (hours - rhours) * 60;
     var rminutes = Math.round(minutes);
-    return rhours + " " + this.pluralize(rhours, 'hour') + " and " + rminutes + " " + this.pluralize(rminutes, 'minute');
+    return rhours + " " + pluralize(rhours, 'hour') + " and " + rminutes + " " + pluralize(rminutes, 'minute');
   }
 
   // prefetchSchedules = () => {
@@ -221,7 +215,7 @@ class ReservationPage extends React.Component {
         </Card>
       } else {
         if (this.state.currentStep === 1) {
-          return <ServiceSelection services={this.state.services} categories={this.state.categories} updateReservation={this.updateReservation} selectedServices={this.state.selectedServices} time={this.state.time} total={this.state.total} handleSubmit={this.handleSubmit} timeConvert={this.timeConvert} pluralize={this.pluralize} />
+          return <ServiceSelection services={this.state.services} categories={this.state.categories} updateReservation={this.updateReservation} selectedServices={this.state.selectedServices} time={this.state.time} total={this.state.total} handleSubmit={this.handleSubmit} timeConvert={this.timeConvert} />
         } else if(this.state.currentStep === 2) {
           return <DateSelection time={this.state.time}  store_id={this.props.match.params.store_id} selectedServices={this.state.selectedServices} storeHours={this.state.store.storeHours} workersSchedules={this.state.workerSchedules} handleSubmit={this.handleSubmit} updateAppointments={this.updateAppointments}/>
         } else {
@@ -252,7 +246,7 @@ class ReservationPage extends React.Component {
                   {service.name}
                 </Row>
                 <Row className="smallText">
-                  {service.duration} {that.pluralize(service.duration, 'minute')}
+                  {service.duration} {pluralize(service.duration, 'minute')}
                 </Row>
               </Col>
               <Col lg={5}>
@@ -306,7 +300,7 @@ class ReservationPage extends React.Component {
             >
               <Card.Header className='py-1'>Shopping Cart</Card.Header>
               <Card.Body className="smallPadding">
-                <h6>{this.state.selectedServices.length} Selected {this.pluralize(this.state.selectedServices.length, 'Service')}</h6>
+                <h6>{this.state.selectedServices.length} Selected {pluralize(this.state.selectedServices.length, 'Service')}</h6>
                 <h6>Total: ${this.state.total.toFixed(2)}</h6>
                 <h6>Time: {this.timeConvert(this.state.time)}</h6>
               </Card.Body>
