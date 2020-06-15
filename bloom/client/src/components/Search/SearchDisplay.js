@@ -31,6 +31,7 @@ class SearchDisplay extends React.Component {
   }
 
   toggleChecked() {
+    console.log("toggling, before:", this.state.checked)
     this.setState({
       checked: !this.state.checked
     })
@@ -104,7 +105,7 @@ class SearchDisplay extends React.Component {
 
     const DisplayMapDynamic = (props) => {
 
-        return <MapContainer style={{position: 'relative'}}
+        return <MapContainer //style={{position: 'relative'}}
         google={window.google}
         stores={this.state.stores}
         center={this.state.center}
@@ -120,7 +121,7 @@ class SearchDisplay extends React.Component {
           <Col xs={12} className="d-block d-xl-none" style={{marginTop: 15, marginBottom: 15}}>
             <Row className="justify-content-center">
               <p style={{marginTop: 5}}> Map View </p>
-              <Switch color="primary" checked={this.state.checked} onChange={this.toggleChecked}/>
+              <Switch color="primary" style={{cursor: 'pointer'}}checked={this.state.checked} onChange={this.toggleChecked}/>
               <p style={{marginTop: 5}}> List View </p>
             </Row>
           </Col>
@@ -129,7 +130,7 @@ class SearchDisplay extends React.Component {
           <Col xs={12} xl={6} className={"px-5 my-3 h-100" + (this.state.checked ? "" : " d-none d-xl-block")}>
             <DisplayWithLoading/>
           </Col>
-          <Col id="map" xs={12} xl={6} style={{padding: 0}}>
+          <Col id="map" xs={12} xl={6} className="searchMap p-0">
             <div className={(this.state.checked ? " d-none d-xl-block" : "")}>
               <DisplayMapDynamic/>
             </div>

@@ -22,7 +22,7 @@ class AdvancedSearch extends React.Component {
     this.state = {
 
       selected: [],
-      address: '11421, Clybourn Avenue, Sylmar, Los Angeles, Los Angeles County, California, United States, 91342, 6707',
+      address: '',
       distance: 1,
       date: '',
       dayOfWeek: '',
@@ -369,39 +369,30 @@ class AdvancedSearch extends React.Component {
 
         <Collapse id="additionalFilters" style={{paddingTop:5}} in={this.state.open}>
           <Form.Group>
-            <Row className='justify-content-center' className="mb-3">
-              <Col xs="12" xl="2">
-                <Form.Label>Date</Form.Label>
-              </Col>
-              <Col xs="12" xl="10">
-                <div className="customDatePickerWidth">
-                  <DatePicker
-                    className="form-control"
-                    selected={this.state.date}
-                    onChange={this.handleDateChange}
-                    minDate={new Date()}
-                    popperModifiers={{
-                      flip: {
-                          behavior: ["bottom"] // don't allow it to flip to be above
-                      }
-                    }}
-                  />
-                </div>
-              </Col>
-              {/* <Col xs="11" md="6" className="mt-3">
-                <Form>
-                  <Form.Control  key={this.state.date} as="select" value={this.state.selectedTime} onChange={this.handleSelectChange.bind(this)}>
-                    <CreateTimeSelects date={this.state.date} />
-                  </Form.Control>
-                </Form>
-              </Col> */}
-            </Row>
-
             <Row>
-              <Col xs="12" xl="3">
-                <Form.Label>Starting</Form.Label>
-              </Col>
-              <Col xs="10" xl="4" className="p-0">
+              <Form.Label>Date</Form.Label>
+            </Row>
+            <Row className='justify-content-center' className="mb-3">
+              <div className="customDatePickerWidth">
+                <DatePicker
+                  className="form-control"
+                  selected={this.state.date}
+                  onChange={this.handleDateChange}
+                  minDate={new Date()}
+                  popperModifiers={{
+                    flip: {
+                        behavior: ["bottom"] // don't allow it to flip to be above
+                    }
+                  }}
+                />
+              </div>
+            </Row>
+            
+            <Row>
+              <Form.Label>Arrival Time</Form.Label>
+            </Row>
+            <Row>
+              <Col xs="10" xl="5" className="p-0">
                 <Form.Control as="select" id="from" onChange={this.handleChange} value={this.state.from}>
                   <option>Any</option>
                   <option>1:00 am</option>
@@ -430,10 +421,10 @@ class AdvancedSearch extends React.Component {
                   <option>12:00 am</option>
                 </Form.Control>
               </Col>
-              <Col xs="2" xl="1" className="p-0" style={{marginTop: 5}}>
+              <Col xs="2" className="p-0" style={{marginTop: 5}}>
                 <p> - </p>
               </Col>
-              <Col xs="10" xl="4" className="p-0">
+              <Col xs="10" xl="5" className="p-0">
                 <Form.Control as="select" id="to" onChange={this.handleChange} value={this.state.to}>
                   <option disabled={this.state.fromTime != -1}>Any</option>
                   <option disabled={this.state.fromTime >= 1}>1:00 am</option>
