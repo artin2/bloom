@@ -32,8 +32,10 @@ function storeReducer(state = initialState, action) {
       })
 
     case STORE_HOURS_SUCCESS:
+      console.log("action is!!!: ", action)
       let store = state.store
       store.storeHours = action.storeHours
+      console.log("store is now: ", store)
       return Object.assign({}, state, {
         store: store
       })

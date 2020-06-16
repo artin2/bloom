@@ -132,7 +132,7 @@ class WorkerDashboard extends React.Component {
           return (
             <div>
               <p className="noResults">No Workers!</p>
-              <Button className="update_button" onClick={() => this.triggerAddWorker()}>Add Worker</Button>
+              <Button className="update-button" onClick={() => this.triggerAddWorker()}>Add Worker</Button>
             </div>
           )
         }
@@ -142,7 +142,7 @@ class WorkerDashboard extends React.Component {
           return (
             <div>
               <p className="workers_title">My Workers </p>
-              <Button className="update_button" onClick={() => this.triggerAddWorker()}>Add Worker</Button>
+              <Button className="update-button" onClick={() => this.triggerAddWorker()}>Add Worker</Button>
               <>{this.state.workers.map((worker, index) => (
                 <div key={"worker" + index}>
                   <Row className="justify-content-center align-content-center my-5">

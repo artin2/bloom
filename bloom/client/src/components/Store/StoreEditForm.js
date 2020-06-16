@@ -306,7 +306,7 @@ class StoreEditForm extends React.Component {
                 <GridLoader
                   css={override}
                   size={20}
-                  color={"#8CAFCB"}
+                  color={"#3e4e69"}
                   loading={this.state.isLoading}
                 />
               </Col>

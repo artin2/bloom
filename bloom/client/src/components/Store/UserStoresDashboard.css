@@ -30,10 +30,9 @@
   align-items:center;
 }
 
-.update_button {
+.update-button {
   background-color: #3e4e69;
   border: 0px;
-  height: 80%;
   font-size: 1rem;
   font-weight: bold;
 }

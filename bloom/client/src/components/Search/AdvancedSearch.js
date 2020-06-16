@@ -4,15 +4,10 @@ import { Form, Row, Col, Collapse } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import { withRouter } from "react-router-dom";
 import { Multiselect } from 'multiselect-react-dropdown';
-import {
-  addAlert
-} from '../../redux/actions/alert'
-import store from '../../redux/store';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getSearchResults } from './SearchHelper.js'
 import DatePicker from "react-datepicker";
-const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const helper = require('./helper.js');
 
@@ -197,7 +192,7 @@ class AdvancedSearch extends React.Component {
     let timeSplit = time.split(":00")
     let nextHour
 
-    console.log("here", timeSplit, parseInt(timeSplit[0]) + 1)
+    // console.log("here", timeSplit, parseInt(timeSplit[0]) + 1)
 
     if(timeSplit[0] === '12'){
       nextHour = "1:00" + timeSplit[1]
@@ -214,7 +209,7 @@ class AdvancedSearch extends React.Component {
       nextHour = (parseInt(timeSplit[0]) + 1).toString() + ":00" + timeSplit[1]
     }
 
-    console.log("next hours is:", nextHour)
+    // console.log("next hours is:", nextHour)
     return nextHour
   }
 
@@ -278,7 +273,7 @@ class AdvancedSearch extends React.Component {
     let from = this.convertHoursToMin(this.state.from, true)
     let to = this.convertHoursToMin(this.state.to, false)
 
-    console.log("time", this.state.date, this.state.date.toUTCString(), Object.keys(this.state.date))
+    // console.log("time", this.state.date, this.state.date.toUTCString(), Object.keys(this.state.date))
 
     if(this.state.selected.length === 0){
       console.log("1")
@@ -359,7 +354,7 @@ class AdvancedSearch extends React.Component {
               closeIcon="cancel"
               displayValue="name"
               avoidHighlightFirstOption={true}
-              style={{multiselectContainer: { width: '100%'},  groupHeading:{width: 50, maxWidth: 50}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
+              style={{multiselectContainer: { width: '100%'},  groupHeading:{width: 50, maxWidth: 50}, chips: { background: "#3e4e69", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
             />
           </Row>
         </Form.Group>
@@ -457,7 +452,7 @@ class AdvancedSearch extends React.Component {
           </Form.Group>
         </Collapse>
 
-        <Button disabled={!(this.state.address)} style={{backgroundColor: '#8CAFCB', border: 'none'}} type="submit">Submit</Button>
+        <Button disabled={!(this.state.address)} className="update-button" type="submit">Submit</Button>
       </Form>
     );
   }

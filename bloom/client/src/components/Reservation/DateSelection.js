@@ -6,15 +6,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import './DateSelection.css';
 import { Form, Button } from 'react-bootstrap';
-import store from '../../redux/store';
-import { addAlert } from '../../redux/actions/alert'
 import { convertMinsToHrsMins } from '../helperFunctions'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getAppointments } from './ReservationHelper.js'
-const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
   display: block;
@@ -25,11 +22,15 @@ class DateSelection extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      storeOpenDays: [],
       startDate: new Date(),
       currDate: new Date(),
       selectedTime: 540,
       loading: true,
-      appointments: this.props.appointments
+      appointments: this.props.appointments,
+      storeHours: this.props.storeHours,
+      workerAvailableDays: [],
+      workerSchedulesNarrowed: this.props.workersSchedules.filter(element => this.props.selectedWorkers.includes(element.worker_id))
     };
   }
 
@@ -60,9 +61,23 @@ class DateSelection extends React.Component {
   }
 
   componentDidMount() {
-
     this.props.getAppointments(this.props.store_id, (parseInt(this.state.startDate.getMonth()) + 1))
-
+    let storeOpenDays = []
+    for(let i = 0; i < this.props.storeHours.length; i++) {
+      if(this.props.storeHours[i].open_time !== null) {
+        storeOpenDays.push(i)
+      }
+    }
+    let workerAvailableDays = new Set()
+    for(let i = 0; i < this.state.workerSchedulesNarrowed.length; i++) {
+      if(this.state.workerSchedulesNarrowed[i].start_time != null) {
+        workerAvailableDays.add(this.state.workerSchedulesNarrowed[i].day_of_the_week)
+      }
+    }
+    this.setState({
+      storeOpenDays: storeOpenDays,
+      workerAvailableDays: Array.from(workerAvailableDays)
+    })
   }
 
   componentDidUpdate(prevProps) {
@@ -76,9 +91,14 @@ class DateSelection extends React.Component {
   }
 
   render() {
+    let isOpen = date => {
+      const day = date.getDay()
+      return this.state.storeOpenDays.includes(day) && this.state.workerAvailableDays.includes(day)
+    }
+
     const CreateTimeSelects = (props) => {
       let items = [];
-      for (let i = this.props.storeHours[this.state.currDate.getDay()].open_time; i + this.props.time <= this.props.storeHours[this.state.currDate.getDay()].close_time; i += 60) {
+      for (let i = this.state.storeHours[this.state.currDate.getDay()].open_time; i + this.props.time <= this.state.storeHours[this.state.currDate.getDay()].close_time; i += 60) {
         items.push(<option key={i} value={i}>{convertMinsToHrsMins(i)}</option>);
       }
       return items;
@@ -88,11 +108,11 @@ class DateSelection extends React.Component {
       let slots = []
       let schedules = []
       // Loop through different appointment start times for the day
-      for (let i = this.state.selectedTime; (i < this.state.selectedTime + 120 && i + this.props.time <= this.props.storeHours[this.state.currDate.getDay()].close_time); i += 15) {
+      for (let i = this.state.selectedTime; (i < this.state.selectedTime + 120 && i + this.props.time <= this.state.storeHours[this.state.currDate.getDay()].close_time); i += 15) {
         let currTime = i
         let foundSchedule = false
         let currSchedule = []
-        let currDaySchedules = this.props.workersSchedules.filter(element => element.day_of_the_week === this.state.currDate.getDay());
+        let currDaySchedules = this.state.workerSchedulesNarrowed.filter(element => element.day_of_the_week === this.state.currDate.getDay());
         let scheduleStillWorks = true
         // We're going to increment through the workers that are scheduled for today and build a schedule bit by bit until we finish or realize there are no more appointments for the day
         // Don't want to lose the original values of currTime, currService, and k when we continue ahead in our schedule
@@ -151,10 +171,10 @@ class DateSelection extends React.Component {
 
         if (foundSchedule) {
           schedules.push(currSchedule)
-          slots.push(<Button className="mt-3 mx-2" style={{backgroundColor: '#8CAFCB', border: '0px'}} key={i} onClick={() => this.handleSlotClick(currSchedule)}>{convertMinsToHrsMins(i)}</Button>)
+          slots.push(<Button className="mt-3 mx-2 update-button" key={i} onClick={() => this.handleSlotClick(currSchedule)}>{convertMinsToHrsMins(i)}</Button>)
         }
       }
-      if (slots.length === 0 && this.props.storeHours[this.state.currDate.getDay()].open_time === null) {
+      if (slots.length === 0 && this.state.storeHours[this.state.currDate.getDay()].open_time === null) {
         return <h2 className="mt-4">This store doesn't work on this day. Select another date. </h2>
       } else if (slots.length === 0) {
         return <h2 className="mt-4">No appointments available at this time.</h2>
@@ -169,7 +189,7 @@ class DateSelection extends React.Component {
             <GridLoader
               css={override}
               size={20}
-              color={"#8CAFCB"}
+              color={"#3e4e69"}
               loading={this.state.isLoading}
             />
           </Col>
@@ -202,6 +222,7 @@ class DateSelection extends React.Component {
                     selected={this.state.currDate}
                     onChange={this.handleDateChange}
                     minDate={new Date()}
+                    filterDate={isOpen}
                     popperModifiers={{
                       flip: {
                           behavior: ["bottom"] // don't allow it to flip to be above
@@ -221,7 +242,7 @@ class DateSelection extends React.Component {
             <DisplayWithLoading />
             <Row className="justify-content-center mt-4">
               <Col md="3">
-                <Button block style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={() => this.props.handleSubmit(false)}>Previous</Button>
+                <Button block className="update-button" onClick={() => this.props.handleSubmit(false)}>Previous</Button>
               </Col>
             </Row>
           </Card.Body>
@@ -238,6 +259,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 
 const mapStateToProps = state => ({
   appointments: state.reservationReducer.appointments,
+  storeHours: state.storeReducer.store.storeHours,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(DateSelection);

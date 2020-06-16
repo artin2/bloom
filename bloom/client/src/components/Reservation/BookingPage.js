@@ -7,8 +7,6 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import { FaEnvelope, FaUser, FaPhone } from 'react-icons/fa';
 import { Formik } from 'formik';
 import { Form, Button } from 'react-bootstrap';
-import store from '../../redux/store';
-import { addAlert } from '../../redux/actions/alert'
 import GridLoader from 'react-spinners/GridLoader'
 import { css } from '@emotion/core'
 import Cookies from 'js-cookie';
@@ -17,8 +15,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { addNewAppointment } from './ReservationHelper.js'
 import { convertMinsToHrsMins } from '.././helperFunctions'
-import alertReducer from '../../redux/reducers/alert';
-const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
   display: block;
@@ -105,7 +101,7 @@ class BookingPage extends React.Component {
               <GridLoader
                 css={override}
                 size={20}
-                color={"#8CAFCB"}
+                color={"#3e4e69"}
                 loading={this.state.isLoading}
               />
             </Col>
@@ -243,10 +239,10 @@ class BookingPage extends React.Component {
                       </Form.Group>
                       <Row className="justify-content-center">
                         <Col xs="11" lg="3" className="mb-3">
-                        <Button block style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={() => this.props.handleSubmit(false)}>Previous</Button>
+                        <Button block className="update-button" onClick={() => this.props.handleSubmit(false)}>Previous</Button>
                         </Col>
                         <Col xs="11" lg="3">
-                        <Button disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} block style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                        <Button className="update-button" disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} block onClick={handleSubmit}>Submit</Button>
                         </Col>
                       </Row>
                     </Form>

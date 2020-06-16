@@ -8,13 +8,13 @@ import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 const theme = createMuiTheme({
   palette: {
     primary: {
-      main: '#8CAFCB'
+      main: '#3e4e69'
     }
   }
 });
 
 function getSteps() {
-  return ['Choose Services', 'Select Time', 'Confirmation'];
+  return ['Services', 'Stylist', 'Time'];
 }
 
 export default function HorizontalLinearStepper({ currentStep }){

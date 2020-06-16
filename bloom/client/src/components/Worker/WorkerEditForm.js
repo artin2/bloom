@@ -193,7 +193,7 @@ class WorkerEditForm extends React.Component {
             <GridLoader
               css={override}
               size={20}
-              color={"#8CAFCB"}
+              color={"#3e4e69"}
               loading={this.state.isLoading}
             />
           </Col>
@@ -486,7 +486,7 @@ class WorkerEditForm extends React.Component {
                       </Form.Row>
                     </Form.Group>
 
-                    <Button style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                    <Button className="update-button" onClick={handleSubmit}>Submit</Button>
                   </Form>
                 )}
             </Formik>

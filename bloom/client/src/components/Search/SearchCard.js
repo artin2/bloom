@@ -24,9 +24,9 @@ class SearchCard extends React.Component {
 
   render() {
     return (
-      <Col xs={12} className="my-3 px-0 h-100">
-        <Card className="add-shadow" style={{height: '100%'}}>
-          <Row style={{height: '100%'}}>
+      <Col xs={12} className="my-3 px-0 h-95">
+        <Card className="add-shadow hvr-float-shadow" style={{height: '100%'}}>
+          <Row className="mr-0 ml-0" style={{height: '100%'}}>
             <Col md={6} className="vertical-align-contents px-0 h-100 w-100">
               <Carousel interval="">
                 {this.props.store.pictures.map((picture, index) => (
@@ -47,7 +47,7 @@ class SearchCard extends React.Component {
 
 
                 </div>
-                <Button style={{backgroundColor: '#8CAFCA', border: 0}} onClick={() => this.props.onClickFunctionBook(this.props.store.id)}>Book Now</Button>
+                <Button className="update-button" onClick={() => this.props.onClickFunctionBook(this.props.store.id)}>Book Now</Button>
               </Card.Body>
             </Col>
           </Row>
