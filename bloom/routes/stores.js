@@ -122,9 +122,17 @@ async function getStores(req, res, next) {
 
           // now we are going to filter by additional filters
           console.log("query is:", req.query)
-          let filteredStoresInternal = filterStores(req, result.rows, categoryQuery)
+          console.log("--------------------------------------------")
+          let filteredStores = await filterStores(req, result.rows, categoryQuery)
+          console.log("--------------------------------------------")
           done()
-          helper.querySuccess(res, {stores: result.rows, center: {lat: lat, lng: lng}, filteredStores: filteredStoresInternal}, "Successfully got Search Results!");
+
+          if(req.query.dateWithoutTimezone !== ''){
+            helper.querySuccess(res, {stores: filteredStores, center: {lat: lat, lng: lng}, allStores: result.rows}, "Successfully got Search Results!");
+          }
+          else{
+            helper.querySuccess(res, {stores: result.rows, center: {lat: lat, lng: lng}}, "Successfully got Search Results!");
+          }
         }
         else {
           helper.queryError(res, "Some sort of search error!");
@@ -141,25 +149,23 @@ async function getStores(req, res, next) {
 };
 
 async function filterStores(req, stores, categoryQuery) {
-  console.log("now filtering stores:", stores, "based on date:", req.query.date, "and times:", req.query.from, req.query.to)
-  // for now, we can tell if there were filters by date being ''
-  let date = req.query.dateWithoutTimezone
-  let dayOfWeek = req.query.dayOfWeek
-  let from = req.query.from
-  let to = req.query.to
-  let filteredStores = []
+  return new Promise(async function(resolve, reject) {
+    console.log("now filtering stores:")
+    // for now, we can tell if there were filters by date being ''
+    let date = req.query.dateWithoutTimezone
+    let dayOfWeek = req.query.dayOfWeek
+    let from = parseInt(req.query.fromFinal)
+    let to = parseInt(req.query.toFinal)
+    let validStores = []
+    let failed = true
 
-  if(date !== ''){
-    console.log("We do need to filter")
-    ; (async (request, response) => {
+    if(date !== ""){
+      console.log("We do need to filter", date)
       const filterDb = await db.client.connect();
       try {
-        let validStores = []
-
         // go through each store one by one
         for (let i = 0; i < stores.length; i++) {
           let storeCopy = JSON.parse(JSON.stringify(stores[i]))
-          storeCopy.services = new Set()
 
           // NOTE: this will need to be updated when we add one off days...
           let storeHours = await getStoreHoursInternalById(stores[i].id)
@@ -169,7 +175,7 @@ async function filterStores(req, stores, categoryQuery) {
           console.log("the open time and close time for the day you chose:", dayOfWeek, openTime, closeTime)
 
           // first, we need to check if the store is open at some point in the time frame of that day
-          if (openTime != null && (openTime >= from && openTime <= to)) {
+          if (closeTime != null && closeTime > from) {
             console.log("the store is working at the time you want it to be working, now lets get services for the category/ies you want")
             
             let query = 'SELECT * FROM services WHERE store_id=' + stores[i].id + ' AND category = ANY(' + categoryQuery + ')'
@@ -294,9 +300,7 @@ async function filterStores(req, stores, categoryQuery) {
                   }
                   
                   if(validServices.length > 0){
-                    for (let p = 0; p < validServices.length; p++) {
-                      storeCopy.services.add(validServices[p])
-                    }
+                    storeCopy.services = Array.from(validServices)
                     console.log("found valid services, appended it to store copy!", storeCopy, storeCopy.services)
                   }
                 }
@@ -313,35 +317,34 @@ async function filterStores(req, stores, categoryQuery) {
             console.log("store is closed at that time!", stores[i].id)
           }
 
-          if(storeCopy.services.size > 0){
+          if(storeCopy.services.length > 0){
             console.log("adding valid store!", storeCopy, storeCopy.services)
             validStores.push(storeCopy)
           }
         }
 
+        failed = false
         console.log("the valid stores are:", validStores)
-        return validStores
       } catch (e) {
-        // await hourDb.query("ROLLBACK", e);
-        // failed = true
         console.log("here!", e)
-        throw e;
+        reject(e)
       } finally {
-        console.log("there!")
-        // if (!failed) {
-        //   helper.querySuccess(resp, store, 'Successfully updated store!');
-        // } else {
-        //   helper.queryError(resp, "Unable to Update Store!");
-        // }
-        // hourDb.release();
+        if (!failed) {
+          filterDb.release();
+          resolve(validStores)
+        } else {
+          filterDb.release();
+          reject(validStores)
+        }
       }
-    })().catch(e => console.log("there2!", e));
-  }
-  else{
-    console.log("We don't need to filter")
-  }
+    }
+    else{
+      console.log("We don't need to filter")
+      resolve(validStores) // successfully fill promise
+    }
 
-  return filteredStores
+    resolve(validStores) // successfully fill promise
+  })
 };
 
 async function getStoreHoursInternal(req, res, next) {

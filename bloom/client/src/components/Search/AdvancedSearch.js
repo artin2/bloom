@@ -23,6 +23,8 @@ class AdvancedSearch extends React.Component {
       dayOfWeek: '',
       from: 'Any',
       to: 'Any',
+      fromFinal: 0,
+      toFinal: 1440,
       fromTime: -1,
       open: false,
       redirect: false,
@@ -214,10 +216,18 @@ class AdvancedSearch extends React.Component {
   }
 
   handleDateChange = dateSelected => {
-    this.setState({
-      date: dateSelected,
-      dayOfWeek: dateSelected.getDay()
-    });
+    if(dateSelected === null){
+      this.setState({
+        date: '',
+        dayOfWeek: '',
+      });
+    }
+    else{
+      this.setState({
+        date: dateSelected,
+        dayOfWeek: dateSelected.getDay()
+      });
+    }
   };
 
   handleChange(event) {
@@ -234,8 +244,8 @@ class AdvancedSearch extends React.Component {
       }
 
       if(event.target.id === 'from'){
-        let curFrom = this.convertHoursToMin(event.target.value)/60
-        let curTo = this.convertHoursToMin(this.state.to)/60
+        let curFrom = this.convertHoursToMin(event.target.value, true)/60
+        let curTo = this.convertHoursToMin(this.state.to, false)/60
         if(event.target.value === 'Any'){
           this.setState({
             from: event.target.value,
@@ -272,11 +282,13 @@ class AdvancedSearch extends React.Component {
 
     let from = this.convertHoursToMin(this.state.from, true)
     let to = this.convertHoursToMin(this.state.to, false)
+    let dateWithoutTimezone = ''
 
-    // console.log("time", this.state.date, this.state.date.toUTCString(), Object.keys(this.state.date))
+    if(this.state.date !== ''){
+      dateWithoutTimezone = this.state.date.toUTCString()
+    }
 
     if(this.state.selected.length === 0){
-      console.log("1")
       await this.setState({
         to: to,
         from: from,
@@ -286,26 +298,21 @@ class AdvancedSearch extends React.Component {
         barber: true,
         spa: true,
         makeup: true,
-        dateWithoutTimezone: this.state.date.toUTCString()
+        fromFinal: from,
+        toFinal: to,
+        dateWithoutTimezone: dateWithoutTimezone
       })
-      console.log("2")
     }
     else{
       await this.setState({
-        to: to,
-        from: from,
-        dateWithoutTimezone: this.state.date.toUTCString()
+        fromFinal: from,
+        toFinal: to,
+        dateWithoutTimezone: dateWithoutTimezone
       })
     }
 
-    console.log("3")
-
     let queryString = helper.queryString;
     let query = queryString(this.state)
-
-    console.log("4")
-
-    console.log("state is:", this.state, "query is", query)
 
     this.props.getSearchResults(query);
 
@@ -384,7 +391,7 @@ class AdvancedSearch extends React.Component {
             </Row>
             
             <Row>
-              <Form.Label>Arrival Time</Form.Label>
+              <Form.Label>Arriving</Form.Label>
             </Row>
             <Row>
               <Col xs="10" xl="5" className="p-0">
