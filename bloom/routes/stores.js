@@ -1074,11 +1074,22 @@ async function getAppointmentsByMonth(req, res, next) {
   }
 }
 
+
+function timeConvert(n) {
+    var num = n;
+    var hours = (num / 60);
+    var rhours = Math.floor(hours);
+    var minutes = (hours - rhours) * 60;
+    var rminutes = Math.round(minutes);
+    return [rhours, rminutes];
+  }
+
+
 async function getAllAppointments(req, res, next) {
   try {
     // console.log("---------getting apps")
     // query for store appointments
-    let query = 'SELECT group_id, id, user_id, worker_id, date, start_time, end_time, service_id, price, date FROM appointments WHERE store_id = $1'
+    let query = 'SELECT group_id, id, user_id, worker_id, date, start_time, end_time, service_id, price, email FROM appointments WHERE store_id = $1'
     let values = [req.params.store_id]
     db.client.connect((err, client, done) => {
       // try to get the store appointments based on month
@@ -1089,7 +1100,46 @@ async function getAllAppointments(req, res, next) {
           }
           // we were successfuly able to get the appointments for this month
           if (result) {
-            helper.querySuccess(res, result.rows, 'Successfully got store appointments!');
+
+            let grouped_appointments = {}
+            result.rows.map(appointment => {
+
+              let date = new Date(appointment.date);
+              appointment.start_time = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(appointment.start_time)[0], timeConvert(appointment.start_time)[1]);
+              appointment.end_time = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(appointment.end_time)[0], timeConvert(appointment.end_time)[1]);
+
+
+              if(grouped_appointments[appointment.group_id]) {
+
+                grouped_appointments[appointment.group_id].id.push(appointment.id)
+                grouped_appointments[appointment.group_id].services.push(appointment.service_id)
+                grouped_appointments[appointment.group_id].workers.push(appointment.worker_id)
+                grouped_appointments[appointment.group_id].startDate.push(appointment.start_time)
+                grouped_appointments[appointment.group_id].endDate.push(appointment.end_time)
+                grouped_appointments[appointment.group_id].date.push(date)
+                grouped_appointments[appointment.group_id].price.push(appointment.price)
+
+              }
+              else{
+                grouped_appointments[appointment.group_id] = {}
+                grouped_appointments[appointment.group_id].id = [appointment.id]
+                grouped_appointments[appointment.group_id].services = [appointment.service_id]
+                grouped_appointments[appointment.group_id].workers = [appointment.worker_id]
+                grouped_appointments[appointment.group_id].startDate = [appointment.start_time]
+                grouped_appointments[appointment.group_id].endDate = [appointment.end_time]
+                grouped_appointments[appointment.group_id].date = [date]
+                grouped_appointments[appointment.group_id].price = [appointment.price]
+              }
+              return appointment
+
+            })
+
+            let response = {
+              appointments: result.rows,
+              groups: grouped_appointments
+            }
+
+            helper.querySuccess(res, response, 'Successfully got store appointments!');
           }
           else {
             helper.querySuccess(res, [], "Could not find store appointments!");

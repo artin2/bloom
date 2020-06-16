@@ -15,6 +15,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "bootstrap": "^4.4.1",
+    "cross-spawn": "^7.0.3",
     "file-upload-with-preview": "^4.0.8",
     "filepond": "^4.13.5",
     "filepond-plugin-file-encode": "^2.1.5",

@@ -55,27 +55,10 @@ export function getAppointments(store_id) {
       })
       .then(data => {
 
-        let parsedData = data.map(appointment => {
-          let date = new Date(appointment.date);
-          let startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(appointment.start_time)[0], timeConvert(appointment.start_time)[1]);
-          let endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(appointment.end_time)[0], timeConvert(appointment.end_time)[1]);
 
-          appointment.start_time = startDate
-          appointment.end_time = endDate
-          return appointment
-        })
 
-        dispatch(getAppointmentsSuccess(parsedData))
-        return parsedData
+        dispatch(getAppointmentsSuccess(data))
+        return data
       });
   }
 }
-
-function timeConvert(n) {
-    var num = n;
-    var hours = (num / 60);
-    var rhours = Math.floor(hours);
-    var minutes = (hours - rhours) * 60;
-    var rminutes = Math.round(minutes);
-    return [rhours, rminutes];
-  }

@@ -70,12 +70,12 @@ class WorkerDashboard extends React.Component {
 
   componentDidMount() {
 
-    if(!this.props.workers) {
+    // if(!this.props.workers) {
       this.props.getWorkers(this.props.match.params.store_id)
-    }
-    else {
-      this.fetchPictures(this.props.workers)
-    }
+    // }
+    // else {
+    //   this.fetchPictures(this.props.workers)
+    // }
 
     }
 
