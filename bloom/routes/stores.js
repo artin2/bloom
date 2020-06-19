@@ -1111,24 +1111,28 @@ async function getAllAppointments(req, res, next) {
 
               if(grouped_appointments[appointment.group_id]) {
 
-                grouped_appointments[appointment.group_id].id.push(appointment.id)
-                grouped_appointments[appointment.group_id].services.push(appointment.service_id)
-                grouped_appointments[appointment.group_id].workers.push(appointment.worker_id)
-                grouped_appointments[appointment.group_id].startDate.push(appointment.start_time)
-                grouped_appointments[appointment.group_id].endDate.push(appointment.end_time)
-                grouped_appointments[appointment.group_id].date.push(date)
-                grouped_appointments[appointment.group_id].price.push(appointment.price)
+                grouped_appointments[appointment.group_id].push({
+                  id: appointment.id,
+                  services: appointment.service_id,
+                  workers: appointment.worker_id,
+                  startDate: appointment.start_time,
+                  endDate: appointment.end_time,
+                  date: date,
+                  price: appointment.price
+                })
 
               }
               else{
-                grouped_appointments[appointment.group_id] = {}
-                grouped_appointments[appointment.group_id].id = [appointment.id]
-                grouped_appointments[appointment.group_id].services = [appointment.service_id]
-                grouped_appointments[appointment.group_id].workers = [appointment.worker_id]
-                grouped_appointments[appointment.group_id].startDate = [appointment.start_time]
-                grouped_appointments[appointment.group_id].endDate = [appointment.end_time]
-                grouped_appointments[appointment.group_id].date = [date]
-                grouped_appointments[appointment.group_id].price = [appointment.price]
+
+                grouped_appointments[appointment.group_id] = [{
+                  id: appointment.id,
+                  services: appointment.service_id,
+                  workers: appointment.worker_id,
+                  startDate: appointment.start_time,
+                  endDate: appointment.end_time,
+                  date: date,
+                  price: appointment.price
+                }]
               }
               return appointment
 
