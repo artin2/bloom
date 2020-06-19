@@ -6,6 +6,24 @@ import {Button} from 'react-bootstrap'
 import Card from 'react-bootstrap/Card'
 import { FaPhone } from 'react-icons/fa';
 
+class CustomMarker extends Marker {
+  componentDidUpdate(prevProps) {
+    if(
+      this.props.map !== prevProps.map || 
+      (this.props.icon && ( this.props.icon.url !== prevProps.icon.url )) || 
+      (
+        this.props.position.lat !== prevProps.position.lat || 
+        this.props.position.lng !== prevProps.position.lng
+      )
+    ) {
+      if(this.marker) {
+        this.marker.setMap(null);
+      }
+      this.renderMarker();
+    }
+  }
+}
+
 class MapContainer extends Component {
   constructor(props) {
     super(props);
@@ -23,7 +41,7 @@ class MapContainer extends Component {
   displayMarkers() {
     if(this.props.stores && this.props.stores.length > 0) {
       return this.props.stores.map((store, index) => {
-        return <Marker key={"store-" + index} id={index} position={{
+        return <CustomMarker key={"store-" + index} id={index} position={{
                        lat: store.lat,
                        lng: store.lng }}
                        onClick={this.onMarkerClick}
@@ -37,7 +55,7 @@ class MapContainer extends Component {
   displayCurrentLocation() {
     if(this.props.center) {
       const google = window.google;
-      return <Marker key={"current-location"}
+      return <CustomMarker key={"current-location"}
                      id={"cur-loc"}
                      position={{
                        lat: this.props.center.lat,
@@ -51,13 +69,15 @@ class MapContainer extends Component {
     }
   }
 
-  onMarkerClick = (props, marker, e) =>
-  this.setState({
-    selectedPlace: props,
-    activeMarker: marker,
-    showingInfoWindow: true,
-    activeMarkerIndex: marker.id
-  });
+  onMarkerClick = (props, marker, e) => {
+    console.log("here")
+    this.setState({
+      selectedPlace: props,
+      activeMarker: marker,
+      showingInfoWindow: true,
+      activeMarkerIndex: marker.id
+    });
+  }
 
   onClose = props => {
     if (this.state.showingInfoWindow) {
