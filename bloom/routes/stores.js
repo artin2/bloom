@@ -1241,6 +1241,7 @@ async function insertAppointments(req, res, group_id) {
               console.log("PARAMS ARE:", params)
 
               await email.bookingConfirmation(params)
+
               helper.querySuccess(resp, {group_id: group_id, appointment: appoint.rows[0]}, 'Successfully added appointment!');
             } catch (error) {
               helper.queryError(resp, "Unable to send confirmation email!");

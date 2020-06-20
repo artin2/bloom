@@ -2,7 +2,10 @@ import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS } f
 
 const initialState = {
   error: '',
-  appointments: [],
+  appointments: {
+    appointments: [],
+    groups: {}
+  },
 }
 
 function calendarReducer(state = initialState, action) {
@@ -27,21 +30,53 @@ function calendarReducer(state = initialState, action) {
     //   })
 
     case ADD_APPOINTMENT_SUCCESS:
-    let newAppointments = state.appointments
-    if(newAppointments) {
-      newAppointments.push(action.appointment);
+
+    let appointment = action.appointment.appointment
+    console.log("-----", appointment)
+    let date = new Date(appointment.date);
+    appointment.start_time = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(appointment.start_time)[0], timeConvert(appointment.start_time)[1]);
+    appointment.end_time = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(appointment.end_time)[0], timeConvert(appointment.end_time)[1]);
+
+
+    let appointments = Object.assign({}, state.appointments);
+
+    if(appointments.appointments) {
+      appointments.appointments.push(appointment);
     }
     else {
-      newAppointments = [action.appointment]
+      appointments = [action.appointment.appointment]
     }
+
+    appointments.groups[action.appointment.group_id] = [{
+      id: appointment.id,
+      services: appointment.service_id,
+      workers: appointment.worker_id,
+      startDate: appointment.start_time,
+      endDate: appointment.end_time,
+      date: date,
+      price: appointment.price
+    }]
+    // console.log(appointments)
+
+    // console.log(state.appointments, newAppointments)
     return Object.assign({}, state, {
-      appointments: newAppointments
+      appointments: appointments
     })
 
 
     default:
       return state
   }
+}
+
+function timeConvert(n) {
+
+     var num = n;
+     var hours = (num / 60);
+     var rhours = Math.floor(hours);
+     var minutes = (hours - rhours) * 60;
+     var rminutes = minutes;
+     return [rhours, rminutes];
 }
 
 export default calendarReducer;

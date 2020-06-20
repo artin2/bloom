@@ -13,6 +13,34 @@ import { getStore } from '../Store/StoreHelper'
 import CalendarComponent from './CalendarComponent'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
+let service_map = {}
+let worker_map = {}
+let worker_to_services = {}
+let app_to_worker = {}
+let workerOptions = []
+let serviceOptions = []
+
+export function getArray(key) {
+
+  switch(key) {
+  case "service_map":
+    return service_map
+  case "worker_map":
+    return worker_map
+  case "serviceOptions":
+    return serviceOptions
+  case "workerOptions":
+    return workerOptions
+  case "app_to_worker":
+    return app_to_worker
+  case "worker_to_services":
+    return worker_to_services
+  default:
+    // code block
+  }
+}
+
+
 //
 // const AppointmentLayoutForm = ({
 //   appointmentData, onFieldChange, ...restProps }) => {
@@ -97,28 +125,12 @@ class Calendar extends React.Component {
          store_id: (this.props.match.params.store_id) ? (this.props.match.params.store_id) : this.props.store_id,
          services: [],
          workers: [],
-         worker_map: {},
-         service_map: {},
+         // worker_map: {},
+         // service_map: {},
          selectedWorkers: [],
          selectedServices: [],
          selectedAppointments: [],
          appointments: [],
-         // mainResourceName: 'workers',
-         //  resources: [
-         //    {
-         //      fieldName: 'services',
-         //      title: 'Service',
-         //      allowMultiple: false,
-         //      instances: [],
-         //    },
-         //    {
-         //      fieldName: 'workers',
-         //      title: 'Employee',
-         //      allowMultiple: false,
-         //      instances: [],
-         //    },
-         //  ],
-        // currentDate: moment(new Date()).format('YYYY-MM-DD'),
         loading: true
        }
 
@@ -137,20 +149,19 @@ class Calendar extends React.Component {
 
   componentDidUpdate(prevProps) {
 
+    console.log(this.props.appointments)
     if(this.props.appointments !== prevProps.appointments) {
 
-      console.log(this.props.appointments)
-      //
+      console.log("UPdating")
       let appointments = []
       // let appointment_groups = {}
       this.props.appointments.appointments.map((appointment, index) => {
         // if this is the store's calendar or if this is the worker's calendar and the worker's appointment
         // if(!this.props.id || (this.props.id && appointment.worker_id === this.props.id)) {
 
-          console.log(appointment)
           appointments.push({
             id: appointment.id,
-            title: this.state.service_map[appointment.service_id] + " with " + this.state.worker_map[appointment.worker_id],
+            title: this.state.service_map[appointment.service_id].name + " with " + this.state.worker_map[appointment.worker_id].name,
             workers: appointment.worker_id,
             services: appointment.service_id,
             price: appointment.price,
@@ -161,9 +172,20 @@ class Calendar extends React.Component {
             other_appointments: this.props.appointments.groups[appointment.group_id]
           })
 
+          let date = new Date(appointment.date)
+          date = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+          let startTime = new Date(appointment.start_time).getHours()*60 + new Date(appointment.start_time).getMinutes()
+          let endTime = new Date(appointment.end_time).getHours()*60 + new Date(appointment.end_time).getMinutes()
+
+          if(app_to_worker[[date, appointment.worker_id]]) {
+              app_to_worker[[date, appointment.worker_id]].push([startTime, endTime])
+          }
+          else {
+              app_to_worker[[date, appointment.worker_id]] = [[startTime, endTime]]
+          }
+
         return appointment
       })
-
 
       this.setState({
         appointments: appointments,
@@ -175,42 +197,30 @@ class Calendar extends React.Component {
 
     if(this.props.services !== prevProps.services) {
       let services = this.props.services;
-      let service_instances = []
-      let service_map = {}
 
       if(!this.props.id) {
 
         services.map((service, indx) => {
-          service_instances.push({id: service.id, text: service.name})
-          service_map[service.id] = service.name
+          serviceOptions.push({id: service.id, text: service.name})
+          service_map[service.id] = {name: service.name, duration: service.duration, price: service.cost}
         })
 
       }
-      else{
+      // else{
+      //
+      //   services.map((service, indx) => {
+      //     if(service.workers.includes(this.props.id)){
+      //       service_instances.push({id: service.id, text: service.name})
+      //       service_map[service.id] = service.name
+      //     }
+      //
+      //   })
+      //
+      // }
 
-        services.map((service, indx) => {
-          if(service.workers.includes(this.props.id)){
-            service_instances.push({id: service.id, text: service.name})
-            service_map[service.id] = service.name
-          }
-
-        })
-
-      }
-
-      // this.setState(({resources}) => ({
-      //   resources: [
-      //       // ...resources.slice(0,1),
-      //   {
-      //       ...resources[0],
-      //       instances: service_instances,
-      //   },
-      //   ...resources.slice(1)
-      //   ]
-      // }));
 
       this.setState({
-        services: service_instances,
+        services: serviceOptions,
         service_map: service_map,
       })
 
@@ -219,33 +229,30 @@ class Calendar extends React.Component {
 
     if(this.props.workers !== prevProps.workers) {
       let workers = this.props.workers;
-      let worker_to_services = []
-      let worker_instances = []
-      let worker_map = {}
 
-      if(!this.props.id) {
+      // if(!this.props.id) {
 
         workers.map((worker, indx) => {
-          worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
-          worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
+          workerOptions.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
+          worker_map[worker.id] = {name: worker.first_name + ' ' + worker.last_name, workerHours: worker.workerHours}
           worker_to_services[worker.id] = worker.services
 
         })
 
-      }
-      else{
-
-        workers.map((worker, indx) => {
-          if(worker.id === this.props.id){
-            worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
-            worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
-            worker_to_services[worker.id] = worker.services
-          }
-        })
-      }
+      // }
+      // else{
+      //
+      //   workers.map((worker, indx) => {
+      //     if(worker.id === this.props.id){
+      //       worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
+      //       worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
+      //       worker_to_services[worker.id] = worker.services
+      //     }
+      //   })
+      // }
 
       this.setState({
-        workers: worker_instances,
+        workers: workerOptions,
         worker_map: worker_map,
         worker_to_services: worker_to_services,
       })
@@ -327,17 +334,10 @@ class Calendar extends React.Component {
 
   render() {
 
-    // let resources;
-    // if(this.state.resources[1].instances.length>0) {
-    //   resources = [this.state.resources[0], this.state.resources[1]]
-    // }
-    // else {
-    //      resources = this.state.resources
-    // }
-
+    
     let name = (this.props.role) ? this.props.role : "your";
     name = name.charAt(0).toUpperCase() + name.slice(1);
-
+    console.log(this.state.selectedAppointments)
     return (
       <Container fluid>
         <Row className="justify-content-center">
@@ -373,7 +373,7 @@ class Calendar extends React.Component {
 
             ) : null}
 
-            <CalendarComponent appointments={this.state.selectedAppointments}/>
+            <CalendarComponent store_id={this.state.store_id} appointments={this.state.selectedAppointments}/>
           </Col>
         </Row>
       </Container>
@@ -395,5 +395,6 @@ const mapStateToProps = state => ({
   services: state.serviceReducer.services,
   store: state.storeReducer.store
 })
+
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Calendar));
