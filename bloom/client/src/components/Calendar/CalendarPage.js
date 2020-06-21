@@ -334,17 +334,18 @@ class Calendar extends React.Component {
 
   render() {
 
-    
+
     let name = (this.props.role) ? this.props.role : "your";
     name = name.charAt(0).toUpperCase() + name.slice(1);
     console.log(this.state.selectedAppointments)
     return (
       <Container fluid>
         <Row className="justify-content-center">
-          <Col>
+          <Col >
             <p className="title"> Manage {name} Appointments </p>
             {(!this.props.role) ? (
-              <Row style={{marginBottom: 50, marginLeft: '22%', position: 'relative'}}>
+              <Row className="justify-content-center">
+
                 <Multiselect
                   id="service-multiselect"
                   options={this.state.services}
@@ -354,7 +355,7 @@ class Calendar extends React.Component {
                   placeholder="Service"
                   closeIcon="cancel"
                   displayValue="text"
-                  style={{multiselectContainer: {marginLeft: '2%', width: '35%'},  groupHeading:{width: 50, maxWidth: 50}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: 250, width: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
+                  style={{multiselectContainer: {width: '35%'},  groupHeading:{width: 50, maxWidth: 50}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '20%', width: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
                   />
                 <Multiselect
                     id="workers-multiselect"
@@ -365,7 +366,7 @@ class Calendar extends React.Component {
                     placeholder="Workers"
                     closeIcon="cancel"
                     displayValue="text"
-                    style={{multiselectContainer: {marginLeft: '2%', width: '35%'},  optionContainer:{ zIndex: 10000000}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: 250, width: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
+                    style={{multiselectContainer: {marginLeft: '2%', width: '35%'}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '20%', width: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
                   />
                   <FiSearch onClick={this.onSearch} size={35} style={{cursor: "pointer", marginLeft: 10, paddingRight:"10px"}}/>
 

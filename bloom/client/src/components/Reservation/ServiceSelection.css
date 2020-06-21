@@ -18,9 +18,41 @@ label.custom-control-label::before, label.custom-control-label::after{
 }
 
 .custom-checkbox .custom-control-input:checked~.custom-control-label::before{
-  background-color: #8CAFCB;
+  background-color: #3e4e69;
 }
 
 .custom-control-input:checked~.custom-control-label::before {
   border: none;
+}
+
+.perm-shadow {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  -webkit-transform: perspective(1px) translateZ(0) !important;
+  transform: perspective(1px) translateZ(0) !important;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0) !important;
+  position: relative !important;
+  -webkit-transition-duration: 0.3s !important;
+  transition-duration: 0.3s !important;
+  -webkit-transition-property: transform !important;
+  transition-property: transform !important;
+  -webkit-transform: translateY(-5px) !important;
+  transform: translateY(-5px) !important;
+}
+
+.perm-shadow:before {
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  content: '' !important;
+  top: 104% !important;
+  left: 5% !important;
+  height: 10px !important;
+  width: 90% !important;
+  background: -webkit-radial-gradient(center, ellipse, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 80%);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 80%);
+}
+
+.selected {
+  border-color: #68acfc !important;
 }

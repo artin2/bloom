@@ -13,7 +13,7 @@ import {
 import store from '../../redux/store';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { getStores, getStore } from './StoreHelper.js'
+import { getStores, getStore, getStoreHours } from './StoreHelper.js'
 import { updateCurrentStore } from '../../redux/actions/stores'
 import UserStoresDashboardLoader from './UserStoresDashboardLoader';
 import {getPictures, defaultStorePictures } from '../s3'
@@ -39,15 +39,22 @@ class UserStoresDashboard extends React.Component {
     })
   }
 
-  triggerShowWorkers(id) {
+  triggerShowWorkers(store) {
+    // console.log("about to show worker")
+    this.props.updateCurrentStore(store)
+    this.props.getStoreHours(store.id)
+    // console.log("store is: ", store)
+    // console.log("store updated")
     this.props.history.push({
-      pathname: '/stores/' + id + '/workers'
+      pathname: '/stores/' + store.id + '/workers'
     })
   }
 
   triggerStoreShow(store) {
-
+    // console.log("triggering store show")
     this.props.updateCurrentStore(store)
+
+    // console.log("store is; ", store.id)
 
     this.props.history.push({
       pathname: '/stores/' + store.id,
@@ -62,7 +69,8 @@ class UserStoresDashboard extends React.Component {
 
   triggerShowCalendar(store) {
 
-    this.props.getStore(store.id)
+    this.props.updateCurrentStore(store)
+    this.props.getStoreHours(store.id)
 
     this.props.history.push({
       pathname: '/storeCalendar/' + store.id,
@@ -138,19 +146,19 @@ class UserStoresDashboard extends React.Component {
                   <Row className={"justify-content-center"}>
                     <Col sm={12}>
                       <span className="name" onClick={() => this.triggerStoreShow(store)} style={{cursor: 'pointer'}}> {store.name} </span>
-                      <FaEdit className="edit mb-3" size={25} onClick={() => this.triggerStoreEdit(store)}/>
+                      <FaEdit className="edit hvr-float mb-3" size={25} onClick={() => this.triggerStoreEdit(store)}/>
                     </Col>
                     <Col sm={12}>
                       <p className="address">{store.address} </p>
                     </Col>
                     <Col sm={8} className={"py-1"}>
-                      <Button block className="update_button"  onClick={() =>  this.triggerShowCalendar(store)}>Calendar</Button> &nbsp;
+                      <Button block className="update-button"  onClick={() =>  this.triggerShowCalendar(store)}>Calendar</Button> &nbsp;
                     </Col>
                     <Col sm={8} className={"py-1"}>
-                      <Button block className="update_button" onClick={() =>  this.triggerShowWorkers(store.id)}>Workers</Button> &nbsp;
+                      <Button block className="update-button" onClick={() =>  this.triggerShowWorkers(store)}>Workers</Button> &nbsp;
                     </Col>
                     <Col sm={8} className={"py-1"}>
-                      <Button block className="update_button" onClick={() =>  this.triggerShowServices(store.id)}>Services</Button> &nbsp;
+                      <Button block className="update-button" onClick={() =>  this.triggerShowServices(store.id)}>Services</Button> &nbsp;
                     </Col>
                   </Row>
                 </Col>
@@ -177,6 +185,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   getStores: (user_id) => getStores(user_id),
   getStore: (store_id) => getStore(store_id),
   updateCurrentStore: (store) => updateCurrentStore(store),
+  getStoreHours: (store_id) => getStoreHours(store_id)
 }, dispatch)
 
 

@@ -63,9 +63,9 @@ class MainNavbar extends React.Component {
 
     return (
       <Navbar collapseOnSelect expand="lg" bg="light" variant="light" fixed="top">
-      <Link to="/" className="navbar-brand" style={{fontFamily: 'Megrim, cursive', fontSize: '35px'}}>Bloom</Link>
-           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-           <Navbar.Collapse id="responsive-navbar-nav">
+        <Link to="/" className="navbar-brand" style={{fontFamily: 'Megrim, cursive', fontSize: '35px'}}>Bloom</Link>
+        <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+        <Navbar.Collapse id="responsive-navbar-nav">
           <RenderNavBarBasedOnPageAndUser/>
         </Navbar.Collapse>
       </Navbar>

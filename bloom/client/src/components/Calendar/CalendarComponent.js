@@ -11,7 +11,9 @@ import { TimeTableCell, TimeTableCellDay, TimeTableCellWeek, DayScaleCell, DaySc
 import { BasicLayout } from './CalendarFormComponent'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { addNewAppointment } from './CalendarHelper.js'
+import { Multiselect } from 'multiselect-react-dropdown';
+import { FiSearch} from 'react-icons/fi';
+import { addNewAppointment, deleteAppointment, updateAppointment } from './CalendarHelper.js'
 import {getArray} from './CalendarPage'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 const state = store.getState();
@@ -535,6 +537,50 @@ const state = store.getState();
   // }
   //
 
+  // export const ToolbarComponent = ({
+  //     children, ...restProps }) => {
+  //       return (
+  //
+  //         // <AppointmentForm.Layout
+  //         // {...restProps} >
+  //         <div style={{width: '100%', height: '100%', backgroundColor: 'black'}}>
+  //           <Toolbar.FlexibleSpace
+  //           {...restProps} >
+  //             {children}
+  //             <Row className="justify-content-center">
+  //
+  //               <Multiselect
+  //                 id="service-multiselect"
+  //                 options={this.state.services}
+  //                 avoidHighlightFirstOption={true}
+  //                 onSelect={this.onSelectService}
+  //                 onRemove={this.onRemoveService}
+  //                 placeholder="Service"
+  //                 closeIcon="cancel"
+  //                 displayValue="text"
+  //                 style={{multiselectContainer: {width: '35%'},  groupHeading:{width: 50, maxWidth: 50}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '20%', width: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
+  //                 />
+  //               <Multiselect
+  //                   id="workers-multiselect"
+  //                   options={}
+  //                   avoidHighlightFirstOption={true}
+  //                   onSelect={this.onSelectWorker}
+  //                   onRemove={this.onRemoveWorker}
+  //                   placeholder="Workers"
+  //                   closeIcon="cancel"
+  //                   displayValue="text"
+  //                   style={{multiselectContainer: {marginLeft: '2%', width: '35%'}, chips: { background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '20%', width: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
+  //                 />
+  //                 <FiSearch onClick={this.onSearch} size={35} style={{cursor: "pointer", marginLeft: 10, paddingRight:"10px"}}/>
+  //
+  //             </Row>
+  //         </Toolbar.FlexibleSpace>
+  //           </div>
+  //
+  //
+  //     )
+  //   }
+
 
   class CalendarComponent extends React.Component {
     constructor(props) {
@@ -543,7 +589,7 @@ const state = store.getState();
         appointments: [],
       }
       this.commitChanges = this.commitChanges.bind(this);
-      this.onAppointmentChanges = this.onAppointmentChanges.bind(this);
+      // this.onAppointmentChanges = this.onAppointmentChanges.bind(this);
     }
 
     // convertServices (service_map) {
@@ -576,7 +622,7 @@ const state = store.getState();
 
 
 
-    onAppointmentChanges(key, string) {
+    // onAppointmentChanges(key, string) {
       // if(!key.hasOwnProperty("services")){
       //   return;
       // }
@@ -593,7 +639,7 @@ const state = store.getState();
       // this.setState({
       //   resources: resources
       // })
-    }
+    // }
 
 
     // changeMainResource(mainResourceName) {
@@ -639,59 +685,52 @@ const state = store.getState();
 
     async commitChanges({ added, changed, deleted }) {
 
-      // if(deleted !== undefined) {
-      //
-      //   let selectedAppointments = this.state.selectedAppointments;
-      //   let appointment_id = null;
-      //
-      //   selectedAppointments.map((appointment, indx) => {
-      //     appointment_id = deleted === appointment.id ? indx : appointment_id;
-      //     return appointment
-      //   });
-      //
-      //   let group_id = selectedAppointments[appointment_id].group_id;
-      //
-      //   fetch(fetchDomain + '/appointments/delete/' + group_id, {
-      //     method: "GET",
-      //     headers: {
-      //       'Content-type': 'application/json',
-      //       'Accept': 'application/json'
-      //     },
-      //     credentials: 'include',
-      //
-      //   })
-      //   .then(function (response) {
-      //     if (response.status !== 200) {
-      //       // throw an error alert
-      //       // store.dispatch(addAlert(response))
-      //     }
-      //     else {
-      //       return response.json();
-      //     }
-      //   })
-      //   .then(async data => {
-      //     if (data) {
-      //       // console.log("Before!", this.state.appointments)
-      //       await this.setState({appointments: this.state.appointments.filter(function(appointment) {
-      //         return appointment.id !== deleted
-      //       })});
-      //
-      //       this.onSearch()
-      //     }
-      //   });
-      // }
+      if(deleted !== undefined) {
 
-      await this.setState((state) => {
-        let { selectedAppointments, /*appointments*/ } = state;
-        if (added) {
-          console.log(getArray("service_map"), added.other_appointments)
+        let selectedAppointments = this.props.appointments;
+        let appointment_id = null;
 
-          // added.title = getArray("service_map")[added.services].name + " with " + getArray("worker_map")[added.workers].name;
+        selectedAppointments.map((appointment, indx) => {
+          appointment_id = deleted === appointment.id ? indx : appointment_id;
+          return appointment
+        });
 
-          // const startingAddedId = selectedAppointments.length > 0 ? selectedAppointments[selectedAppointments.length - 1].id + 1 : 0;
-          // selectedAppointments = [...selectedAppointments, { id: startingAddedId, ...added }];
+        let group_id = selectedAppointments[appointment_id].group_id;
 
-        }
+        this.props.deleteAppointment(group_id)
+
+        // fetch(fetchDomain + '/appointments/delete/' + group_id, {
+        //   method: "GET",
+        //   headers: {
+        //     'Content-type': 'application/json',
+        //     'Accept': 'application/json'
+        //   },
+        //   credentials: 'include',
+        //
+        // })
+        // .then(function (response) {
+        //   if (response.status !== 200) {
+        //     // throw an error alert
+        //     // store.dispatch(addAlert(response))
+        //   }
+        //   else {
+        //     return response.json();
+        //   }
+        // })
+        // .then(async data => {
+        //   if (data) {
+            // console.log("Before!", this.state.appointments)
+            // await this.setState({appointments: this.state.appointments.filter(function(appointment) {
+            //   return appointment.id !== deleted
+            // })});
+            //
+            // this.onSearch()
+        //   }
+        // });
+      }
+
+      // await this.setState((state) => {
+
 
         // if (changed) {
         //   selectedAppointments = selectedAppointments.map(appointment => {
@@ -721,12 +760,12 @@ const state = store.getState();
         //   // appointments = selectedAppointments;
         // }
 
-        return { selectedAppointments };
-      });
+        // return { selectedAppointments };
+      // });
 
       if(added) {
 
-        console.log(added.other_appointments, added)
+        // console.log(added.other_appointments, added)
         let values = {
           store_id: this.props.store_id,
           email: added.email,
@@ -746,56 +785,79 @@ const state = store.getState();
 
         })
 
-        console.log(values)
-
         this.props.addNewAppointment(this.props.store_id, values)
       }
 
-      // if(changed) {
-      //   let selectedAppointments = this.state.selectedAppointments;
-      //   let appointment_id = null, id = null;
+      if(changed) {
+
+        console.log(changed)
+
+        let selectedAppointments = this.props.appointments;
+        let appointment_id = null, id = null;
+
+        selectedAppointments.map((appointment, indx) => {
+          id = changed[appointment.id] ? appointment.id : id;
+          appointment_id = changed[appointment.id] ? indx : appointment_id;
+
+          return appointment
+        });
+
+
+        let values = {
+          store_id: parseInt(this.props.store_id),
+          email: changed[id].email ? changed[id].email : selectedAppointments[appointment_id].email,
+          appointments: [],
+          user_id: null,
+          id: id,
+        }
+
+        // console.log(id, appointment_id)
+
+        if(changed[id].other_appointments) {
+
+
+            changed[id].other_appointments.map((appointment) => {
+
+              let startTime = new Date(appointment.startDate)
+              let endTime = new Date(appointment.endDate)
+
+              // console.log("BO", startTime.getHours()*60 + startTime.getMinutes() + appointment.duration)
+
+              values.appointments.push({
+                price: appointment.price,
+                worker_id: appointment.workers,
+                service_id: appointment.services,
+                start_time: startTime.getHours()*60 + startTime.getMinutes(),
+                end_time: (!appointment.duration) ? endTime.getHours()*60 + endTime.getMinutes() : startTime.getHours()*60 + startTime.getMinutes() + appointment.duration,
+                date: appointment.startDate,
+              })
+            })
+        }
+
+        console.log("+++}}}", values)
+        this.props.updateAppointment(this.props.store_id, values)
+      }
       //
-      //   selectedAppointments.map((appointment, indx) => {
-      //     id = changed[appointment.id] ? appointment.id : id;
-      //     appointment_id = changed[appointment.id] ? indx : appointment_id;
-      //
-      //     return appointment
-      //   });
-      //
-      //   let values = {
-      //     appointment: [{
-      //       price: selectedAppointments[appointment_id].price,
-      //       worker_id: selectedAppointments[appointment_id].workers,
-      //       service_id: selectedAppointments[appointment_id].services,
-      //       start_time: (selectedAppointments[appointment_id].startDate.getHours()*60 + selectedAppointments[appointment_id].startDate.getMinutes()),
-      //       end_time: (selectedAppointments[appointment_id].endDate.getHours()*60 + selectedAppointments[appointment_id].endDate.getMinutes()),
-      //       date: selectedAppointments[appointment_id].startDate,
-      //       id: id,
-      //       store_id: parseInt(this.state.store_id)
-      //     }],
-      //     email: selectedAppointments[appointment_id].email,
-      //   }
-      //
-      //   fetch(fetchDomain + '/stores/' + this.state.store_id + '/appointments/update', {
-      //     method: "POST",
-      //     headers: {
-      //       'Content-type': 'application/json',
-      //       'Accept': 'application/json'
-      //     },
-      //     credentials: 'include',
-      //     body: JSON.stringify(values)
-      //   })
-      //   .then(function (response) {
-      //     if (response.status !== 200) {
-      //       // throw an error alert
-      //       // store.dispatch(addAlert(response))
-      //     }
-      //     else {
-      //       return response.json();
-      //     }
-      //   })
-      //   .then(async data => {
-      //     if (data) {
+        // fetch(fetchDomain + '/stores/' + this.state.store_id + '/appointments/update', {
+        //   method: "POST",
+        //   headers: {
+        //     'Content-type': 'application/json',
+        //     'Accept': 'application/json'
+        //   },
+        //   credentials: 'include',
+        //   body: JSON.stringify(values)
+        // })
+        // .then(function (response) {
+        //   if (response.status !== 200) {
+        //     // throw an error alert
+        //     // store.dispatch(addAlert(response))
+        //   }
+        //   else {
+        //     return response.json();
+        //   }
+        // })
+        // .then(async data => {
+        //   if (data) {
       //       // update the appointments
       //       let date = new Date(data.date);
       //       let startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.timeConvert(data.start_time)[0], this.timeConvert(data.start_time)[1]);
@@ -860,7 +922,9 @@ const state = store.getState();
            timeTableCellComponent={TimeTableCellDay}
           />
 
-           <Toolbar />
+           <Toolbar
+           // flexibleSpaceComponent={ToolbarComponent}
+           />
            <ViewSwitcher />
            <DateNavigator
            />
@@ -890,7 +954,8 @@ const state = store.getState();
 const mapDispatchToProps = dispatch => bindActionCreators({
   // getAppointments: (store_id) => getAppointments(store_id),
   // getServices: (store_id) => getServices(store_id),
-  // getWorkers: (store_id) => getWorkers(store_id),
+  updateAppointment: (store_id, values) => updateAppointment(store_id, values),
+  deleteAppointment: (group_id) => deleteAppointment(group_id),
   addNewAppointment: (store_id, values) => addNewAppointment(store_id, values)
 }, dispatch)
 

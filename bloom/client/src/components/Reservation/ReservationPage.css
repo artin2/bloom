@@ -9,8 +9,9 @@
 }
 
 .add-shadow{
-  box-shadow: 8px 8px 5px #8888;
-  border-radius: 10px;
+  box-shadow: 8px 8px 5px #8888 !important;
+  border-radius: 10px !important;
+  border: none;
 }
 
 .smallText {

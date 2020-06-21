@@ -1,4 +1,4 @@
-import {calendarFailure, getAppointmentsSuccess, addAppointmentSuccess} from '../../redux/actions/calendar';
+import {calendarFailure, getAppointmentsSuccess, addAppointmentSuccess, deleteAppointmentSuccess, updateAppointmentSuccess } from '../../redux/actions/calendar';
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -55,10 +55,70 @@ export function getAppointments(store_id) {
       })
       .then(data => {
 
-
-
         dispatch(getAppointmentsSuccess(data))
         return data
       });
+  }
+}
+
+export function deleteAppointment(group_id) {
+
+  return dispatch => {
+
+    fetch(fetchDomain + '/appointments/delete/' + group_id, {
+      method: "GET",
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+
+    })
+    .then(function (response) {
+      if (response.status !== 200) {
+        // throw an error alert
+        dispatch(calendarFailure(response))
+      }
+      else {
+        return response.json();
+      }
+    })
+    .then(async data => {
+      if (data) {
+        dispatch(deleteAppointmentSuccess(data))
+        return data
+      }
+  })
+  }
+}
+
+export function updateAppointment(store_id, values) {
+
+  return dispatch => {
+    fetch(fetchDomain + '/stores/' + store_id + '/appointments/update', {
+      method: "POST",
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(values)
+    })
+    .then(function (response) {
+      if (response.status !== 200) {
+        // throw an error alert
+        dispatch(calendarFailure(response))
+      }
+      else {
+        return response.json();
+      }
+    })
+    .then(async data => {
+      if (data) {
+        console.log(data)
+        dispatch(updateAppointmentSuccess(data))
+        return data
+      }
+    })
   }
 }

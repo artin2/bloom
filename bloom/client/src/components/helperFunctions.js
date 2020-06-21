@@ -1,5 +1,5 @@
 // function for displaying time in a human friendly way
-function convertMinsToHrsMins(mins) {
+export function convertMinsToHrsMins(mins) {
   let h = Math.floor(mins / 60);
   let m = mins % 60;
   let am = false
@@ -24,4 +24,9 @@ function convertMinsToHrsMins(mins) {
   }
 }
 
-export { convertMinsToHrsMins }
+export default function pluralize (val, word, plural = word + 's') {
+  const _pluralize = (num, word, plural = word + 's') =>
+    [1, -1].includes(Number(num)) ? word : plural;
+  if (typeof val === 'object') return (num, word) => _pluralize(num, word, val[word]);
+  return _pluralize(val, word, plural);
+};

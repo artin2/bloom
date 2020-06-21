@@ -71,7 +71,7 @@ class ServiceSelection extends React.Component {
           </Row>
           <Row className="justify-content-center mt-4">
             <Col md="3">
-            <Button block style={{backgroundColor: '#8CAFCB', border: '0px'}} disabled={this.props.selectedServices.length === 0} onClick={this.props.handleSubmit}>Next</Button>
+            <Button block className="update-button" disabled={this.props.selectedServices.length === 0} onClick={this.props.handleSubmit}>Next</Button>
             </Col>
           </Row>
         

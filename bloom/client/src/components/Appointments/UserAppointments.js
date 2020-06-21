@@ -127,7 +127,7 @@ class AppointmentDisplay extends React.Component {
             <GridLoader
               css={override}
               size={20}
-              color={"#8CAFCB"}
+              color={"#3e4e69"}
               loading={this.state.isLoading}
             />
           </Col>
@@ -139,9 +139,9 @@ class AppointmentDisplay extends React.Component {
           </Col>
         </Row>
       } else {
-        return <Row className="justify-content-center mt-5">
-        <Col xs={11} lg={8}>
-          <Card className="w-70 h-60 add-shadow">
+        return <Row className="justify-content-center my-4">
+        <Col xs={11} lg={8} className="mb-4">
+          <Card className="w-70 h-60 add-shadow mb-5">
           <Card.Header as="h4">My Appointments</Card.Header>
             <Card.Body>
               <Card.Text as="div">

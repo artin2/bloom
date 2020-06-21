@@ -11,6 +11,7 @@ const state = store.getState();
 
 const isWeekEnd = (date) => {
 
+  // console.log("____",state.storeReducer.store)
   let start_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].open_time
   return start_time == null;
 }
@@ -114,7 +115,9 @@ export const Appointment = ({
       {children}
     </Appointments.Appointment>
   );
-}
+};
+
+
 
 // export const AppointmentTooltipContent = ({
 //   appointmentData,

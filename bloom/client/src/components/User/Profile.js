@@ -237,14 +237,14 @@ class Profile extends React.Component {
             <GridLoader
               css={override}
               size={20}
-              color={"#8CAFCB"}
+              color={"#3e4e69"}
               loading={this.state.isLoading}
             />
           </Col>
         </Row>
       } else if(this.props.user.role === '2') {
-        return <Row className="justify-content-center my-4 mx-1">
-        <Col xs="11" lg="3" className="mb-4">
+        return <Row className="justify-content-center mx-1 pb-4">
+        <Col xs="8" lg="3" className="mb-4">
         <div className="profile-sidebar">
             {/* <!-- SIDEBAR USERPIC --> */}
             <div className="profile-userpic">
@@ -288,7 +288,7 @@ class Profile extends React.Component {
           </div>
         </Col>
 
-        <Col xs="11" lg="9">
+        <Col xs="8" lg="9">
         <div className="profile-content">
             <RenderProfileContent/>
           </div>
@@ -302,8 +302,8 @@ class Profile extends React.Component {
           type = 'Salon Owner'
         }
         
-        return <Row className="justify-content-center my-5">
-        <Col xs="11" lg="3">
+        return <Row className="justify-content-center pb-4">
+        <Col xs="8" lg="3">
         <div className="profile-sidebar mb-5">
             {/* <!-- SIDEBAR USERPIC --> */}
             <div className="profile-userpic">
@@ -332,7 +332,7 @@ class Profile extends React.Component {
           </div>
         </Col>
 
-        <Col xs="11" lg="9">
+        <Col xs="8" lg="6">
         <div className="profile-content">
             <RenderProfileContent/>
           </div>
@@ -341,7 +341,7 @@ class Profile extends React.Component {
       }
     }
     return (
-      <Container fluid>
+      <Container fluid className="my-4 pb-5">
         <DisplayWithLoading/>
       </Container>
     );

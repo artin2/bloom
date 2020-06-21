@@ -6,6 +6,7 @@ const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_AP
 // WORKER FUNCTIONS
 
 export function getWorkers(store_id) {
+  console.log("inside get workers, store_id is: ", store_id)
   return dispatch => {
     dispatch(workerFetching(true))
 
@@ -31,6 +32,8 @@ export function getWorkers(store_id) {
       let result = await Promise.all(data.map(async (worker) => ({...worker,
           workerHours: await getWorkerHours(store_id, worker.id)
       })))
+
+      console.log("store workers are: ", result)
 
         dispatch(getWorkerSuccess(result))
         dispatch(workerFetching(false))

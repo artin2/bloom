@@ -374,34 +374,53 @@ async function deleteAppointment(req, res) {
 };
 
 async function updateAppointment(req, res) {
-  let appointment = req.body.appointment[0];
 
-  db.client.connect((err, client, done) => {
+  let query = ''
+  let values = []
 
-    let query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8 WHERE id=$9 RETURNING *'
-    let values = [req.body.user_id, appointment.worker_id, appointment.service_id, appointment.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, appointment.id]
+  if(req.body.appointments.length > 0) {
 
-    db.client.query(query, values, (err, result) => {
-      done()
-        if (err) {
-          helper.queryError(res, err);
-        }
-        // we were able to delete the appointment
-        if (result && result.rows.length > 0) {
-          console.log("update appointment was successful", result)
-          helper.querySuccess(res, result.rows[0], 'Successfully updated appointment')
-        }
-        else {
-          console.log("error!!!!", res)
-          helper.queryError(res, "Could not update appointments!");
-        }
-      }
-    );
+    query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8, email=$9 WHERE id=$10 RETURNING *'
+    req.body.appointments.map((appointment) => {
+      console.log(appointment)
+      values.push([req.body.user_id, appointment.worker_id, appointment.service_id, req.body.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, req.body.email, req.body.id])
+    })
+  }
+  else {
 
-    if (err) {
-      helper.dbConnError(res, err);
-    }
-  });
+    query = 'UPDATE appointments SET user_id=$1, store_id=$2, email=$3 WHERE id=$4 RETURNING *'
+    values = [req.body.user_id, req.body.store_id, req.body.email, req.body.id]
+  }
+
+      db.client.connect((err, client, done) => {
+
+        values.map((value) => {
+
+          db.client.query(query, value, (err, result) => {
+            done()
+              if (err) {
+                helper.queryError(res, err);
+              }
+              // we were able to delete the appointment
+              if (result && result.rows.length > 0) {
+                console.log("update appointment was successful", result)
+                helper.querySuccess(res, result.rows[0], 'Successfully updated appointment')
+              }
+              else {
+                console.log("error!!!!", res)
+                helper.queryError(res, "Could not update appointments!");
+              }
+            }
+          );
+
+
+
+          if (err) {
+            helper.dbConnError(res, err);
+          }
+        });
+    })
+
 };
 
 

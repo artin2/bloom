@@ -141,7 +141,7 @@ class SignupForm extends React.Component {
             handleBlur,
             handleSubmit,
             isSubmitting}) => (
-          <Form className="formBody rounded p-5">
+          <Form className="formBody rounded px-3 py-4">
             <h3>Sign Up</h3>
 
             <Row className="align-items-center">
@@ -274,7 +274,7 @@ class SignupForm extends React.Component {
                 <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} className="signup mb-1" onClick={handleSubmit}>Sign Up</Button>
                 </Col>
 
-                <Col xs={12} sm={10} md={7} lg={6} className="mb-5">
+                <Col xs={12} sm={10} md={7} lg={6}>
                 <p > OR </p>
                 <GoogleLogin
                   clientId={process.env.REACT_APP_GOOGLE_ID}

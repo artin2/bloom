@@ -145,18 +145,18 @@ class WorkerDisplay extends React.Component {
             <GridLoader
               css={override}
               size={20}
-              color={"#8CAFCB"}
+              color={"#3e4e69"}
               loading={this.state.isLoading}
             />
           </Col>
         </Row>
       } else {
-        return <Row className="justify-content-center">
+        return <Row className="justify-content-center my-4 pb-5">
         <Col xs="11" md="3" className="mb-4">
         <div className="profile-sidebar">
             {/* <!-- SIDEBAR USERPIC --> */}
             <div className="profile-userpic">
-              <Image src={this.state.picture && Object.keys(this.state.picture).length !== 0 && this.state.picture.constructor === Object ? this.state.picture.url : workerImage} className="img-responsive" alt="" rounded />
+              <Image className="profile-img" src={this.state.picture && Object.keys(this.state.picture).length !== 0 && this.state.picture.constructor === Object ? this.state.picture.url : workerImage} alt="" rounded />
             </div>
             {/* <!-- END SIDEBAR USERPIC --> */}
 
@@ -210,7 +210,7 @@ class WorkerDisplay extends React.Component {
       }
     }
     return (
-      <Container fluid>
+      <Container fluid className="my-4 pb-5">
         <DisplayWithLoading/>
       </Container>
     );

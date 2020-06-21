@@ -19,48 +19,20 @@
   height: 100%;
   overflow: hidden;
 }
-/* Smartphones (portrait and landscape) ----------- */
-@media only screen 
-and (min-device-width : 320px) 
-and (max-device-width : 767px) {
-  .carousel-item {
-    height: 250px;
-    overflow: hidden;
-    width: 100%;
-    }
-}
 
-/* iPads (portrait) ----------- */
-@media only screen 
-and (min-device-width : 768px) 
-and (max-device-width : 1024px) 
-and (orientation : portrait) {
-  .carousel-item {
-    height: 400px;
-    overflow: hidden;
-    width: 100%;
-    }
+.carousel-item {
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
 }
-
-/* Desktops and laptops ----------- */
-@media only screen 
-and (min-width : 1025px) {
-  .carousel-item {
-    height: 450px;
-    overflow: hidden;
-    width: 100%;
-    }
-}
-
 .vertical-align-contents {
   display:flex;
   align-items:center;
 }
 
-.update_button {
+.update-button {
   background-color: #3e4e69;
   border: 0px;
-  height: 80%;
   font-size: 1rem;
   font-weight: bold;
 }
