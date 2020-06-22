@@ -77,16 +77,16 @@ export function getStore(store_id, mode) {
       })
       .then(async data => {
         if (data) {
+          // data.storeHours = await getStoreHours(data.id)
+          // console.log("store hours is:", data.storeHours)
 
-          data.storeHours = await getStoreHours(data.id)
-
-          if (mode == "search") {
-            dispatch(updateSelectedStore(data))
-          }
-          else {
-            console.log(data)
-            dispatch(updateCurrentStore(data))
-          }
+          // if (mode == "search") {
+          //   dispatch(updateSelectedStore(data))
+          // }
+          // else {
+          //   console.log("!!!!!@#!@#!@#!@#", data)
+          //   dispatch(updateCurrentStore(data))
+          // }
 
           return data
 
