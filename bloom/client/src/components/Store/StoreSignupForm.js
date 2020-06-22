@@ -112,19 +112,16 @@ class StoreSignupForm extends React.Component {
 
   componentDidMount() {
     const google = window.google;
-    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
+    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), {})
 
     this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
   }
 
   handlePlaceSelect() {
     let addressObject = this.autocomplete.getPlace()
-    let address = addressObject.address_components.map(function(elem){
-                      return elem.long_name;
-                  }).join(", ");
 
     this.setState({
-      address: address
+      address: addressObject.formatted_address
     })
   }
 

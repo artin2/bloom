@@ -100,14 +100,11 @@ class StoreEditForm extends React.Component {
 
   handlePlaceSelect() {
     let addressObject = this.autocomplete.getPlace()
-    let address = addressObject.address_components.map(function(elem){
-                      return elem.long_name;
-                  }).join(", ");
 
     this.setState(prevState => ({
       ...prevState, store: {
       ...prevState.store,
-        address: address
+        address: addressObject.formatted_address
         },
       })
     )
