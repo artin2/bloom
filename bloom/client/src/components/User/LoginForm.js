@@ -11,6 +11,7 @@ import {TiSocialFacebookCircular, TiSocialGooglePlus} from 'react-icons/ti';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {login} from './UserHelper.js'
+import {toast} from 'react-toastify';
 // import { useGoogleLogin } from 'react-google-login';
 // import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 
@@ -45,7 +46,7 @@ class LoginForm extends React.Component {
   }
 
   failureGoogle = (response) => {
-    console.log("Google Failure:", response.error);
+    this.failureToast("Google Failure: " + response.error);
   }
 
   successFacebook = (response) => {
@@ -62,8 +63,20 @@ class LoginForm extends React.Component {
 
   failureFacebook = (response) => {
     if(response.status){
-      console.log("Facebook Failure");
+      this.failureToast("Facebook Login Failure");
     }
+  }
+
+  failureToast = (message) => {
+    toast.error('⚠️ ' + message, {
+      position: "top-right",
+      autoClose: 6000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      })
   }
 
   componentDidUpdate(prevProps, prevState)  {
