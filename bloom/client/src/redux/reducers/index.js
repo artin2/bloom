@@ -8,6 +8,7 @@ import searchReducer from './search'
 import reservationReducer from './reservation'
 import appointmentReducer from './appointment'
 import calendarReducer from './calendar'
+import reviewReducer from './review'
 
 let rootReducer = combineReducers({
   userReducer,
@@ -18,7 +19,8 @@ let rootReducer = combineReducers({
   workerReducer,
   reservationReducer,
   appointmentReducer,
-  calendarReducer
+  calendarReducer,
+  reviewReducer
 })
 
 export default rootReducer;

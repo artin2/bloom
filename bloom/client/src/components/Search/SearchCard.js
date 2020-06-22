@@ -3,6 +3,7 @@ import Card from 'react-bootstrap/Card'
 import { Button, Carousel, Image, Col } from 'react-bootstrap';
 import Row from 'react-bootstrap/Row'
 import { FaPhone } from 'react-icons/fa';
+import { Rating } from '@material-ui/lab'
 
 class SearchCard extends React.Component {
   constructor(props) {
@@ -44,8 +45,16 @@ class SearchCard extends React.Component {
                   <Card.Text className="mb-3">
                     <FaPhone size={12}/> {this.props.store.phone}
                   </Card.Text>
-
-
+                  
+                  <Row className="mb-3 justify-content-center">
+                    <p>({this.props.store.rating_count})</p>
+                    <Rating
+                      name={"rating"}
+                      precision={0.5}
+                      value={this.props.store.rating_count > 0 ? this.props.store.rating_total/this.props.store.rating_count : 0}
+                      readOnly
+                    />
+                  </Row>
                 </div>
                 <Button className="update-button" onClick={() => this.props.onClickFunctionBook(this.props.store.id)}>Book Now</Button>
               </Card.Body>

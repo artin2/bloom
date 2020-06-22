@@ -13,6 +13,7 @@ const users = require('./routes/users.js');
 const jwt = require('jsonwebtoken');
 const s3 = require('./routes/s3');
 const email = require('./routes/email');
+const reviews = require('./routes/reviews');
 const fileUpload = require('express-fileupload')
 
 
@@ -80,6 +81,35 @@ app.get('/checkToken', withAuth, function(req, res) {
   console.log("hit the check token route")
   //if it gets in here, that means withAuth passed and your token is valid
   res.sendStatus(200);
+});
+
+app.post('/checkTokenPrevReviewAndAppt', withAuth, async(req, res, next) => {
+  console.log("hit the check prev review and appt route")
+  try{
+    let review = await reviews.getUsersStoreReviewInternal(req.body.email, req.body.store_id)
+
+    if(!(review instanceof Error) && review.length > 0){
+      res.status(401).send('You have already left a review!');
+    }
+    else if(review instanceof Error){
+      res.status(401).send('Error getting your reviews!');
+    }
+    else{
+      let userAppointments = await appointments.getUsersPreviousStoreAppointmentsInternal(req.body.email, req.body.store_id)
+
+      if(!(userAppointments instanceof Error) && userAppointments.length > 0){
+        res.sendStatus(200)
+      }
+      else if(userAppointments instanceof Error){
+        res.status(401).send('Unable to verify previous appointments!');
+      }
+      else{
+        res.status(401).send('You have no past appointments with this store!');
+      }
+    }
+  }catch(err){
+    res.status(401).send('Unable to verify previous review status!');
+  }
 });
 
 app.post('/checkTokenAndPermissions', withAuth, async(req, res, next) => {
@@ -293,6 +323,17 @@ app.post('/signupConfirmation', async(req, res) => {
   console.log("req.body is: ", req.body)
   console.log("req.files is: ", req.files)
   await email.sendEmail(req, res)
+})
+
+// reviews
+app.post('/stores/:store_id/addReview', async(req, res) => {
+  console.log("hit the add review route")
+  await reviews.addReview(req, res)
+})
+
+app.get('/stores/:store_id/reviews', async(req, res) => {
+  console.log("hit the get stores route")
+  await reviews.getReviews(req, res)
 })
 
 //Need to fix this: not sure what name of cookie is

@@ -17,6 +17,7 @@ import StoreDisplay from './components/Store/StoreDisplay';
 import StoreEditForm from './components/Store/StoreEditForm';
 import redirectWithoutAuth from './components/redirectWithoutAuth';
 import redirectWithAuth from './components/redirectWithAuth';
+import redirectWithPreviousReviewOrNoAppt from './components/redirectWithPreviousReviewOrNoAppt';
 import EditProfileForm from './components/User/EditProfileForm';
 import Cookies from 'js-cookie';
 import Profile from './components/User/Profile';
@@ -28,6 +29,7 @@ import AddServiceForm from './components/Service/AddServiceForm';
 import ServiceDashboard from './components/Service/ServiceDashboard';
 import ServiceDisplay from './components/Service/ServiceDisplay';
 import ServiceEditForm from './components/Service/ServiceEditForm';
+import ReviewForm from './components/Review/ReviewForm';
 import AppointmentDisplay from './components/Appointments/AppointmentDisplay';
 import {
   userLogout
@@ -75,6 +77,7 @@ function App() {
             <Route path="/stores/addWorker/:store_id" component={redirectWithoutAuth(AddWorkerForm)}/>
             <Route path="/stores/:store_id/workers/:worker_id" component={WorkerDisplay}/>
             <Route path="/stores/:store_id/workers" component={redirectWithoutAuth(WorkerDashboard)}/>
+            <Route path="/stores/:store_id/review" component={redirectWithPreviousReviewOrNoAppt(ReviewForm)}/>
             <Route path="/stores/:store_id" component={StoreDisplay}/>
 
             <Route path="/appointments/:group_id" component={redirectWithoutAuth(AppointmentDisplay)}/>
