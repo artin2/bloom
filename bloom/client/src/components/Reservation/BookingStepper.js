@@ -3,6 +3,7 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import './ReservationPage.css'
 
 // Or Create your Own theme:
 const theme = createMuiTheme({
@@ -35,7 +36,7 @@ export default function HorizontalLinearStepper({ currentStep }){
       <MuiThemeProvider theme={theme}>
       <Stepper className="add-shadow" activeStep={currentStep-1}>
         {steps.map((label, index) => {
-          const stepProps = {};
+          const stepProps = { active: "hvr-bob-alwas-active" };
           const labelProps = {};
           return (
             <Step key={label} {...stepProps}>

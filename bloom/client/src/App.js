@@ -37,6 +37,8 @@ import {
 import store from './redux/store';
 import UserAppointments from './components/Appointments/UserAppointments';
 import NotFoundPage from './components/StaticPages/NotFoundPage';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   function handleLogout() {
@@ -49,6 +51,16 @@ function App() {
   return (
     <div className="App">
       <Router>
+      <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover />
         <MainNavbar/>
         <div className="App-body">
           <Switch>

@@ -60,7 +60,7 @@ async function login(req, res) {
                 }
               }
               else {
-                helper.queryError(res, "Password Provided is incorrect");
+                helper.queryError(res, "Incorrect password");
               }
             }
             catch (err) {
@@ -68,7 +68,7 @@ async function login(req, res) {
             }
           }
           else{
-            helper.queryError(res, "Could not Find User!");
+            helper.queryError(res, "Email not found");
           }
 
           if (err) {

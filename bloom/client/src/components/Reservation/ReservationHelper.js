@@ -1,7 +1,18 @@
 import {addAppointmentSuccess, appointmentFailure, getAppointmentSuccess} from '../../redux/actions/reservation';
-
+import { toast } from 'react-toastify'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
+function failureToast(message) {
+  toast.error('⚠️ ' + message, {
+    position: "top-right",
+    autoClose: 6000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  })
+}
 // RESERVATION FUNCTIONS
 
 export function addNewAppointment(store_id, values){
@@ -19,6 +30,7 @@ export function addNewAppointment(store_id, values){
     .then(function (response) {
       if (response.status !== 200) {
         // throw an error alert
+        failureToast(response.statusText)
         dispatch(appointmentFailure(response))
       }
       else {
@@ -46,6 +58,7 @@ export function getAppointments(store_id, month) {
     })
       .then(function (response) {
         if (response.status !== 200) {
+          failureToast(response.statusText)
           dispatch(appointmentFailure(response))
         }
         else {
