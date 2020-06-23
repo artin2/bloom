@@ -268,12 +268,9 @@ class SearchBar extends React.Component {
 
   handlePlaceSelect() {
     let addressObject = this.autocomplete.getPlace()
-    let address = addressObject.address_components.map(function(elem){
-                      return elem.long_name;
-                  }).join(", ");
 
     this.setState({
-      address: address,
+      address: addressObject.formatted_address,
       center: {
         lat: addressObject.geometry.location.lat(),
         lng: addressObject.geometry.location.lng()

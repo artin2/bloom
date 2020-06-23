@@ -1,7 +1,18 @@
 import {getAppointmentSuccess, appointmentFailure, isDeleted, getAppointmentsSuccess} from '../../redux/actions/appointment';
-
+import { toast } from 'react-toastify'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
+function failureToast(message) {
+  toast.error('⚠️ ' + message, {
+    position: "top-right",
+    autoClose: 6000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  })
+}
 // APPOINTMENT FUNCTIONS
 
 export function getAppointment(group_id){
@@ -17,6 +28,7 @@ export function getAppointment(group_id){
       .then(function (response) {
         if (response.status !== 200) {
           // throw an error alert
+          failureToast(response.statusText)
           dispatch(appointmentFailure(response))
         }
         else {
@@ -46,6 +58,7 @@ export function deleteAppointment(group_id) {
     })
       .then(function (response) {
         if (response.status !== 200) {
+          failureToast(response.statusText)
           dispatch(appointmentFailure(response))
         }
         else {
@@ -73,6 +86,7 @@ export function getAppointments(user_id) {
       .then(function (response) {
         if (response.status !== 200) {
           // throw an error alert
+          failureToast(response.statusText)
           dispatch(appointmentFailure(response))
         }
         else {

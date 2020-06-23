@@ -100,14 +100,11 @@ class StoreEditForm extends React.Component {
 
   handlePlaceSelect() {
     let addressObject = this.autocomplete.getPlace()
-    let address = addressObject.address_components.map(function(elem){
-                      return elem.long_name;
-                  }).join(", ");
 
     this.setState(prevState => ({
       ...prevState, store: {
       ...prevState.store,
-        address: address
+        address: addressObject.formatted_address
         },
       })
     )
@@ -875,7 +872,7 @@ class StoreEditForm extends React.Component {
                     ): null}
                   </Form.Group>
 
-                  <Button disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                  <Button className="update-button" disabled={isSubmitting || !(Object.keys(errors).length === 0 && errors.constructor === Object)} onClick={handleSubmit}>Submit</Button>
                 </Form>
               )}
           </Formik>

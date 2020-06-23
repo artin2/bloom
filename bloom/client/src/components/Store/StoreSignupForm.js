@@ -112,19 +112,16 @@ class StoreSignupForm extends React.Component {
 
   componentDidMount() {
     const google = window.google;
-    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
+    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), {})
 
     this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
   }
 
   handlePlaceSelect() {
     let addressObject = this.autocomplete.getPlace()
-    let address = addressObject.address_components.map(function(elem){
-                      return elem.long_name;
-                  }).join(", ");
 
     this.setState({
-      address: address
+      address: addressObject.formatted_address
     })
   }
 
@@ -677,7 +674,7 @@ class StoreSignupForm extends React.Component {
                       <div className="error-message">{errors.pictureCount}</div>
                     ): null}
 
-                    <Button disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={handleSubmit}>Submit</Button>
+                    <Button className="update-button" disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} onClick={handleSubmit}>Submit</Button>
                   </Form>
                 )}
             </Formik>

@@ -37,6 +37,7 @@ class AppointmentDisplay extends React.Component {
       service_names: [],
       workers: [],
       loading: true,
+      canReview: false
     }
   }
 
@@ -61,21 +62,40 @@ class AppointmentDisplay extends React.Component {
     });
   }
 
-  componentDidUpdate(prevProps) {
+  triggerReview() {
+    console.log("appointment is:", this.state.appointment, "store id is:", this.state.appointment[0].store_id)
+    this.props.history.push({
+      pathname: '/stores/' + this.state.appointment[0].store_id + '/review'
+    })
+  }
 
-    console.log(this.props.deleted)
+
+  async componentDidUpdate(prevProps) {
+
     if(this.props.appointment !== prevProps.appointment) {
       let data = this.props.appointment
-      this.setState({
-        appointment: data.appointment,
-        user_id: data.user_id,
-        start_time: data.start_time,
-        end_time: data.end_time,
-        store_name: data.store_name,
-        cost: data.cost,
-        service_names: data.service_names,
-        workers: data.workers,
-        loading: false
+      console.log(data)
+
+      await fetch(fetchDomain + '/checkTokenPrevReviewAndAppt', {
+        method: "POST",
+        headers: {
+          'Content-type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({store_id: data.appointment[0].store_id, email: JSON.parse(Cookies.get('user').substring(2)).email})
+      }).then(res => {
+        this.setState({
+          appointment: data.appointment,
+          user_id: data.user_id,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          store_name: data.store_name,
+          cost: data.cost,
+          service_names: data.service_names,
+          workers: data.workers,
+          loading: false,
+          canReview: res.status === 200
+        })
       })
     }
     if(this.props.deleted !== prevProps.deleted) {
@@ -86,8 +106,7 @@ class AppointmentDisplay extends React.Component {
     }
   }
 
-  componentDidMount() {
-
+  async componentDidMount() {
     this.props.getAppointment(this.props.match.params.group_id)
   }
 
@@ -105,10 +124,20 @@ class AppointmentDisplay extends React.Component {
           </Col>
         </Row>
       } else {
-        let cancelButton;
-        if (Cookies.get('user') && this.state.user_id === JSON.parse(Cookies.get('user').substring(2)).id) {
+        let cancelButton, reviewButton;
+        // if (Cookies.get('user') && this.state.user_id === JSON.parse(Cookies.get('user').substring(2)).id) {
+        //   cancelButton = <Button variant="danger" onClick={() => this.triggerAppointmentCancel()}>Cancel Appointment</Button>
+        // }
+
+        let current_time = new Date()
+        let appointment_time_converted = new Date(this.state.appointment[0].date)
+        if(appointment_time_converted < current_time && this.state.canReview){
+          reviewButton = <Button variant="warning" onClick={() => this.triggerReview()}>Review Store</Button>
+        }
+        else if(appointment_time_converted >= current_time){
           cancelButton = <Button variant="danger" onClick={() => this.triggerAppointmentCancel()}>Cancel Appointment</Button>
         }
+
         return <Row className="justify-content-md-center">
           <Col lg={5}>
             <Card className="mt-5 add-shadow">
@@ -123,6 +152,7 @@ class AppointmentDisplay extends React.Component {
                     <ListGroup.Item><b>Total Cost:</b> ${this.state.cost}</ListGroup.Item>
                   </ListGroup>
                 </Card.Text>
+                {reviewButton}
                 {cancelButton}
               </Card.Body>
             </Card>

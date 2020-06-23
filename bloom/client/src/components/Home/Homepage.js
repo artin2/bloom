@@ -206,7 +206,7 @@ class Homepage extends React.Component {
           <Col style={{ margin: '5%', marginTop: '10%' }}>
             <p className="header"> Are you a salon owner? </p>
             <p style={{ fontSize: 20 }}> Join our community by signing up your salon today! </p>
-            <Button onClick={() => this.goToStore()} style={{ marginTop: '5%', backgroundColor: '#8CAFCB', border: 0 }}> Learn More </Button>
+            <Button onClick={() => this.goToStore()} className="update-button" style={{ marginTop: '5%' }}> Learn More </Button>
           </Col>
           <img src={salon} className="m-5 salon d-none d-md-block" alt="paint" />
         </Row>

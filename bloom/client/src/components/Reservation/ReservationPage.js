@@ -64,6 +64,7 @@ class ReservationPage extends React.Component {
   }
 
   updateSelectedWorkers = (removal, currWorker) => {
+    console.log("currWorker is:", currWorker, "removal", removal)
     if (removal) {
       this.setState({
         selectedWorkers: this.state.selectedWorkers.filter(function (selectedWorker) {
@@ -166,6 +167,7 @@ class ReservationPage extends React.Component {
     //   const response2 = allResponses[1]
     //
     // console.log(this.props.store)
+    this.props.getWorkers(this.props.match.params.store_id)
     this.props.getStore(this.props.match.params.store_id, "search")
     this.props.getServices(this.props.match.params.store_id, "search")
     this.props.getStoreHours(this.props.match.params.store_id)

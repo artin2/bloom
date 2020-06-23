@@ -89,7 +89,7 @@ class MapContainer extends Component {
   };
 
   onInfoWindowOpen(props, e) {
-    const button = (<Button style={{backgroundColor: '#8CAFCA', border: 0}} onClick={() => this.props.onClickFunctionBook(this.props.stores[this.state.activeMarkerIndex])}>Book Now</Button>);
+    const button = (<Button className="update-button" onClick={() => this.props.onClickFunctionBook(this.props.stores[this.state.activeMarkerIndex])}>Book Now</Button>);
     ReactDOM.render(React.Children.only(button), document.getElementById("iwc"));
 
     const title = (<h5 className="m-2" style={{cursor: 'pointer'}} onClick={() => this.props.onClickFunctionStore(this.props.stores[this.state.activeMarkerIndex])}>{this.props.stores[this.state.activeMarkerIndex].name}</h5>)

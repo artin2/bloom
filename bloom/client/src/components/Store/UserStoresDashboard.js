@@ -152,13 +152,13 @@ class UserStoresDashboard extends React.Component {
                       <p className="address">{store.address} </p>
                     </Col>
                     <Col sm={8} className={"py-1"}>
-                      <Button block className="update-button"  onClick={() =>  this.triggerShowCalendar(store)}>Calendar</Button> &nbsp;
+                      <Button block className="update-button"  onClick={() =>  this.triggerShowCalendar(store)}>Calendar</Button>
+                    </Col>
+                    <Col sm={8} className={"py-2"}>
+                      <Button block className="update-button" onClick={() =>  this.triggerShowWorkers(store)}>Workers</Button>
                     </Col>
                     <Col sm={8} className={"py-1"}>
-                      <Button block className="update-button" onClick={() =>  this.triggerShowWorkers(store)}>Workers</Button> &nbsp;
-                    </Col>
-                    <Col sm={8} className={"py-1"}>
-                      <Button block className="update-button" onClick={() =>  this.triggerShowServices(store.id)}>Services</Button> &nbsp;
+                      <Button block className="update-button" onClick={() =>  this.triggerShowServices(store.id)}>Services</Button>
                     </Col>
                   </Row>
                 </Col>

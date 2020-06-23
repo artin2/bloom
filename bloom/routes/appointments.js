@@ -423,10 +423,47 @@ async function updateAppointment(req, res) {
 
 };
 
+async function getUsersPreviousStoreAppointmentsInternal(email, store_id) {
+  console.log("about to get appointments for user")
+  console.log("email is: ", email)
+
+  try{
+    let query = 'SELECT * FROM appointments WHERE email=$1 AND store_id=$2 AND CAST(date as DATE) < CAST($3 as DATE)'
+    console.log("query is:", query)
+    let values = [email, store_id, new Date().toUTCString()]
+    console.log("values are", values)
+    
+    return new Promise(function(resolve, reject) {
+      db.client.connect((err, client, done) => {
+        db.client.query(query, values, (err, result) => {
+          console.log("2,")
+          done()
+          if (err) {
+            console.log("3 error,", err)
+            reject(err)
+          }
+    
+          console.log("results,", result.rows)
+          resolve(result.rows)
+        });
+    
+        if (err) {
+          console.log("4 error,", err)
+          reject(err)
+        }
+      });
+    })
+  }
+  catch(err){
+    console.log("Some sort of error!", err);
+    reject(err)
+  }
+}
 
 module.exports = {
   getAppointmentsForUser: getAppointmentsForUser,
   getAppointmentsForDisplay: getAppointmentsForDisplay,
   deleteAppointment: deleteAppointment,
-  updateAppointment: updateAppointment
+  updateAppointment: updateAppointment,
+  getUsersPreviousStoreAppointmentsInternal: getUsersPreviousStoreAppointmentsInternal
 };

@@ -15,6 +15,7 @@ import {signup} from './UserHelper.js'
 import GoogleLogin from 'react-google-login';
 import FacebookLogin from 'react-facebook-login';
 import {TiSocialFacebookCircular, TiSocialGooglePlus} from 'react-icons/ti';
+import {toast} from 'react-toastify';
 
 class SignupForm extends React.Component {
   constructor(props) {
@@ -70,7 +71,7 @@ class SignupForm extends React.Component {
   }
 
   failureGoogle = (response) => {
-    console.log("Google Failure:", response.error);
+    this.failureToast("Google Failure: " + response.error);
   }
 
   successFacebook = (response) => {
@@ -96,8 +97,20 @@ class SignupForm extends React.Component {
 
   failureFacebook = (response) => {
     if(response.status){
-      console.log("Facebook Failure");
+      this.failureToast("Facebook Failure");
     }
+  }
+
+  failureToast = (message) => {
+    toast.error('⚠️ ' + message, {
+      position: "top-right",
+      autoClose: 6000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      })
   }
 
   componentDidUpdate(prevProps, prevState)  {
