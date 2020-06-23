@@ -35,7 +35,7 @@
   height: 70vh;
 }
 
-.hvr-bob-always-active {
+.MuiStepIcon-active {
   display: inline-block;
   vertical-align: middle;
   -webkit-transform: perspective(1px) translateZ(0);

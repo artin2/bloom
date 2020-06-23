@@ -116,10 +116,10 @@ class SearchDisplay extends React.Component {
       } else if(this.state.stores.length > 0) {
         return( <div>
           <Row>
-            <Col xs={8}>
-              <h3 className="text-left mb-0"> {this.state.stores.length} results </h3>
+            <Col xs={12} xl={8}>
+              <h3 className="text-left mb-xl-0"> {this.state.stores.length} results </h3>
             </Col>
-            <Col xs={4}>
+            <Col xs={12} xl={4}>
               <Select
                 className="full-width"
                 placeholder="Sort By"
@@ -129,7 +129,7 @@ class SearchDisplay extends React.Component {
               />
             </Col>
           </Row>
-          <Row className="mx-0 justify-content-center search-cards-row">
+          <Row className="mx-0 h-100 justify-content-center search-cards-row">
             <RenderStoreCards/>
           </Row>
         </div>
@@ -158,16 +158,16 @@ class SearchDisplay extends React.Component {
     return (
       <div>
         <Row className="justify-content-center">
-          <Col xs={12} className="d-block d-xl-none" style={{marginTop: 15, marginBottom: 15}}>
+          <Col xs={12} className="d-block d-xl-none" style={{marginTop: 15}}>
             <Row className="justify-content-center">
-              <p style={{marginTop: 5}}> Map View </p>
+              <p style={{marginTop: 5}} className="mb-1"> Map View </p>
               <Switch color="primary" style={{cursor: 'pointer'}}checked={this.state.checked} onChange={this.toggleChecked}/>
-              <p style={{marginTop: 5}}> List View </p>
+              <p style={{marginTop: 5}} className="mb-1"> List View </p>
             </Row>
           </Col>
         </Row>
-        <Row className="restrict-viewport mx-0">
-          <Col xs={12} xl={6} className={"px-5 my-3 h-100" + (this.state.checked ? "" : " d-none d-xl-block")}>
+        <Row className="mx-0">
+          <Col xs={12} xl={6} className={"px-xs-3 px-5 mt-3 mb-5 pb-5 h-100" + (this.state.checked ? "" : " d-none d-xl-block")}>
             <DisplayWithLoading/>
           </Col>
           <Col id="map" xs={12} xl={6} className="searchMap p-0">

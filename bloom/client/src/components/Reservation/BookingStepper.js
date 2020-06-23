@@ -36,7 +36,7 @@ export default function HorizontalLinearStepper({ currentStep }){
       <MuiThemeProvider theme={theme}>
       <Stepper className="add-shadow" activeStep={currentStep-1}>
         {steps.map((label, index) => {
-          const stepProps = { active: "hvr-bob-alwas-active" };
+          const stepProps = {};
           const labelProps = {};
           return (
             <Step key={label} {...stepProps}>

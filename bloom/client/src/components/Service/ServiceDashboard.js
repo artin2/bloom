@@ -275,7 +275,7 @@ class ServiceDashboard extends React.Component {
     else {
       services = <div>
         <p className="noResults">No Services!</p>
-        <Button style={{ backgroundColor: "#3E4E69", color: 'white' }} onClick={() => this.triggerAddService()}>Add Service</Button>
+        <Button className="update-button" onClick={() => this.triggerAddService()}>Add Service</Button>
       </div>
     }
 
@@ -315,7 +315,7 @@ class ServiceDashboard extends React.Component {
               </nav>
             </Col>
             <Col xs={12} className="d-block d-lg-none mt-4">
-            <Button className="hvr-icon-forward" style={{backgroundColor: '#8CAFCB', border: '0px'}} onClick={() => this.triggerAddService()}>Add&nbsp;Service&nbsp;&nbsp;<FaPlusCircle className="hvr-icon mb-1"/></Button>
+            <Button className="hvr-icon-forward update-button" onClick={() => this.triggerAddService()}>Add&nbsp;Service&nbsp;&nbsp;<FaPlusCircle className="hvr-icon mb-1"/></Button>
             </Col>
             <Col xs={12} lg={9} className="mt-3">
               {services}
