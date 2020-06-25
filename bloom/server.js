@@ -15,6 +15,7 @@ const s3 = require('./routes/s3');
 const email = require('./routes/email');
 const reviews = require('./routes/reviews');
 const fileUpload = require('express-fileupload')
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 
 require('dotenv').config();
@@ -157,6 +158,21 @@ app.post('/checkTokenAndPermissions', withAuth, async(req, res, next) => {
 //   console.log('hit the all users route')
 //   await users.getUsers(req, res, next);
 // });
+
+//**** PAYMENT  ****//
+
+app.post("/create-payment-intent", async (req, res) => {
+  const { items } = req.body;
+  // Create a PaymentIntent with the order amount and currency
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 100,
+    currency: "usd"
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret
+  });
+});
+
 
 
 //**** STORE ROUTES ****//

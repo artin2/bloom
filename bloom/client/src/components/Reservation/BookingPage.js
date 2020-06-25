@@ -3,8 +3,6 @@ import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import './BookingPage.css';
-import InputGroup from 'react-bootstrap/InputGroup'
-import { FaEnvelope, FaUser, FaPhone } from 'react-icons/fa';
 import { Formik } from 'formik';
 import { Form, Button } from 'react-bootstrap';
 import GridLoader from 'react-spinners/GridLoader'
@@ -15,6 +13,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { addNewAppointment } from './ReservationHelper.js'
 import { convertMinsToHrsMins } from '.././helperFunctions'
+import { CardElement } from "@stripe/react-stripe-js";
+const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
   display: block;
@@ -30,6 +30,11 @@ class BookingPage extends React.Component {
       phone: '',
       email: '',
       user_id: -1,
+      succeeded: false,
+      error: null,
+      processing: '',
+      disabled: true,
+      clientSecret: ''
     };
 
     // RegEx for phone number validation
@@ -71,13 +76,26 @@ class BookingPage extends React.Component {
   componentDidMount () {
     if(Cookies.get('user')){
       let user = JSON.parse(Cookies.get('user').substring(2))
-      this.setState({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        phone: user.phone,
-        user_id: user.id
+      fetch(fetchDomain + "/create-payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({items: [{ id: "xl-tshirt" }]})
       })
+      .then(res => {
+        return res.json();
+      })
+      .then(data => {
+        this.setState({
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email,
+          phone: user.phone,
+          user_id: user.id,
+          clientSecret: data.clientSecret
+        })
+      });
     }
 
     window.onbeforeunload = function() {
@@ -127,7 +145,7 @@ class BookingPage extends React.Component {
                   user_id: this.state.user_id
                 }}
                 validationSchema={this.yupValidationSchema}
-                onSubmit={(values, actions) => {
+                onSubmit={async (values, actions) => {
                   values.appointments = this.props.appointments
                   values.store_name = this.props.store.name
                   values.address = this.props.store.address
@@ -140,13 +158,28 @@ class BookingPage extends React.Component {
                     if(i === 0){
                       values.start_time = convertMinsToHrsMins(values.appointments[i].start_time)
                     }
-
+                    
                     if(i + 1 === values.appointments.length){
                       values.end_time = convertMinsToHrsMins(values.appointments[i].end_time)
                     }
                   }
-
-                  this.props.addNewAppointment(this.props.store_id, values)
+                  const {stripe, elements} = this.props;
+                    // Call stripe.confirmCardPayment() with the client secret.
+                    const payload = stripe.confirmCardPayment(this.state.clientSecret, {
+                      payment_method: {
+                        card: elements.getElement(CardElement),
+                        billing_details: {
+                          name: values.first_name + values.last_name
+                        }
+                      }
+                    })
+                      if (payload.error) {
+                        this.setState({
+                          error: `Payment failed ${payload.error.message}`
+                        })
+                      } else {
+                        this.props.addNewAppointment(this.props.store_id, values)
+                      }
                 }}
               >
                 {({ values,
@@ -160,12 +193,6 @@ class BookingPage extends React.Component {
                     <Form className="form-style">
 
                       <Form.Group controlId="formfirst_name">
-                        <InputGroup>
-                          <InputGroup.Prepend>
-                            <InputGroup.Text>
-                              <FaUser />
-                            </InputGroup.Text>
-                          </InputGroup.Prepend>
                           <Form.Control
                             type="text"
                             name="first_name"
@@ -174,19 +201,12 @@ class BookingPage extends React.Component {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className={touched.first_name && errors.first_name ? "error" : null} />
-                        </InputGroup>
                         {touched.first_name && errors.first_name ? (
                           <div className="error-message">{errors.first_name}</div>
                         ) : null}
                       </Form.Group>
 
                       <Form.Group controlId="formlast_name">
-                        <InputGroup>
-                          <InputGroup.Prepend>
-                            <InputGroup.Text>
-                              <FaUser />
-                            </InputGroup.Text>
-                          </InputGroup.Prepend>
                           <Form.Control
                             type="text"
                             name="last_name"
@@ -195,19 +215,12 @@ class BookingPage extends React.Component {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className={touched.last_name && errors.last_name ? "error" : null} />
-                        </InputGroup>
                         {touched.last_name && errors.last_name ? (
                           <div className="error-message">{errors.last_name}</div>
                         ) : null}
                       </Form.Group>
 
                       <Form.Group controlId="formPhone">
-                        <InputGroup>
-                          <InputGroup.Prepend>
-                            <InputGroup.Text>
-                              <FaPhone />
-                            </InputGroup.Text>
-                          </InputGroup.Prepend>
                           <Form.Control type="text"
                             value={values.phone}
                             placeholder="Phone Number"
@@ -215,19 +228,12 @@ class BookingPage extends React.Component {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className={touched.phone && errors.phone ? "error" : null} />
-                        </InputGroup>
                         {touched.phone && errors.phone ? (
                           <div className="error-message">{errors.phone}</div>
                         ) : null}
                       </Form.Group>
 
                       <Form.Group controlId="formEmail">
-                        <InputGroup>
-                          <InputGroup.Prepend>
-                            <InputGroup.Text>
-                              <FaEnvelope />
-                            </InputGroup.Text>
-                          </InputGroup.Prepend>
                           <Form.Control
                             type="email"
                             value={values.email}
@@ -236,10 +242,12 @@ class BookingPage extends React.Component {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className={touched.email && errors.email ? "error" : null} />
-                        </InputGroup>
                         {touched.email && errors.email ? (
                           <div className="error-message">{errors.email}</div>
                         ) : null}
+                      </Form.Group>
+                      <Form.Group>
+                        <CardElement id="card-element" className="form-control padding6"/>
                       </Form.Group>
                       <Row className="justify-content-center">
                         <Col xs="11" lg="3" className="mb-3">

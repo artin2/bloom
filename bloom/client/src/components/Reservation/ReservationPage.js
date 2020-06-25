@@ -18,7 +18,9 @@ import { getWorkerSchedules, getWorkers } from '../Worker/WorkerHelper.js'
 import { getServices } from '../Service/ServiceHelper.js'
 import { getStore, getStoreHours } from '../Store/StoreHelper'
 import { pluralize } from '../helperFunctions'
-const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
+import { ElementsConsumer, Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+const promise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 const override = css`
   display: block;
@@ -216,7 +218,13 @@ class ReservationPage extends React.Component {
         }
         else {
           if(Cookies.get('user')){
-            return <BookingPage handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} store={this.props.store} services={this.state.services} history={this.props.history}/>
+            return <Elements stripe={promise}>
+              <ElementsConsumer>
+                {({elements, stripe}) => (
+                  <BookingPage elements={elements} stripe={stripe} handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} store={this.props.store} services={this.state.services} history={this.props.history}/>
+                )}
+              </ElementsConsumer>
+            </Elements>
           } else {
             return <RedirectToLogin handleSubmit={this.handleSubmit} appointments={this.state.appointments} store_id={this.props.match.params.store_id} history={this.props.history}/>
           }
