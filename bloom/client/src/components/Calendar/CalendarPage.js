@@ -41,83 +41,6 @@ export function getArray(key) {
 }
 
 
-//
-// const AppointmentLayoutForm = ({
-//   appointmentData, onFieldChange, ...restProps }) => {
-//     // console.log(restProps)
-//     let date = new Date()
-//
-//     const handleSubmit = () => {
-//
-//     }
-//     const handleChange = (value) => {
-//         onFieldChange({ currentDate: value });
-//     }
-//
-//     console.log(appointmentData)
-//
-//     return (
-//
-//         <Col xs={12} sm={9} lg={12} >
-//           <Row >
-//             <AppointmentForm.CommandButton  style={{marginTop: 5, marginLeft: 15}} id={"cancelButton"} getMessage={()=> null} onExecute={()=>null}>
-//             </AppointmentForm.CommandButton>
-//             <AppointmentForm.CommandButton style={{backgroundColor: 'black', marginTop: 15, marginLeft: '72%'}} getMessage={()=>"next"} id={"saveButton"} onExecute={()=>null}>
-//             </AppointmentForm.CommandButton>
-//
-//           </Row>
-//
-//
-//         </Col>
-//     );
-// };
-
-// <AppointmentForm.Layout
-//   // onFieldChange={onFieldChange}
-//   appointmentData={appointmentData}
-//   {...restProps}
-// >
-//
-//
-// </AppointmentForm.Layout>
-
-
-
-
-    // <AppointmentForm.BasicLayout
-    //   onFieldChange={onFieldChange}
-    //   appointmentData={appointmentData}
-    //   {...restProps}
-    // >
-    //
-    // <AppointmentForm.Label
-    //    text="Email"
-    //    type="title"
-    //  />
-    //  <AppointmentForm.TextEditor
-    //   style={{width: '50%'}}
-    //    value={appointmentData.email}
-    //    onValueChange={onCustomFieldChangeEmail}
-    //    placeholder="Customer email"
-    //  />
-    //
-    // <AppointmentForm.Label
-    //    text="Price"
-    //    type="title"
-    //  />
-    //
-    //  <AppointmentForm.TextEditor
-    //   style={{width: '50%'}}
-    //    value={appointmentData.price}
-    //    onValueChange={onCustomFieldChange}
-    //    placeholder="Price, in dollars"
-    //  />
-    //
-    // </AppointmentForm.BasicLayout>
-//   );
-// };
-
-
 class Calendar extends React.Component {
   constructor(props) {
     super(props);
@@ -125,8 +48,6 @@ class Calendar extends React.Component {
          store_id: (this.props.match.params.store_id) ? (this.props.match.params.store_id) : this.props.store_id,
          services: [],
          workers: [],
-         // worker_map: {},
-         // service_map: {},
          selectedWorkers: [],
          selectedServices: [],
          selectedAppointments: [],
@@ -149,15 +70,13 @@ class Calendar extends React.Component {
 
   componentDidUpdate(prevProps) {
 
-    console.log(this.props.appointments)
     if(this.props.appointments !== prevProps.appointments) {
 
-      console.log("UPdating")
       let appointments = []
-      // let appointment_groups = {}
+
       this.props.appointments.appointments.map((appointment, index) => {
         // if this is the store's calendar or if this is the worker's calendar and the worker's appointment
-        // if(!this.props.id || (this.props.id && appointment.worker_id === this.props.id)) {
+        if(!this.props.id || (this.props.id && appointment.worker_id === this.props.id)) {
 
           appointments.push({
             id: appointment.id,
@@ -185,7 +104,9 @@ class Calendar extends React.Component {
           }
 
         return appointment
+        }
       })
+
 
       this.setState({
         appointments: appointments,
@@ -198,26 +119,20 @@ class Calendar extends React.Component {
     if(this.props.services !== prevProps.services) {
       let services = this.props.services;
 
-      if(!this.props.id) {
-
         services.map((service, indx) => {
-          serviceOptions.push({id: service.id, text: service.name})
-          service_map[service.id] = {name: service.name, duration: service.duration, price: service.cost}
+
+            // if(!this.props.id) {
+              serviceOptions.push({id: service.id, text: service.name})
+              service_map[service.id] = {name: service.name, duration: service.duration, price: service.cost}
+            // }
+            // else {
+            //   if(service.workers.includes(this.props.id)){
+            //
+            //     service_map[service.id] = {name: service.name, duration: service.duration, price: service.cost}
+            //   }
+            // }
+
         })
-
-      }
-      // else{
-      //
-      //   services.map((service, indx) => {
-      //     if(service.workers.includes(this.props.id)){
-      //       service_instances.push({id: service.id, text: service.name})
-      //       service_map[service.id] = service.name
-      //     }
-      //
-      //   })
-      //
-      // }
-
 
       this.setState({
         services: serviceOptions,
@@ -230,26 +145,22 @@ class Calendar extends React.Component {
     if(this.props.workers !== prevProps.workers) {
       let workers = this.props.workers;
 
-      // if(!this.props.id) {
 
         workers.map((worker, indx) => {
           workerOptions.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
-          worker_map[worker.id] = {name: worker.first_name + ' ' + worker.last_name, workerHours: worker.workerHours}
-          worker_to_services[worker.id] = worker.services
 
+          // if(!this.props.id) {
+            worker_map[worker.id] = {name: worker.first_name + ' ' + worker.last_name, workerHours: worker.workerHours}
+            worker_to_services[worker.id] = worker.services
+          // }
+          // else {
+          //   if(worker.id === this.props.id){
+            //   worker_map[worker.id] = {name: worker.first_name + ' ' + worker.last_name, workerHours: worker.workerHours}
+            //   worker_to_services[worker.id] = worker.services
+            // }
+          // }
         })
 
-      // }
-      // else{
-      //
-      //   workers.map((worker, indx) => {
-      //     if(worker.id === this.props.id){
-      //       worker_instances.push({id: worker.id, text: worker.first_name + ' ' + worker.last_name})
-      //       worker_map[worker.id] = worker.first_name + ' ' + worker.last_name
-      //       worker_to_services[worker.id] = worker.services
-      //     }
-      //   })
-      // }
 
       this.setState({
         workers: workerOptions,
@@ -257,16 +168,7 @@ class Calendar extends React.Component {
         worker_to_services: worker_to_services,
       })
 
-      // this.setState(({resources}) => ({
-      //   resources: [
-      //       ...resources.slice(0,1),
-      //   {
-      //       ...resources[1],
-      //       instances: worker_instances,
-      //   },
-      //   // ...resources.slice(2)
-      //   ]
-      // }));
+
       this.props.getAppointments(this.state.store_id);
     }
 
@@ -281,9 +183,7 @@ class Calendar extends React.Component {
 
     this.state.appointments.map(appointment => {
       includeWorker = (this.state.selectedWorkers.length === 0) ? true : false;
-      includeService= (this.state.selectedServices.length === 0) ? true : false;
-
-      // console.log(this.state.selectedWorkers, this.state.selectedServices);
+      includeService = (this.state.selectedServices.length === 0) ? true : false;
 
       this.state.selectedWorkers.map(worker => {
         if(appointment.workers === worker.id) {
@@ -313,12 +213,12 @@ class Calendar extends React.Component {
 
 
   onSelectWorker(selectedList, selectedItem) {
-    // console.log(selectedList, selectedItem)
+
     this.setState({ selectedWorkers: selectedList });
   }
 
   onRemoveWorker(selectedList, removedItem) {
-    // console.log("remove", selectedList, removedItem);
+
     this.setState({ selectedWorkers: selectedList });
   }
 
@@ -337,7 +237,7 @@ class Calendar extends React.Component {
 
     let name = (this.props.role) ? this.props.role : "your";
     name = name.charAt(0).toUpperCase() + name.slice(1);
-    console.log(this.state.selectedAppointments)
+
     return (
       <Container fluid>
         <Row className="justify-content-center">

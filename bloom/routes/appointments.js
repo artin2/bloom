@@ -377,51 +377,94 @@ async function updateAppointment(req, res) {
 
   let query = ''
   let values = []
+  let failed = false
+  // Time to update our appointment group one by one
+  let appointments = req.body.appointments
+  // Below is for scoping issues. Res is undefined below
+  let resp = res
+  let request = req
 
-  if(req.body.appointments.length > 0) {
+  //group_id of appointments that need updating
+  let group_id = req.body.group_id
+
+  console.log(appointments)
+
+  if(appointments.length > 0) {
 
     query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8, email=$9 WHERE id=$10 RETURNING *'
-    req.body.appointments.map((appointment) => {
-      console.log(appointment)
-      values.push([req.body.user_id, appointment.worker_id, appointment.service_id, req.body.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, req.body.email, req.body.id])
+    appointments.map((appointment) => {
+      values.push([req.body.user_id, appointment.worker_id, appointment.service_id, req.body.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, req.body.email, appointment.id])
     })
   }
-  else {
+  // else {
+  //
+  //   query = 'UPDATE appointments SET user_id=$1, store_id=$2, email=$3 WHERE id=$4 RETURNING *'
+  //   values = [req.body.user_id, req.body.store_id, req.body.email, req.body.id]
+  // }
 
-    query = 'UPDATE appointments SET user_id=$1, store_id=$2, email=$3 WHERE id=$4 RETURNING *'
-    values = [req.body.user_id, req.body.store_id, req.body.email, req.body.id]
-  }
+    ; (async (req, res) => {
+      const hourDb = await db.client.connect();
+      let appoint = []
+      try {
+        await hourDb.query("BEGIN");
 
-      db.client.connect((err, client, done) => {
+        for (let i = 0; i < appointments.length; i++) {
+          console.log("HERE: ", appointments[i], values[i])
+          appoint.push((await hourDb.query(query, values[i])).rows[0]);
+        }
+        await hourDb.query("COMMIT");
+      } catch (e) {
+        console.log("error occured: ", e)
+        await hourDb.query("ROLLBACK");
+        failed = true
+        throw e;
+      }
+      finally {
+        if (!failed) {
+          try {
+            // let params = {
+            //   group_id: group_id,
+            //   first_name: request.body.first_name,
+            //   last_name: request.body.last_name,
+            //   user_id: request.body.user_id,
+            //   store_name: request.body.store_name,
+            //   address: request.body.address,
+            //   start_time: request.body.start_time,
+            //   end_time: request.body.end_time,
+            //   services: request.body.services,
+            //   email: request.body.email,
+            //   price: request.body.price
+            // }
+            //
+            // console.log("PARAMS ARE:", params)
+            //
+            // await email.bookingConfirmation(params)
 
-        values.map((value) => {
+            console.log("ROWS", appoint)
+            helper.querySuccess(resp, {group_id: group_id, appointment: appoint}, 'Successfully updated appointments!');
 
-          db.client.query(query, value, (err, result) => {
-            done()
-              if (err) {
-                helper.queryError(res, err);
-              }
-              // we were able to delete the appointment
-              if (result && result.rows.length > 0) {
-                console.log("update appointment was successful", result)
-                helper.querySuccess(res, result.rows[0], 'Successfully updated appointment')
-              }
-              else {
-                console.log("error!!!!", res)
-                helper.queryError(res, "Could not update appointments!");
-              }
-            }
-          );
-
-
-
-          if (err) {
-            helper.dbConnError(res, err);
+          } catch (error) {
+            helper.queryError(resp, "Unable to send confirmation email!");
           }
-        });
-    })
+        } else {
+          helper.queryError(res, "Unable to update appointments!");
+        }
+        hourDb.release();
+      }
+    })().catch(e => helper.queryError(resp, e));
 
-};
+  // }
+  //
+  // else {
+  //   if (!failed) {
+  //     helper.querySuccess(res, store, 'Successfully added appointments!');
+  //   } else {
+  //     helper.queryError(res, "No appointments were given or failure to upload!");
+  //   }
+  // }
+
+}
+
 
 async function getUsersPreviousStoreAppointmentsInternal(email, store_id) {
   console.log("about to get appointments for user")
@@ -432,7 +475,7 @@ async function getUsersPreviousStoreAppointmentsInternal(email, store_id) {
     console.log("query is:", query)
     let values = [email, store_id, new Date().toUTCString()]
     console.log("values are", values)
-    
+
     return new Promise(function(resolve, reject) {
       db.client.connect((err, client, done) => {
         db.client.query(query, values, (err, result) => {
@@ -442,11 +485,11 @@ async function getUsersPreviousStoreAppointmentsInternal(email, store_id) {
             console.log("3 error,", err)
             reject(err)
           }
-    
+
           console.log("results,", result.rows)
           resolve(result.rows)
         });
-    
+
         if (err) {
           console.log("4 error,", err)
           reject(err)

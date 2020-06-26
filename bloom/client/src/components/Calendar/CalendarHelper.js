@@ -127,7 +127,7 @@ export function updateAppointment(store_id, values) {
     })
     .then(async data => {
       if (data) {
-        console.log(data)
+
         dispatch(updateAppointmentSuccess(data))
         return data
       }

@@ -113,8 +113,6 @@ function ifTimeValid(time, duration, service, worker) {
 export const BasicLayout = ({ appointmentData, onFieldChange, groups,
    ...restProps }) => {
 
-     console.log(">>", appointmentData, state.workerReducer.workers)
-
    let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
    let date = appointmentData.startDate
 
@@ -175,7 +173,7 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
     multiselectServiceRef.current.resetSelectedValues();
 
     if(!ifTimeValid(appointmentData.startDate, duration, appointmentData.services, appointmentData.workers)) {
-       console.log("BOOOOOO")
+       console.log("Show warning!")
     }
 
   }
@@ -199,15 +197,15 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
      let new_apps = appointmentData.other_appointments
      let newDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), timeConvert(value)[0], timeConvert(value)[1])
 
-     console.log(index)
      if(index != null) {
 
-
        new_apps[index].startDate = newDate
+       let endTime = timeConvert(parseInt(value) + parseInt(duration))
+       new_apps[index].endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endTime[0], endTime[1])
        onFieldChange({ other_appointments: new_apps });
 
        if(!ifTimeValid(newDate, duration, service, worker)) {
-          console.log("BOOOOOO")
+          console.log("Show warning")
        }
 
      }
@@ -219,8 +217,6 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
      }
 
    }
-
-   console.log(getArray("serviceOptions"))
 
   return (
 
