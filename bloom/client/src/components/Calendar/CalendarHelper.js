@@ -1,4 +1,4 @@
-import {calendarFailure, getAppointmentsSuccess, addAppointmentSuccess, deleteAppointmentSuccess, updateAppointmentSuccess} from '../../redux/actions/calendar';
+import {calendarFailure, getAppointmentsSuccess, addAppointmentSuccess, deleteAppointmentSuccess, updateAppointmentSuccess, deleteAppointmentByIdSuccess} from '../../redux/actions/calendar';
 import { toast } from 'react-toastify'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -98,6 +98,37 @@ export function deleteAppointment(group_id) {
     .then(async data => {
       if (data) {
         dispatch(deleteAppointmentSuccess(data))
+        return data
+      }
+  })
+  }
+}
+
+export function deleteAppointmentById(values, group_id) {
+  console.log("BAAAA")
+  return dispatch => {
+
+    fetch(fetchDomain + '/appointments/delete/' + group_id, {
+      method: "POST",
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(values)
+    })
+    .then(function (response) {
+      if (response.status !== 200) {
+        // throw an error alert
+        dispatch(calendarFailure(response))
+      }
+      else {
+        return response.json();
+      }
+    })
+    .then(async data => {
+      if (data) {
+        dispatch(deleteAppointmentByIdSuccess(data))
         return data
       }
   })

@@ -1396,7 +1396,7 @@ async function getAllAppointments(req, res, next) {
   try {
     // console.log("---------getting apps")
     // query for store appointments
-    let query = 'SELECT group_id, id, user_id, worker_id, date, start_time, end_time, service_id, price, email FROM appointments WHERE store_id = $1'
+    let query = 'SELECT group_id, id, user_id, worker_id, date, start_time, end_time, service_id, price, email, first_name, last_name, notes, warnings FROM appointments WHERE store_id = $1'
     let values = [req.params.store_id]
     db.client.connect((err, client, done) => {
       // try to get the store appointments based on month
@@ -1425,7 +1425,8 @@ async function getAllAppointments(req, res, next) {
                   startDate: appointment.start_time,
                   endDate: appointment.end_time,
                   date: date,
-                  price: appointment.price
+                  price: appointment.price,
+                  warnings: appointment.warnings
                 })
 
               }
@@ -1438,7 +1439,8 @@ async function getAllAppointments(req, res, next) {
                   startDate: appointment.start_time,
                   endDate: appointment.end_time,
                   date: date,
-                  price: appointment.price
+                  price: appointment.price,
+                  warnings: appointment.warnings
                 }]
               }
               return appointment
@@ -1467,6 +1469,12 @@ async function getAllAppointments(req, res, next) {
 }
 
 async function addAppointment(req, res, next) {
+
+  if(req.body.group_id) {
+    insertAppointments(req, res, req.body.group_id)
+    return
+  }
+
   try {
     // First, need to find what our appointment's group_id will be:
     let query = 'SELECT group_id FROM appointments ORDER BY group_id DESC LIMIT 1'
@@ -1480,6 +1488,7 @@ async function addAppointment(req, res, next) {
             helper.queryError(res, err);
           }
           // we were successful in getting the latest group_id from the appointments tble
+
           if (result) {
             if(result.rows.length == 1) {
               insertAppointments(req, res, result.rows[0].group_id + 1)
@@ -1511,6 +1520,8 @@ async function insertAppointments(req, res, group_id) {
   let resp = res
   let request = req
 
+  console.log(req.body)
+
   if (appointments.length > 0) {
     let storeId = req.params.store_id
       ; (async (req, res) => {
@@ -1518,10 +1529,10 @@ async function insertAppointments(req, res, group_id) {
         let appoint = []
         try {
           await hourDb.query("BEGIN");
-          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *;'
+          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email, first_name, last_name, notes, warnings) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *;'
           for (let i = 0; i < appointments.length; i++) {
             console.log("HERE: ", appointments[i])
-            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email]
+            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email, request.body.first_name, request.body.last_name, request.body.notes, appointments[i].warnings]
             appoint.push((await hourDb.query(query, values)).rows[0]);
           }
           await hourDb.query("COMMIT");
@@ -1533,23 +1544,23 @@ async function insertAppointments(req, res, group_id) {
         } finally {
           if (!failed) {
             try {
-              let params = {
-                group_id: group_id,
-                first_name: request.body.first_name,
-                last_name: request.body.last_name,
-                user_id: request.body.user_id,
-                store_name: request.body.store_name,
-                address: request.body.address,
-                start_time: request.body.start_time,
-                end_time: request.body.end_time,
-                services: request.body.services,
-                email: request.body.email,
-                price: request.body.price
-              }
+              // let params = {
+              //   group_id: group_id,
+              //   first_name: request.body.first_name,
+              //   last_name: request.body.last_name,
+              //   user_id: request.body.user_id,
+              //   store_name: request.body.store_name,
+              //   address: request.body.address,
+              //   start_time: request.body.start_time,
+              //   end_time: request.body.end_time,
+              //   services: request.body.services,
+              //   email: request.body.email,
+              //   price: request.body.price
+              // }
+              //
+              // console.log("PARAMS ARE:", params)
 
-              console.log("PARAMS ARE:", params)
-
-              await email.bookingConfirmation(params)
+              // await email.bookingConfirmation(params)
 
               console.log("ROWS", appoint)
               helper.querySuccess(resp, {group_id: group_id, appointment: appoint}, 'Successfully added appointment!');

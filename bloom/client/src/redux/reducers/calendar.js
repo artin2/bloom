@@ -1,4 +1,4 @@
-import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_SUCCESS, UPDATE_APPOINTMENT_SUCCESS } from "../actions/calendar"
+import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_SUCCESS, UPDATE_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_BY_ID_SUCCESS } from "../actions/calendar"
 
 const initialState = {
   error: '',
@@ -36,15 +36,54 @@ function calendarReducer(state = initialState, action) {
         appointments: new_appointments
       })
 
+    case DELETE_APPOINTMENT_BY_ID_SUCCESS:
+
+        let deleted_appointments = Object.assign({}, state.appointments);
+        console.log(action.appointment)
+
+        deleted_appointments.appointments = deleted_appointments.appointments.filter(function(appointment) {
+          if(!action.appointment.deleted.includes(appointment.id)) {
+            return appointment
+          }
+        });
+
+        deleted_appointments.groups[action.appointment.group_id] = deleted_appointments.groups[action.appointment.group_id].filter(function(appointment) {
+          if(!action.appointment.deleted.includes(appointment.id)) {
+            return appointment
+          }
+        });
+
+        console.log(deleted_appointments)
+        return Object.assign({}, state, {
+          appointments: deleted_appointments
+    })
+
     case UPDATE_APPOINTMENT_SUCCESS:
 
+      console.log(action.appointment.appointment)
       let updated_appointments = Object.assign({}, state.appointments);
 
+      let all_added_ids = action.appointment.appointment.map((app) => app.id)
       updated_appointments.appointments = updated_appointments.appointments.filter(function(appointment) {
-        return appointment.group_id !== action.appointment.group_id
+        if(!all_added_ids.includes(appointment.id)) {
+          return appointment
+        }
       });
 
-      delete updated_appointments.groups[action.appointment.group_id]
+      console.log(updated_appointments.groups[action.appointment.group_id])
+      updated_appointments.groups[action.appointment.group_id] = updated_appointments.groups[action.appointment.group_id].filter(function(appointment) {
+        if(!all_added_ids.includes(appointment.id)) {
+          return appointment
+        }
+      })
+
+      console.log(updated_appointments.groups[action.appointment.group_id])
+
+      // updated_appointments.groups[action.appointment.group_id].map((appointment) => {
+      //   if(appointment.id == )
+      //     delete updated_appointments.groups[action.appointment.group_id][appointment.id]
+      // })
+      //
       action.appointment.appointment.map((appointment) => {
 
           let up_date = new Date(appointment.date);
@@ -65,7 +104,8 @@ function calendarReducer(state = initialState, action) {
             startDate: appointment.start_time,
             endDate: appointment.end_time,
             date: up_date,
-            price: appointment.price
+            price: appointment.price,
+            warnings: appointment.warnings
           }
 
           if(updated_appointments.groups[action.appointment.group_id]) {
@@ -77,6 +117,8 @@ function calendarReducer(state = initialState, action) {
 
       })
 
+      console.log(updated_appointments)
+
       return Object.assign({}, state, {
         appointments: updated_appointments
       })
@@ -85,6 +127,8 @@ function calendarReducer(state = initialState, action) {
 
     let added_appointments = action.appointment.appointment
     let appointments = Object.assign({}, state.appointments);
+
+    console.log(added_appointments, appointments)
 
     added_appointments.map((appointment) => {
 
@@ -106,7 +150,8 @@ function calendarReducer(state = initialState, action) {
           startDate: appointment.start_time,
           endDate: appointment.end_time,
           date: date,
-          price: appointment.price
+          price: appointment.price,
+          warnings: appointment.warnings
         }
 
         if(appointments.groups[action.appointment.group_id]) {
@@ -117,10 +162,10 @@ function calendarReducer(state = initialState, action) {
         }
 
     })
+    console.log(appointments)
     return Object.assign({}, state, {
       appointments: appointments
     })
-
 
     default:
       return state

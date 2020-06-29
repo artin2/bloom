@@ -373,6 +373,45 @@ async function deleteAppointment(req, res) {
   });
 };
 
+async function deleteAppointmentById(req, res) {
+  console.log("about to delete appointments")
+
+    let query = 'DELETE FROM appointments where id=$1'
+    console.log(req.body)
+    let failed = false
+    let deleted = req.body
+    let resp = res
+    let request = req
+
+    ; (async (req, res) => {
+      const hourDb = await db.client.connect();
+      try {
+        await hourDb.query("BEGIN");
+
+        for (let i = 0; i < deleted.length; i++) {
+          await hourDb.query(query, [deleted[i]]);
+        }
+
+        await hourDb.query("COMMIT");
+      } catch (e) {
+        console.log("error occured: ", e)
+        await hourDb.query("ROLLBACK");
+        failed = true
+        throw e;
+      }
+      finally {
+        if (!failed) {
+            console.log("ROWS", deleted)
+            helper.querySuccess(resp, {deleted: deleted, group_id: request.params.group_id}, 'Successfully deleted appointments!');
+
+        } else {
+          helper.queryError(res, "Unable to delete appointments!");
+        }
+        hourDb.release();
+      }
+    })().catch(e => helper.queryError(resp, e));
+};
+
 async function updateAppointment(req, res) {
 
   let query = ''
@@ -391,16 +430,16 @@ async function updateAppointment(req, res) {
 
   if(appointments.length > 0) {
 
-    query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8, email=$9 WHERE id=$10 RETURNING *'
+    query = 'UPDATE appointments SET user_id=$1, worker_id=$2, service_id=$3, store_id=$4, date=$5, start_time=$6, end_time=$7, price=$8, email=$9, first_name=$10, last_name=$11, notes=$12, warnings=$13 WHERE id=$14 RETURNING *'
     appointments.map((appointment) => {
-      values.push([req.body.user_id, appointment.worker_id, appointment.service_id, req.body.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, req.body.email, appointment.id])
+      values.push([req.body.user_id, appointment.worker_id, appointment.service_id, req.body.store_id, appointment.date, appointment.start_time, appointment.end_time, appointment.price, req.body.email, req.body.first_name, req.body.last_name, req.body.notes, appointment.warnings, appointment.id])
     })
   }
-  // else {
-  //
-  //   query = 'UPDATE appointments SET user_id=$1, store_id=$2, email=$3 WHERE id=$4 RETURNING *'
-  //   values = [req.body.user_id, req.body.store_id, req.body.email, req.body.id]
-  // }
+  else {
+
+    query = 'UPDATE appointments SET user_id=$1, store_id=$2, email=$3, first_name=$4, last_name=$5, notes=$6 WHERE group_id=$7 RETURNING *'
+    values = [req.body.user_id, req.body.store_id, req.body.email, req.body.first_name, req.body.last_name, req.body.notes, req.body.group_id]
+  }
 
     ; (async (req, res) => {
       const hourDb = await db.client.connect();
@@ -411,6 +450,9 @@ async function updateAppointment(req, res) {
         for (let i = 0; i < appointments.length; i++) {
           console.log("HERE: ", appointments[i], values[i])
           appoint.push((await hourDb.query(query, values[i])).rows[0]);
+        }
+        if(appointments.length==0) {
+          appoint = (await hourDb.query(query, values)).rows;
         }
         await hourDb.query("COMMIT");
       } catch (e) {
@@ -507,6 +549,7 @@ module.exports = {
   getAppointmentsForUser: getAppointmentsForUser,
   getAppointmentsForDisplay: getAppointmentsForDisplay,
   deleteAppointment: deleteAppointment,
+  deleteAppointmentById: deleteAppointmentById,
   updateAppointment: updateAppointment,
   getUsersPreviousStoreAppointmentsInternal: getUsersPreviousStoreAppointmentsInternal
 };

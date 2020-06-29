@@ -88,7 +88,13 @@ class Calendar extends React.Component {
             endDate: new Date(appointment.end_time),
             email: appointment.email,
             group_id: appointment.group_id,
-            other_appointments: this.props.appointments.groups[appointment.group_id]
+            other_appointments: this.props.appointments.groups[appointment.group_id],
+            first_name: appointment.first_name,
+            last_name: appointment.last_name,
+            notes: appointment.notes,
+            deleted: [],
+            added: [],
+            warnings: []
           })
 
           let date = new Date(appointment.date)

@@ -270,7 +270,10 @@ app.get('/appointments/delete/:group_id', withAuth, async(req, res, next) => {
   await appointments.deleteAppointment(req, res, next);
 })
 
-
+app.post('/appointments/delete/:group_id', withAuth, async(req, res, next) => {
+  console.log("hit the deleteAppointment route")
+  await appointments.deleteAppointmentById(req, res, next);
+})
 
 //s3
 app.post('/getPresignedUrl', withAuth, async (req, res) => {

@@ -84,29 +84,29 @@ function matchingService(service, worker) {
 
 function ifTimeValid(time, duration, service, worker) {
 
-    //if startTime or endTime (start_time + duration) outside of store hours
+    let warnings = []
+       //if startTime or endTime (start_time + duration) outside of store hours
     if(!ifStoreOpen(time, duration)) {
-      return false
+      warnings.push(0)
     }
 
     //if time outside of selected worker hours
     if(!ifWorkerFree(time, duration, worker)) {
-      return false
+      warnings.push(1)
     }
 
 
     //if double booking -- this worker has another appointment at the same time
     if(ifDoubleBooked(time,  worker)) {
-      return false
+      warnings.push(2)
     }
 
     //if worker doesn't give this service
     if(!matchingService(service, worker)) {
-        return false
+      warnings.push(3)
     }
 
-
-    return true
+  return warnings
 }
 
 
@@ -122,12 +122,13 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
    const multiselectWorkerRef = React.createRef()
    const multiselectServiceRef = React.createRef()
 
-   const onServiceChange = (selectedList, selectedItem, index) => {
+   const onServiceChange = (selectedList, selectedItem, index, date, worker) => {
 
      if(index != null) {
        let new_apps = appointmentData.other_appointments
        new_apps[index].services = selectedItem.id
        new_apps[index].duration = getArray("service_map")[selectedItem.id].duration
+       new_apps[index].warnings = ifTimeValid(date, new_apps[index].duration, selectedItem.id, worker)
        onFieldChange({ other_appointments: new_apps });
      }
      else {
@@ -137,11 +138,12 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
    };
 
 
-   const onWorkerChange = (selectedList, selectedItem, index) => {
+   const onWorkerChange = (selectedList, selectedItem, index, date, duration, service) => {
 
      if(index != null) {
        let new_apps = appointmentData.other_appointments
        new_apps[index].workers = selectedItem.id
+       new_apps[index].warnings = ifTimeValid(date, duration, service, selectedItem.id)
        onFieldChange({ other_appointments: new_apps });
      }
      else {
@@ -161,20 +163,30 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
   const addAppointment = (duration, price) => {
 
     let new_apps = appointmentData.other_appointments
-    let added = {startDate: appointmentData.startDate, price: price, duration: duration, services: appointmentData.services, workers: appointmentData.workers}
+    let warnings = ifTimeValid(appointmentData.startDate, duration, appointmentData.services, appointmentData.workers)
+
+    console.log(warnings)
+    let added = {startDate: appointmentData.startDate, price: price, duration: duration, services: appointmentData.services, workers: appointmentData.workers, warnings: warnings}
+    let added_id = appointmentData.added
+    let len = new_apps ? new_apps.length : 0;
+
+    if(added_id) {
+      added_id.push(len)
+    }
+    else {
+      added_id = [len]
+    }
+
     if(new_apps) {
       new_apps.push(added)
     }
     else {
       new_apps = [added]
     }
-    onFieldChange({ other_appointments: new_apps, services: '', workers: '' });
+
+    onFieldChange({ other_appointments: new_apps, services: '', workers: '', added: added_id, startDate: appointmentData.startDate});
     multiselectWorkerRef.current.resetSelectedValues();
     multiselectServiceRef.current.resetSelectedValues();
-
-    if(!ifTimeValid(appointmentData.startDate, duration, appointmentData.services, appointmentData.workers)) {
-       console.log("Show warning!")
-    }
 
   }
 
@@ -182,12 +194,30 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
 
     let new_apps = appointmentData.other_appointments
     new_apps.splice(index, 1);
+    let deleted_id = appointmentData.deleted
+    if(deleted_id) {
+      deleted_id.push(appointmentData.id)
+    }
+    else {
+      deleted_id = [appointmentData.id]
+    }
 
-    onFieldChange({ other_appointments: new_apps });
+    onFieldChange({ other_appointments: new_apps, deleted: deleted_id});
+  }
+
+  const handleFirstName = e => {
+    onFieldChange({ first_name: e.target.value });
+  }
+
+  const handleLastName = e => {
+    onFieldChange({ last_name: e.target.value });
+  }
+
+  const handleNotes = e => {
+    onFieldChange({ notes: e.target.value });
   }
 
   const handleEmailChange = e => {
-
     onFieldChange({ email: e.target.value });
   }
 
@@ -201,12 +231,10 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
 
        new_apps[index].startDate = newDate
        let endTime = timeConvert(parseInt(value) + parseInt(duration))
+       new_apps[index].warnings = ifTimeValid(newDate, duration, service, worker)
+       console.log(new_apps[index].warnings)
        new_apps[index].endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endTime[0], endTime[1])
        onFieldChange({ other_appointments: new_apps });
-
-       if(!ifTimeValid(newDate, duration, service, worker)) {
-          console.log("Show warning")
-       }
 
      }
 
@@ -217,7 +245,7 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
      }
 
    }
-
+   console.log(appointmentData)
   return (
 
     <Container >
@@ -231,9 +259,10 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
       {appointmentData.other_appointments ? appointmentData.other_appointments.map((appointment, indx) => (
 
         <Col style={{border: '0.5px solid #DCDCDC', borderRadius: 3}} key={indx}>
-          <Col style={{height: 35}} onClick={updateCollapse(indx)}
+          <Col style={{height: 35, color: (appointment.warnings.length>0) ? 'yellow' : 'black'}} onClick={updateCollapse(indx)}
             aria-controls="example-collapse-text"
-            aria-expanded={openCards[indx]}>
+            aria-expanded={openCards[indx]}
+            >
               <h6 style={{padding: 8, cursor: 'pointer'}}> <b>{getArray("service_map")[appointment.services].name}</b> ({getArray("service_map")[appointment.services].duration} minutes at ${appointment.price}) with <b>{getArray("worker_map")[appointment.workers].name}</b>
 
                 {(openCards[indx]) ?  (<FaAngleUp style={{position: 'absolute', right:  '1%'}}/>) :  (<FaAngleDown style={{position: 'absolute', right:  '1%'}}/>)}
@@ -256,7 +285,7 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
                   options={getArray("serviceOptions")}
                   singleSelect={true}
                   selectedValues={[{text: getArray("service_map")[appointment.services].name, id: appointment.services}]}
-                  onSelect={async (selectedList, selectedItem) => onServiceChange(selectedList, selectedItem, indx)}
+                  onSelect={async (selectedList, selectedItem) => onServiceChange(selectedList, selectedItem, indx, date, appointment.workers)}
                   placeholder="Choose a service..."
                   closeIcon="cancel"
                   displayValue="text"
@@ -269,13 +298,19 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
                   options={getArray("workerOptions")}
                   singleSelect={true}
                   selectedValues={[{text: getArray("worker_map")[appointment.workers].name, id: appointment.workers}]}
-                  onSelect={async (selectedList, selectedItem) => onWorkerChange(selectedList, selectedItem, indx)}
+                  onSelect={async (selectedList, selectedItem) => onWorkerChange(selectedList, selectedItem, indx, date, getArray("service_map")[appointment.services].duration, appointment.services)}
                   placeholder="Choose a stylist..."
                   closeIcon="cancel"
                   displayValue="text"
                   avoidHighlightFirstOption={true}
                   style={{multiselectContainer: { width: '100%'},  groupHeading:{width: 100, maxWidth: 100}, chips: { color: 'white', background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
                 />
+                {console.log(appointmentData.warnings)}
+                {(appointment.warnings && appointment.warnings.includes(0)) ? (<p> WARNING0 </p>) : null}
+                {(appointment.warnings && appointment.warnings.includes(1)) ? (<p> WARNING1 </p>) : null}
+                {(appointment.warnings && appointment.warnings.includes(2)) ? (<p> WARNING2 </p>) : null}
+                {(appointment.warnings && appointment.warnings.includes(3)) ? (<p> WARNING3 </p>) : null}
+
                 <Button  style={{width: 100, marginTop: '5%', color: '#5A7096',  border: 'solid 2px #5A7096', backgroundColor: 'white'}} onClick={() => deleteAppointment(indx)}> Delete </Button>
                 </Form.Group>
                 </Form>
@@ -355,10 +390,10 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
               <Form.Control
                 type="text"
                 name="first_name"
-                value={''}
+                value={appointmentData.first_name}
                 placeholder="First Name"
 
-                // onChange={handleChange}
+                onChange={handleFirstName}
                 // onBlur={handleBlur}
                 // className={touched.first_name && errors.first_name ? "error" : null}
                 />
@@ -375,11 +410,11 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
                   </InputGroup.Text>
               </InputGroup.Prepend>
               <Form.Control type="text"
-              value={''}
+              value={appointmentData.last_name}
               placeholder="Last Name"
               name="last_name"
 
-              // onChange={handleChange}
+              onChange={handleLastName}
               // onBlur={handleBlur}
               // className={touched.last_name && errors.last_name ? "error" : null}
               />
@@ -422,11 +457,11 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
 
            <Form.Control
              type="notes"
-             value={''}
+             value={appointmentData.notes}
              placeholder="Leave a note..."
              name="note"
              style={{height: 80}}
-             // onChange={handleEmailChange}
+             onChange={handleNotes}
 
              // onBlur={handleBlur}
              // className={touched.email && errors.email ? "error" : null}

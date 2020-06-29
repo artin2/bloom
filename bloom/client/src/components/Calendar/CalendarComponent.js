@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Multiselect } from 'multiselect-react-dropdown';
 import { FiSearch} from 'react-icons/fi';
-import { addNewAppointment, deleteAppointment, updateAppointment } from './CalendarHelper.js'
+import { addNewAppointment, deleteAppointment, updateAppointment, deleteAppointmentById } from './CalendarHelper.js'
 import {getArray} from './CalendarPage'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 const state = store.getState();
@@ -26,8 +26,31 @@ const state = store.getState();
         appointments: [],
       }
       this.commitChanges = this.commitChanges.bind(this);
+      this.parseAddedAppointments = this.parseAddedAppointments.bind(this);
     }
 
+    parseAddedAppointments(added, values) {
+
+      // let new_values = Object.assign({}, values);
+      console.log(added)
+      values.appointments = new Array()
+      added.other_appointments.map((appointment) => {
+        values.appointments.push({
+          price: appointment.price,
+          worker_id: appointment.workers,
+          service_id: appointment.services,
+          start_time: appointment.startDate.getHours()*60 + appointment.startDate.getMinutes(),
+          end_time: appointment.startDate.getHours()*60 + appointment.startDate.getMinutes() + appointment.duration,
+          date: appointment.startDate,
+          //or added.startDate
+          warnings: appointment.warnings
+        })
+
+      })
+
+      this.props.addNewAppointment(this.props.store_id, values)
+
+    }
 
     async commitChanges({ added, changed, deleted }) {
 
@@ -55,26 +78,19 @@ const state = store.getState();
           store_id: this.props.store_id,
           email: added.email,
           appointments: [],
-          user_id: null
+          user_id: null,
+          first_name: added.first_name,
+          last_name: added.last_name,
+          notes: added.notes
         }
 
-        added.other_appointments.map((appointment) => {
-          values.appointments.push({
-            price: appointment.price,
-            worker_id: appointment.workers,
-            service_id: appointment.services,
-            start_time: appointment.startDate.getHours()*60 + appointment.startDate.getMinutes(),
-            end_time: appointment.startDate.getHours()*60 + appointment.startDate.getMinutes() + appointment.duration,
-            date: added.startDate
-          })
+        this.parseAddedAppointments(added, values)
 
-        })
-
-        this.props.addNewAppointment(this.props.store_id, values)
       }
 
       if(changed) {
 
+        console.log(changed)
         let selectedAppointments = this.props.appointments;
         let appointment_id = null, id = null;
 
@@ -85,35 +101,54 @@ const state = store.getState();
           return appointment
         });
 
-
         let values = {
           store_id: parseInt(this.props.store_id),
           email: changed[id].email ? changed[id].email : selectedAppointments[appointment_id].email,
           appointments: [],
           user_id: null,
-          group_id: selectedAppointments[appointment_id].group_id
+          group_id: selectedAppointments[appointment_id].group_id,
+          first_name: changed[id].first_name ? changed[id].first_name : selectedAppointments[appointment_id].first_name,
+          last_name: changed[id].last_name ? changed[id].last_name : selectedAppointments[appointment_id].last_name,
+          notes: changed[id].notes ? changed[id].notes : selectedAppointments[appointment_id].notes,
+        }
+        console.log(changed[id].other_appointments)
+
+        if(changed[id].added) {
+          this.parseAddedAppointments({other_appointments: changed[id].other_appointments.splice(changed[id].added[0]), startDate: changed[id].startDate}, Object.assign({}, values))
+        }
+        if(changed[id].deleted) {
+          this.props.deleteAppointmentById(changed[id].deleted, values.group_id)
         }
 
-        let appointments = changed[id].other_appointments ? changed[id].other_appointments : selectedAppointments[appointment_id].other_appointments
+
+        // let appointments = changed[id].other_appointments ? changed[id].other_appointments : selectedAppointments[appointment_id].other_appointments
+
+        if(changed[id].other_appointments) {
+            changed[id].other_appointments.map((appointment, indx) => {
+
+              if(!changed[id].added || (changed[id].added && !changed[id].added.includes(indx))) {
+
+                console.log(indx, appointment, changed[id].added)
+                let startTime = new Date(appointment.startDate)
+                let endTime = new Date(appointment.endDate)
 
 
-            appointments.map((appointment) => {
-
-              let startTime = new Date(appointment.startDate)
-              let endTime = new Date(appointment.endDate)
-
-
-              values.appointments.push({
-                id: appointment.id,
-                price: appointment.price,
-                worker_id: appointment.workers,
-                service_id: appointment.services,
-                start_time: startTime.getHours()*60 + startTime.getMinutes(),
-                end_time: (!appointment.duration) ? endTime.getHours()*60 + endTime.getMinutes() : startTime.getHours()*60 + startTime.getMinutes() + appointment.duration,
-                date: appointment.startDate,
-              })
+                values.appointments.push({
+                  id: appointment.id,
+                  price: appointment.price,
+                  worker_id: appointment.workers,
+                  service_id: appointment.services,
+                  start_time: startTime.getHours()*60 + startTime.getMinutes(),
+                  end_time: (!appointment.duration) ? endTime.getHours()*60 + endTime.getMinutes() : startTime.getHours()*60 + startTime.getMinutes() + appointment.duration,
+                  date: appointment.startDate,
+                  warnings: appointment.warnings
+                })
+              }
             })
+        }
 
+
+        console.log(values)
         this.props.updateAppointment(this.props.store_id, values)
       }
 
@@ -179,7 +214,6 @@ const state = store.getState();
 
            />
 
-           <DragDropProvider/>
           </Scheduler>
           </Paper>
         )
@@ -190,7 +224,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
 
   updateAppointment: (store_id, values) => updateAppointment(store_id, values),
   deleteAppointment: (group_id) => deleteAppointment(group_id),
-  addNewAppointment: (store_id, values) => addNewAppointment(store_id, values)
+  addNewAppointment: (store_id, values) => addNewAppointment(store_id, values),
+  deleteAppointmentById: (deleted, group_id) => deleteAppointmentById(deleted, group_id)
 }, dispatch)
 
 
