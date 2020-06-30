@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import { FaEdit, FaHourglassHalf, FaDollarSign } from 'react-icons/fa';
 import {Carousel, Image, Card } from 'react-bootstrap'
 import { getPictures, defaultServicePictures } from '../s3'
-import pluralize from '../helperFunctions'
+import { pluralize } from '../helperFunctions'
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 import { connect } from 'react-redux';
