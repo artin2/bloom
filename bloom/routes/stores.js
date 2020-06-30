@@ -1510,17 +1510,19 @@ async function insertAppointments(req, res, group_id) {
   // Below is for scoping issues. Res is undefined below
   let resp = res
   let request = req
+
   if (appointments.length > 0) {
     let storeId = req.params.store_id
       ; (async (req, res) => {
         const hourDb = await db.client.connect();
-        let appoint
+        let appoint = []
         try {
           await hourDb.query("BEGIN");
           let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *;'
           for (let i = 0; i < appointments.length; i++) {
+            console.log("HERE: ", appointments[i])
             let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email]
-            appoint = await hourDb.query(query, values);
+            appoint.push((await hourDb.query(query, values)).rows[0]);
           }
           await hourDb.query("COMMIT");
         } catch (e) {
@@ -1549,8 +1551,8 @@ async function insertAppointments(req, res, group_id) {
 
               await email.bookingConfirmation(params)
 
-              console.log(appoint.rows)
-              helper.querySuccess(resp, {group_id: group_id, appointment: appoint.rows[0]}, 'Successfully added appointment!');
+              console.log("ROWS", appoint)
+              helper.querySuccess(resp, {group_id: group_id, appointment: appoint}, 'Successfully added appointment!');
             } catch (error) {
               helper.queryError(resp, "Unable to send confirmation email!");
             }
