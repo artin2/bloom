@@ -105,7 +105,7 @@ export function deleteAppointment(group_id) {
 }
 
 export function deleteAppointmentById(values, group_id) {
-  console.log("BAAAA")
+
   return dispatch => {
 
     fetch(fetchDomain + '/appointments/delete/' + group_id, {

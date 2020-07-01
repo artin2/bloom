@@ -39,7 +39,7 @@ function calendarReducer(state = initialState, action) {
     case DELETE_APPOINTMENT_BY_ID_SUCCESS:
 
         let deleted_appointments = Object.assign({}, state.appointments);
-        console.log(action.appointment)
+        // console.log(action.appointment)
 
         deleted_appointments.appointments = deleted_appointments.appointments.filter(function(appointment) {
           if(!action.appointment.deleted.includes(appointment.id)) {
@@ -53,14 +53,14 @@ function calendarReducer(state = initialState, action) {
           }
         });
 
-        console.log(deleted_appointments)
+        // console.log(deleted_appointments)
         return Object.assign({}, state, {
           appointments: deleted_appointments
     })
 
     case UPDATE_APPOINTMENT_SUCCESS:
 
-      console.log(action.appointment.appointment)
+      // console.log(action.appointment.appointment)
       let updated_appointments = Object.assign({}, state.appointments);
 
       let all_added_ids = action.appointment.appointment.map((app) => app.id)

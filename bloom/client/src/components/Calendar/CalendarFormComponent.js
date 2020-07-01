@@ -8,6 +8,7 @@ import { Multiselect } from 'multiselect-react-dropdown';
 import {getArray} from './CalendarPage'
 import InputGroup from 'react-bootstrap/InputGroup'
 import { FaEnvelope, FaUser, FaAngleDown, FaAngleUp} from 'react-icons/fa';
+import {AiFillWarning} from 'react-icons/ai'
 
 const state = store.getState();
 
@@ -165,7 +166,6 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
     let new_apps = appointmentData.other_appointments
     let warnings = ifTimeValid(appointmentData.startDate, duration, appointmentData.services, appointmentData.workers)
 
-    console.log(warnings)
     let added = {startDate: appointmentData.startDate, price: price, duration: duration, services: appointmentData.services, workers: appointmentData.workers, warnings: warnings}
     let added_id = appointmentData.added
     let len = new_apps ? new_apps.length : 0;
@@ -232,7 +232,6 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
        new_apps[index].startDate = newDate
        let endTime = timeConvert(parseInt(value) + parseInt(duration))
        new_apps[index].warnings = ifTimeValid(newDate, duration, service, worker)
-       console.log(new_apps[index].warnings)
        new_apps[index].endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endTime[0], endTime[1])
        onFieldChange({ other_appointments: new_apps });
 
@@ -245,7 +244,7 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
      }
 
    }
-   console.log(appointmentData)
+
   return (
 
     <Container >
@@ -259,15 +258,19 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
       {appointmentData.other_appointments ? appointmentData.other_appointments.map((appointment, indx) => (
 
         <Col style={{border: '0.5px solid #DCDCDC', borderRadius: 3}} key={indx}>
-          <Col style={{height: 35, color: (appointment.warnings.length>0) ? 'yellow' : 'black'}} onClick={updateCollapse(indx)}
+          <Col style={{height: 35, color: (appointment.warnings && appointment.warnings.length>0) ? '#ffcc00' : 'black'}} onClick={updateCollapse(indx)}
             aria-controls="example-collapse-text"
             aria-expanded={openCards[indx]}
             >
-              <h6 style={{padding: 8, cursor: 'pointer'}}> <b>{getArray("service_map")[appointment.services].name}</b> ({getArray("service_map")[appointment.services].duration} minutes at ${appointment.price}) with <b>{getArray("worker_map")[appointment.workers].name}</b>
+
+              <h6 style={{padding: 8, cursor: 'pointer'}}>
+              {(appointment.warnings && appointment.warnings.length>0) ? (<AiFillWarning style={{position: 'absolute', left:  '1%'}}/>) : null}
+               <b>{getArray("service_map")[appointment.services].name}</b> ({getArray("service_map")[appointment.services].duration} minutes at ${appointment.price}) with <b>{getArray("worker_map")[appointment.workers].name}</b>
 
                 {(openCards[indx]) ?  (<FaAngleUp style={{position: 'absolute', right:  '1%'}}/>) :  (<FaAngleDown style={{position: 'absolute', right:  '1%'}}/>)}
 
               </h6>
+
           </Col>
           <Collapse in={openCards[indx]} style={{margin: '3%', marginBottom: '5%'}}>
 
@@ -305,12 +308,12 @@ export const BasicLayout = ({ appointmentData, onFieldChange, groups,
                   avoidHighlightFirstOption={true}
                   style={{multiselectContainer: { width: '100%'},  groupHeading:{width: 100, maxWidth: 100}, chips: { color: 'white', background: "#587096", height: 35 }, inputField: {color: 'black'}, searchBox: { minWidth: '100%', height: '30', backgroundColor: 'white', borderRadius: "5px" }} }
                 />
-                {console.log(appointmentData.warnings)}
-                {(appointment.warnings && appointment.warnings.includes(0)) ? (<p> WARNING0 </p>) : null}
-                {(appointment.warnings && appointment.warnings.includes(1)) ? (<p> WARNING1 </p>) : null}
-                {(appointment.warnings && appointment.warnings.includes(2)) ? (<p> WARNING2 </p>) : null}
-                {(appointment.warnings && appointment.warnings.includes(3)) ? (<p> WARNING3 </p>) : null}
-
+                <Col style={{marginTop: '5%', color: '#ffcc00'}}>
+                {(appointment.warnings && appointment.warnings.includes(0)) ? (<p> This appointment is outside of your store hours. Please pick another time/day. </p>) : null}
+                {(appointment.warnings && appointment.warnings.includes(1)) ? (<p> {getArray("worker_map")[appointment.workers].name} does not work during this time, please pick another stylist. </p>) : null}
+                {(appointment.warnings && appointment.warnings.includes(2)) ? (<p> This appointment conflicts with another appointment. Change the time or stylist to avoid the double-booking. </p>) : null}
+                {(appointment.warnings && appointment.warnings.includes(3)) ? (<p> {getArray("worker_map")[appointment.workers].name} does not offer {getArray("service_map")[appointment.services].name} please pick another stylist or service. </p>) : null}
+                </Col>
                 <Button  style={{width: 100, marginTop: '5%', color: '#5A7096',  border: 'solid 2px #5A7096', backgroundColor: 'white'}} onClick={() => deleteAppointment(indx)}> Delete </Button>
                 </Form.Group>
                 </Form>

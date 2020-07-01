@@ -31,8 +31,6 @@ const state = store.getState();
 
     parseAddedAppointments(added, values) {
 
-      // let new_values = Object.assign({}, values);
-      console.log(added)
       values.appointments = new Array()
       added.other_appointments.map((appointment) => {
         values.appointments.push({
@@ -90,7 +88,7 @@ const state = store.getState();
 
       if(changed) {
 
-        console.log(changed)
+
         let selectedAppointments = this.props.appointments;
         let appointment_id = null, id = null;
 
@@ -111,7 +109,6 @@ const state = store.getState();
           last_name: changed[id].last_name ? changed[id].last_name : selectedAppointments[appointment_id].last_name,
           notes: changed[id].notes ? changed[id].notes : selectedAppointments[appointment_id].notes,
         }
-        console.log(changed[id].other_appointments)
 
         if(changed[id].added) {
           this.parseAddedAppointments({other_appointments: changed[id].other_appointments.splice(changed[id].added[0]), startDate: changed[id].startDate}, Object.assign({}, values))
@@ -128,7 +125,7 @@ const state = store.getState();
 
               if(!changed[id].added || (changed[id].added && !changed[id].added.includes(indx))) {
 
-                console.log(indx, appointment, changed[id].added)
+                // console.log(indx, appointment, changed[id].added)
                 let startTime = new Date(appointment.startDate)
                 let endTime = new Date(appointment.endDate)
 
@@ -148,7 +145,7 @@ const state = store.getState();
         }
 
 
-        console.log(values)
+        // console.log(values)
         this.props.updateAppointment(this.props.store_id, values)
       }
 
