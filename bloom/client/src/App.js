@@ -19,7 +19,6 @@ import redirectWithoutAuth from './components/redirectWithoutAuth';
 import redirectWithAuth from './components/redirectWithAuth';
 import redirectWithPreviousReviewOrNoAppt from './components/redirectWithPreviousReviewOrNoAppt';
 import EditProfileForm from './components/User/EditProfileForm';
-import Cookies from 'js-cookie';
 import Profile from './components/User/Profile';
 import UserStoresDashboard from './components/Store/UserStoresDashboard';
 import AddWorkerForm from './components/Worker/AddWorkerForm';
@@ -31,23 +30,13 @@ import ServiceDisplay from './components/Service/ServiceDisplay';
 import ServiceEditForm from './components/Service/ServiceEditForm';
 import ReviewForm from './components/Review/ReviewForm';
 import AppointmentDisplay from './components/Appointments/AppointmentDisplay';
-import {
-  userLogout
-} from './redux/actions/user'
-import store from './redux/store';
+import { handleLogout } from '../src/components/helperFunctions';
 import UserAppointments from './components/Appointments/UserAppointments';
 import NotFoundPage from './components/StaticPages/NotFoundPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
-  function handleLogout() {
-    Cookies.remove("token");
-    Cookies.remove("user"); // don't think we need any cookies anymore now that redux persists to local storage for us...
-    store.dispatch(userLogout())
-    window.location.href='/'
-  }
-
   return (
     <div className="App">
       <Router>

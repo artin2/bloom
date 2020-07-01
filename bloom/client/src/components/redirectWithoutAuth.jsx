@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import store from '../redux/store';
+import { handleLogout } from './helperFunctions';
 
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -51,6 +52,7 @@ export default function redirectWithoutAuth(ComponentToProtect) {
           credentials: 'include'
         }).then(res => {
           if (res.status === 200) {
+            console.log("checked token!")
             // verified user is logged in and has a valid token
             // if they are trying to access private data, make sure it is the correct user
             if(this.props.match.params.user_id){
@@ -80,6 +82,11 @@ export default function redirectWithoutAuth(ComponentToProtect) {
             }
             this.setState({ loading: false });
           } else {
+            let user = store.getState().userReducer.user
+            if(!(Object.keys(user).length === 0 && user.constructor === Object)){
+              handleLogout(false, false);
+            }
+            
             const error = new Error(res.error);
             throw error;
           }

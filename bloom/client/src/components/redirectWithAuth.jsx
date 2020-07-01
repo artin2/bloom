@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
+import store from '../redux/store';
+import { handleLogout } from './helperFunctions';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 export default function redirectWithAuth(ComponentToProtect, addAlert) {
@@ -20,8 +22,14 @@ export default function redirectWithAuth(ComponentToProtect, addAlert) {
         credentials: 'include'
       }).then(res => {
           if (res.status === 200) {
+            console.log("here!")
             this.setState({ loading: false, redirect: true });
           } else {
+            let user = store.getState().userReducer.user
+            if(!(Object.keys(user).length === 0 && user.constructor === Object)){
+              console.log("here", store.getState())
+              handleLogout(false, false);
+            }
             this.setState({ loading: false, redirect: false });
           }
         })

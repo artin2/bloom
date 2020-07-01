@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import store from '../redux/store';
+import { handleLogout } from './helperFunctions';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 export default function redirectWithPreviousReviewOrNoAppt(ComponentToProtect, addAlert) {
@@ -38,7 +40,12 @@ export default function redirectWithPreviousReviewOrNoAppt(ComponentToProtect, a
         });
       }
       else{
-        console.log("no token")
+        let user = store.getState().userReducer.user
+        if(!(Object.keys(user).length === 0 && user.constructor === Object)){
+          console.log("here", store.getState())
+          handleLogout(false, false);
+        }
+
         this.setState({ loading: false, redirect: true})
       }
     }

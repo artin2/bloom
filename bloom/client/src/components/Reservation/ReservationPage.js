@@ -17,7 +17,7 @@ import { bindActionCreators } from 'redux';
 import { getWorkerSchedules, getWorkers } from '../Worker/WorkerHelper.js'
 import { getServices } from '../Service/ServiceHelper.js'
 import { getStore, getStoreHours } from '../Store/StoreHelper'
-import pluralize from '../helperFunctions'
+import { pluralize } from '../helperFunctions'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 const override = css`
