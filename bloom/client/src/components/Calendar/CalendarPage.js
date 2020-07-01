@@ -76,7 +76,9 @@ class Calendar extends React.Component {
 
       this.props.appointments.appointments.map((appointment, index) => {
         // if this is the store's calendar or if this is the worker's calendar and the worker's appointment
-        if(!this.props.id || (this.props.id && appointment.worker_id === this.props.id)) {
+
+        console.log(this.props.id)
+        if((!this.props.id && !this.props.match.params.user_id) || (this.props.match.params.user_id && this.props.match.params.user_id == appointment.worker_id) || (this.props.id && appointment.worker_id === this.props.id)) {
 
           appointments.push({
             id: appointment.id,
@@ -240,7 +242,7 @@ class Calendar extends React.Component {
 
   render() {
 
-
+    console.log(this.props.role)
     let name = (this.props.role) ? this.props.role : "your";
     name = name.charAt(0).toUpperCase() + name.slice(1);
 
@@ -280,7 +282,7 @@ class Calendar extends React.Component {
 
             ) : null}
 
-            <CalendarComponent store_id={this.state.store_id} appointments={this.state.selectedAppointments}/>
+            <CalendarComponent store_id={this.state.store_id} appointments={this.state.selectedAppointments} role={this.props.role}/>
           </Col>
         </Row>
       </Container>

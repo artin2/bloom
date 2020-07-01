@@ -77,7 +77,7 @@ function calendarReducer(state = initialState, action) {
         }
       })
 
-      console.log(updated_appointments.groups[action.appointment.group_id])
+      // console.log(updated_appointments.groups[action.appointment.group_id])
 
       // updated_appointments.groups[action.appointment.group_id].map((appointment) => {
       //   if(appointment.id == )
@@ -162,7 +162,7 @@ function calendarReducer(state = initialState, action) {
         }
 
     })
-    console.log(appointments)
+    // console.log(appointments)
     return Object.assign({}, state, {
       appointments: appointments
     })

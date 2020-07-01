@@ -152,7 +152,7 @@ const state = store.getState();
     }
 
     render() {
-
+      
       return (
 
           <Paper className="react-calendar">
@@ -205,11 +205,12 @@ const state = store.getState();
            showOpenButton
            // contentComponent={AppointmentTooltipContent}
            />
-           <AppointmentForm
-           isRecurrence={false}
-           basicLayoutComponent={BasicLayout}
+           {(this.props.role) ? null : (
+             <AppointmentForm
+             isRecurrence={false}
+             basicLayoutComponent={BasicLayout}
+           />)}
 
-           />
 
           </Scheduler>
           </Paper>
