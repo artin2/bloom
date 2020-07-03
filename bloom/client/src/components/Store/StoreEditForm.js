@@ -504,6 +504,9 @@ class StoreEditForm extends React.Component {
                     ) : null}
 
                   <h4>Store Hours</h4>
+                  <p style={{fontStyle: "italic", fontSize: "14px", color: "coral"}}>Note: Changing hours may lead to appointments outside of new hours that remain scheduled
+                    unless canceled manually.
+                  </p>
 
                   <Form.Group className="text-left" controlId="formHoursMonday">
                     <h5>Monday</h5>

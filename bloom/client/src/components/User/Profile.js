@@ -35,7 +35,7 @@ class Profile extends React.Component {
         // services: []
       },
       loading: true,
-      userHours: [],
+      workerHours: [],
       picture: null,
       // receivedServices: [],
       selectedOption: [],
@@ -48,7 +48,7 @@ class Profile extends React.Component {
   }
 
   updateUser = (user, newHours, services) => {
-    let updateHours = this.state.userHours.map((dayHours, index) =>{
+    let updateHours = this.state.workerHours.map((dayHours, index) =>{
       if(newHours[index] != null) {
         return newHours[index]
       } else {
@@ -57,14 +57,14 @@ class Profile extends React.Component {
     })
     this.setState({
       user: user,
-      userHours: updateHours,
+      workerHours: updateHours,
       // receivedServices: services
     })
   }
 
   updateWorkerHours = (newHours) => {
     this.setState({
-      userHours: newHours
+      workerHours: newHours
     })
   }
 
@@ -113,60 +113,82 @@ class Profile extends React.Component {
       console.log("Error getting pictures from s3!", e)
     }
 
-    let store_id = this.props.user.store_id;
-    let worker_id = this.props.user.worker_id;
+  
     if (this.props.user && this.props.user.role === '2' && (this.props.user.store_id && this.props.user.worker_id)) {
       // let convertedServices = this.props.location.state.worker.services.map((service) => ({ value: service, label: this.state.serviceMapping[service] }));
       Promise.all([
-        fetch(fetchDomain + '/stores/' + store_id + '/workers/' + worker_id + '/hours', {
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id, {
           method: "GET",
           headers: {
             'Content-type': 'application/json'
           },
           credentials: 'include'
         }).then(value => value.json()),
-        fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id + '/workers/' + this.props.user.worker_id + '/hours', {
           method: "GET",
           headers: {
             'Content-type': 'application/json'
           },
           credentials: 'include'
-        }).then(value => value.json())
+        }).then(value => value.json()),
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id + "/storeHours", {
+          method: "GET",
+          headers: {
+            'Content-type': 'application/json'
+          },
+          credentials: 'include'
+        }).then(value => value.json()),
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id + '/workers/' + this.props.user.worker_id, {
+          method: "GET",
+          headers: {
+            'Content-type': 'application/json'
+          },
+          credentials: 'include'
+        }).then(value => value.json()),
       ]).then(allResponses => {
-        let receivedWorkerHours = allResponses[1].map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
-        if (allResponses[0] && allResponses[0].length === 7) {
-          receivedWorkerHours = allResponses[0]
+        let receivedWorkerHours = allResponses[2].map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
+        if (allResponses[1] && allResponses[1].length === 7) {
+          receivedWorkerHours = allResponses[1]
         } else {
           this.setState({
-            newHours: receivedWorkerHours
+            newHours: receivedWorkerHours,
           })
         }
         this.setState({
           user: this.props.user,
           // receivedServices: this.props.location.state.worker.services,
-          storeHours: allResponses[1],
-          userHours: receivedWorkerHours,
+          storeHours: allResponses[2],
+          worker: allResponses[3],
+          store: allResponses[0],
+          workerHours: receivedWorkerHours,
           loading: false
         })
       })
     }
     else if(this.props.user.role === '2'  && (this.props.user.store_id && this.props.user.worker_id)) {
       Promise.all([
-        fetch(fetchDomain + '/stores/' + store_id + '/workers/' + worker_id, {
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id, {
           method: "GET",
           headers: {
             'Content-type': 'application/json'
           },
           credentials: 'include'
         }).then(value => value.json()),
-        fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id + '/workers/' + this.props.user.worker_id, {
           method: "GET",
           headers: {
             'Content-type': 'application/json'
           },
           credentials: 'include'
         }).then(value => value.json()),
-        fetch(fetchDomain + '/stores/' + store_id + '/workers/' + worker_id + '/hours', {
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id + "/storeHours", {
+          method: "GET",
+          headers: {
+            'Content-type': 'application/json'
+          },
+          credentials: 'include'
+        }).then(value => value.json()),
+        fetch(fetchDomain + '/stores/' + this.props.user.store_id + '/workers/' + this.props.user.worker_id + '/hours', {
           method: "GET",
           headers: {
             'Content-type': 'application/json'
@@ -174,23 +196,25 @@ class Profile extends React.Component {
           credentials: 'include'
         }).then(value => value.json())
       ]).then(allResponses => {
-        let convertedServices = allResponses[0].services.map((service) => ({ value: service, label: this.state.serviceMapping[service] }));
-        let receivedWorkerHours = allResponses[1].map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
+        let convertedServices = allResponses[1].services.map((service) => ({ value: service, label: this.state.serviceMapping[service] }));
+        let receivedWorkerHours = allResponses[2].map((day) => ({ start_time: day.open_time, end_time: day.close_time }));
 
         // If worker hours are not complete, we default them to store hours. Worker hours should be complete though.
-        if (allResponses[2] && allResponses[2].length === 7) {
-          receivedWorkerHours = allResponses[2]
+        if (allResponses[3] && allResponses[3].length === 7) {
+          receivedWorkerHours = allResponses[3]
         } else {
           this.setState({
-            newHours: receivedWorkerHours
+            newHours: receivedWorkerHours,
           })
         }
         this.setState({
           user: allResponses[0],
           // receivedServices: allResponses[0].services,
           selectedOption: convertedServices,
-          storeHours: allResponses[1],
-          userHours: receivedWorkerHours,
+          storeHours: allResponses[2],
+          worker: allResponses[1],
+          store: allResponses[0],
+          workerHours: receivedWorkerHours,
           loading: false
         })
       })
@@ -206,9 +230,9 @@ class Profile extends React.Component {
   render() {
     const ListWorkingHours = () => {
       let items = [];
-      for (let i = 0; i < this.state.userHours.length; i++) {
-        if (this.state.userHours[i].start_time != null) {
-          items.push(<Col sm="11" md="10" key={i}><ListGroup.Item className="px-0">{this.state.daysOfWeek[i]}: {convertMinsToHrsMins(this.state.userHours[i].start_time)}-{convertMinsToHrsMins(this.state.userHours[i].end_time)}</ListGroup.Item></Col>);
+      for (let i = 0; i < this.state.workerHours.length; i++) {
+        if (this.state.workerHours[i].start_time != null) {
+          items.push(<Col sm="11" md="10" key={i}><ListGroup.Item className="px-0">{this.state.daysOfWeek[i]}: {convertMinsToHrsMins(this.state.workerHours[i].start_time)}-{convertMinsToHrsMins(this.state.workerHours[i].end_time)}</ListGroup.Item></Col>);
         }
         else {
           items.push(<Col sm="11" md="10" key={i}><ListGroup.Item className="px-0">{this.state.daysOfWeek[i]}: Off</ListGroup.Item></Col>);
@@ -226,7 +250,7 @@ class Profile extends React.Component {
       } else if(this.state.choice === 2) {
         return <EditProfileForm updateProfileContent={this.updateProfileContent} picture={this.state.picture}/>
       } else {
-        return <WorkerEditForm updateWorkerHours={this.updateWorkerHours} store_id={this.props.user.store_id} worker_id={this.props.user.worker_id}/>
+        return <WorkerEditForm worker={this.state.worker} store={this.state.store} workerHours={this.state.workerHours} storeHours={this.state.storeHours}/>
       }
     }
 
