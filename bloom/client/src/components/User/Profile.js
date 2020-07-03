@@ -8,7 +8,6 @@ import './LoginForm.css'
 import Calendar from '../Calendar/CalendarPage'
 import EditProfileForm from './EditProfileForm';
 import GridLoader from 'react-spinners/GridLoader'
-import WorkerEditForm from '../Worker/WorkerEditForm';
 import { getPictures } from '../s3'
 import './Profile.css'
 import workerImage from '../../assets/worker.png'
@@ -43,29 +42,7 @@ class Profile extends React.Component {
       choice: 0,
       daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     }
-    this.updateWorkerHours = this.updateWorkerHours.bind(this);
     this.updateProfileContent = this.updateProfileContent.bind(this);
-  }
-
-  updateUser = (user, newHours, services) => {
-    let updateHours = this.state.workerHours.map((dayHours, index) =>{
-      if(newHours[index] != null) {
-        return newHours[index]
-      } else {
-        return dayHours
-      }
-    })
-    this.setState({
-      user: user,
-      workerHours: updateHours,
-      // receivedServices: services
-    })
-  }
-
-  updateWorkerHours = (newHours) => {
-    this.setState({
-      workerHours: newHours
-    })
   }
 
   updateProfileContent = async (newPicture, newFirst, newLast) => {
@@ -249,8 +226,6 @@ class Profile extends React.Component {
         return <p>Past Appointments go here....</p>
       } else if(this.state.choice === 2) {
         return <EditProfileForm updateProfileContent={this.updateProfileContent} picture={this.state.picture}/>
-      } else {
-        return <WorkerEditForm worker={this.state.worker} store={this.state.store} workerHours={this.state.workerHours} storeHours={this.state.storeHours}/>
       }
     }
 
@@ -304,7 +279,6 @@ class Profile extends React.Component {
                 <Nav.Link eventKey="link-0" active={this.state.choice === 0} onClick={() => this.updateContent(0)}>Calendar</Nav.Link>
                 <Nav.Link eventKey="link-1" active={this.state.choice === 1} onClick={() => this.updateContent(1)}>Past Appointments</Nav.Link>
                 <Nav.Link eventKey="link-2" active={this.state.choice === 2}  onClick={() => this.updateContent(2)}>Edit Profile</Nav.Link>
-                <Nav.Link eventKey="link-3" active={this.state.choice === 3}  onClick={() => this.updateContent(3)}>Edit Working Hours</Nav.Link>
               </Nav>
             </div>
             {/* <!-- END MENU --> */}

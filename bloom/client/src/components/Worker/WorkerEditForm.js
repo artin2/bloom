@@ -18,6 +18,7 @@ import { withRouter } from "react-router"
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { editWorker } from './WorkerHelper.js'
+import { toast } from 'react-toastify'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 const override = css`
   display: block;
@@ -130,8 +131,6 @@ class WorkerEditForm extends React.Component {
   };
 
   componentDidMount() {
-    console.log("props are", this.props)
-    let owner = this.props.store.owners.includes(JSON.parse(Cookies.get('user').substring(2)).user_id)
 
       let workerHours = this.props.workerHours
       let storeHours = this.props.storeHours
@@ -149,12 +148,10 @@ class WorkerEditForm extends React.Component {
           storeWeekIsWorking[i] = false
         }
       }
-      console.log("herererer", oldWeekIsWorking, storeWeekIsWorking, JSON.parse(JSON.stringify(workerHours)), owner)
       this.setState({
         weekIsWorking: oldWeekIsWorking,
         storeWeekIsWorking: storeWeekIsWorking,
         originalWorkerHours: JSON.parse(JSON.stringify(workerHours)),
-        owner: owner,
         loading: false
       },
       () => console.log("STATE IS", this.state))
@@ -325,19 +322,11 @@ class WorkerEditForm extends React.Component {
                   }
                 })
 
-                console.log("going to edit the worker!", store_id, worker_id, values)
-
                 this.props.editWorker(store_id, worker_id, values)
 
-                if(this.props.match.params.user_id){
-                  this.props.history.push({
-                    pathname: '/users/' + this.props.match.params.user_id
-                  })
-                }else{
-                  this.props.history.push({
-                    pathname: '/stores/' + store_id + '/workers/' + worker_id
-                  })
-                }
+                this.props.history.push({
+                  pathname: '/stores/' + store_id + '/workers/' + worker_id
+                })
 
               }}
             >
@@ -349,7 +338,7 @@ class WorkerEditForm extends React.Component {
                 handleSubmit,
                 setFieldValue }) => (
                   <Form className="rounded">
-                    <h3>Edit Worker Hours</h3>
+                    <h3>Edit Hours</h3>
                     <p style={{fontStyle: "italic", fontSize: "14px", color: "coral"}}>Note: Changing hours may lead to appointments outside of new hours that remain scheduled
                       unless canceled manually.
                     </p>
