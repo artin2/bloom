@@ -2,11 +2,11 @@ import { GET_WORKER_OPTIONS_SUCCESS, WORKER_FETCHING, WORKER_FAILURE, ADD_WORKER
   EDIT_WORKER_SUCCESS, GET_WORKER_SUCCESS, UPDATE_CURRENT_WORKER, WORKER_SCHEDULE_SUCCESS } from "../actions/worker"
 
 const initialState = {
-  workers: [],
-  worker: [],
+  workers: null,
+  worker: null,
   isFetching: false,
-  error: '',
-  workerSchedules: []
+  error: null,
+  workerSchedules: null
 }
 
 function workerReducer(state = initialState, action) {
@@ -39,7 +39,13 @@ function workerReducer(state = initialState, action) {
 
     case ADD_WORKER_SUCCESS:
       let newWorkers = state.workers;
-      newWorkers.push(action.worker);
+      if(newWorkers !== null){
+        newWorkers.push(action.worker);
+      }
+      else{
+        newWorkers = [action.worker];
+      }
+  
       return Object.assign({}, state, {
         worker: action.worker,
         workers: newWorkers
@@ -47,7 +53,13 @@ function workerReducer(state = initialState, action) {
 
     case EDIT_WORKER_SUCCESS:
       let updatedWorkers = state.workers.filter(worker => worker.id != action.worker.id);
-      updatedWorkers.push(action.worker);
+      if(updatedWorkers !== null){
+        updatedWorkers.push(action.worker);
+      }
+      else{
+        updatedWorkers = [action.worker];
+      }
+
       return Object.assign({}, state, {
         worker: action.worker,
         workers: updatedWorkers

@@ -1,13 +1,13 @@
 import { SEARCH_SUCCESS, SEARCH_FAILURE, SEARCH_FETCHING, UPDATE_SELECTED_STORE, GET_WORKERS, GET_SERVICES } from "../actions/search"
 
 const initialState = {
-  stores: {},
-  error: {},
+  stores: null,
+  error: null,
   isFetching: false,
-  center: {},
-  store: {},
-  workers: [],
-  services: []
+  center: null,
+  store: null,
+  workers: null,
+  services: null
 }
 
 function searchReducer(state = initialState, action) {

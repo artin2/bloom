@@ -1,9 +1,9 @@
 import { APPOINTMENT_FAILURE, ADD_APPOINTMENT_SUCCESS, GET_APPOINTMENT_SUCCESS } from "../actions/reservation"
 
 const initialState = {
-  appointment: {},
-  error: '',
-  appointments: []
+  appointment: null,
+  error: null,
+  appointments: null
 }
 
 function reservationReducer(state = initialState, action) {

@@ -1,9 +1,9 @@
 import { APPOINTMENT_FAILURE, DELETE_APPOINTMENT_SUCCESS, GET_APPOINTMENT_SUCCESS, GET_APPOINTMENTS_SUCCESS} from "../actions/appointment"
 
 const initialState = {
-  appointment: {},
-  error: '',
-  appointments: [],
+  appointment: null,
+  error: null,
+  appointments: null,
   deleted: false
 }
 

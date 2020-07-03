@@ -79,12 +79,12 @@ class UserStoresDashboard extends React.Component {
 
   componentDidMount() {
 
-    // if(!this.props.stores) {
+    if(!this.props.stores) {
       this.props.getStores(this.props.match.params.user_id)
-    // }
-    // else {
+    }
+    else {
       this.fetchPictures(this.props.stores)
-    // }
+    }
 
   }
 

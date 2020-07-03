@@ -77,16 +77,16 @@ export function getStore(store_id, mode) {
       })
       .then(async data => {
         if (data) {
-          // data.storeHours = await getStoreHours(data.id)
-          // console.log("store hours is:", data.storeHours)
+          data.storeHours = await getStoreHoursInternal(data.id)
+          console.log("store hours is:", data.storeHours)
 
-          // if (mode == "search") {
-          //   dispatch(updateSelectedStore(data))
-          // }
-          // else {
-          //   console.log("!!!!!@#!@#!@#!@#", data)
-          //   dispatch(updateCurrentStore(data))
-          // }
+          if (mode == "search") {
+            dispatch(updateSelectedStore(data))
+          }
+          else {
+            console.log("!!!!!@#!@#!@#!@#", data)
+            dispatch(updateCurrentStore(data))
+          }
 
           return data
 
@@ -153,7 +153,7 @@ export function editStore(store_id, values) {
       .then(async data => {
         if (data) {
 
-          data.storeHours = await getStoreHours(store_id)
+          data.storeHours = await getStoreHoursInternal(store_id)
           dispatch(editStoreSuccess(data))
           return data
         }
@@ -191,3 +191,35 @@ export function addStore(store_id, values) {
       })
   }
 }
+
+// INTERNAL FUNCTIONS
+
+function getStoreHoursInternal(store_id) {
+    console.log("getting store hours")
+    return fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
+        method: "GET",
+        headers: {
+          'Content-type': 'application/json'
+        },
+        credentials: 'include'
+      })
+        .then(function (response) {
+          if (response.status !== 200) {
+            // throw an error alert
+            failureToast(response.statusText)
+            // dispatch(storesFailure(response))
+            // return response.json()
+          }
+          else {
+            return response.json();
+          }
+        })
+        .then(data => {
+          // on successful retrieval of store data, map worker's potential valid hours accordingly
+          if (data) {
+            console.log("data is: ", data)
+            // dispatch(storeHoursSuccess(data))
+            return data;
+          }
+        });
+  }

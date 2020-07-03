@@ -1,8 +1,8 @@
 import { USER_LOGIN_SUCCESS, USER_LOGIN_FAILURE, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAILURE, USER_LOGOUT, EDIT_USER_SUCCESS, UPDATE_ROLE } from "../actions/user"
 
 const initialState = {
-  user: {},
-  error: {},
+  user: null,
+  error: null,
 }
 
 function userReducer(state = initialState, action) {

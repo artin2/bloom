@@ -41,7 +41,7 @@ export default function redirectWithPreviousReviewOrNoAppt(ComponentToProtect, a
       }
       else{
         let user = store.getState().userReducer.user
-        if(!(Object.keys(user).length === 0 && user.constructor === Object)){
+        if(!(user && Object.keys(user).length === 0 && user.constructor === Object)){
           console.log("here", store.getState())
           handleLogout(false, false);
         }

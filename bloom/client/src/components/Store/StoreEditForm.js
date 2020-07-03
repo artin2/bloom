@@ -254,20 +254,17 @@ class StoreEditForm extends React.Component {
     //   this.convertCategory()
     //   this.fetchPictures()
     // }
-
-    const google = window.google;
-    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
-    this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
   }
 
-  componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps) {
 
     if(this.props.store !== prevProps.store) {
 
       this.setState({store: this.props.store})
       this.convertStoreHours(this.props.store.storeHours)
       this.convertCategory()
-      this.fetchPictures(this.props.store)
+      await this.fetchPictures(this.props.store)
+      this.setUpAutocomplete()
     }
 
     if(this.props.stores !== prevProps.stores) {
@@ -277,8 +274,14 @@ class StoreEditForm extends React.Component {
 
   }
 
-  convertStoreHours(storeHours) {
+  setUpAutocomplete() {
+    const google = window.google;
+    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
+    this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
+  }
 
+  convertStoreHours(storeHours) {
+    console.log("store hours is", storeHours)
     let oldWeekIsWorking = this.state.weekIsWorking
 
     for(let i = 0; i < storeHours.length; i++){

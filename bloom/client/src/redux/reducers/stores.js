@@ -1,10 +1,10 @@
 import { ADD_STORE_SUCCESS, GET_STORES_SUCCESS, STORES_FAILURE, STORES_FETCHING, STORE_HOURS_SUCCESS, UPDATE_CURRENT_STORE, EDIT_STORE_SUCCESS } from "../actions/stores"
 
 const initialState = {
-  stores: [],
-  error: '',
+  stores: null,
+  error: null,
   isFetching: false,
-  store: {}
+  store: null
 }
 
 function storeReducer(state = initialState, action) {
