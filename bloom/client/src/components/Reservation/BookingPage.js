@@ -79,6 +79,10 @@ class BookingPage extends React.Component {
         user_id: user.id
       })
     }
+
+    window.onbeforeunload = function() {
+      return "Data will be lost if you refresh the page. Are you sure?";
+    };
   }
 
   componentDidUpdate(prevProps) {
