@@ -1,18 +1,24 @@
 import { ADD_SERVICE_SUCCESS, SERVICE_FAILURE, SERVICE_FETCHING, GET_CATEGORIES_SUCCESS, SERVICE_SUCCESS, UPDATE_CURRENT_SERVICE, EDIT_SERVICE_SUCCESS } from "../actions/service"
 
 const initialState = {
-  services: [],
-  service: {},
-  categories: [],
+  services: null,
+  service: null,
+  categories: null,
   isFetching: false,
-  error: ''
+  error: null
 }
 
 function serviceReducer(state = initialState, action) {
   switch (action.type) {
     case ADD_SERVICE_SUCCESS:
       let newServices = state.services;
-      newServices.push(action.service);
+      if(newServices){
+        newServices.push(action.service);
+      }
+      else{
+        newServices = [action.service];
+      }
+
       return Object.assign({}, state, {
         service: action.service,
         services: newServices
@@ -45,7 +51,13 @@ function serviceReducer(state = initialState, action) {
 
     case EDIT_SERVICE_SUCCESS:
         let updatedServices= state.services.filter(service => service.id != action.service.id);
-        updatedServices.push(action.service);
+        if(updatedServices){
+          updatedServices.push(action.service);
+        }
+        else{
+          updatedServices = [action.service];
+        }
+
         return Object.assign({}, state, {
           service: action.service,
           services: updatedServices

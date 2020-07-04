@@ -3,8 +3,8 @@ import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS, DE
 const initialState = {
   error: '',
   appointments: {
-    appointments: [],
-    groups: {}
+    appointments: null,
+    groups: null
   },
 }
 

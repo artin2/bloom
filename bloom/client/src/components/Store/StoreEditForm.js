@@ -254,20 +254,17 @@ class StoreEditForm extends React.Component {
     //   this.convertCategory()
     //   this.fetchPictures()
     // }
-
-    const google = window.google;
-    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
-    this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
   }
 
-  componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps) {
 
     if(this.props.store !== prevProps.store) {
 
       this.setState({store: this.props.store})
       this.convertStoreHours(this.props.store.storeHours)
       this.convertCategory()
-      this.fetchPictures(this.props.store)
+      await this.fetchPictures(this.props.store)
+      this.setUpAutocomplete()
     }
 
     if(this.props.stores !== prevProps.stores) {
@@ -277,8 +274,14 @@ class StoreEditForm extends React.Component {
 
   }
 
-  convertStoreHours(storeHours) {
+  setUpAutocomplete() {
+    const google = window.google;
+    this.autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), { })
+    this.autocomplete.addListener("place_changed", this.handlePlaceSelect)
+  }
 
+  convertStoreHours(storeHours) {
+    console.log("store hours is", storeHours)
     let oldWeekIsWorking = this.state.weekIsWorking
 
     for(let i = 0; i < storeHours.length; i++){
@@ -335,8 +338,6 @@ class StoreEditForm extends React.Component {
               })
 
               let store_id = this.props.match.params.store_id
-              let triggerStoreDisplay = this.triggerStoreDisplay
-              let triggerStoreDisplayNoResp = this.triggerStoreDisplayNoResp
 
               values.services = this.state.store.services
               values.owners = this.state.store.owners
@@ -378,6 +379,7 @@ class StoreEditForm extends React.Component {
                 }
               }
 
+              console.log("store hours are", values.storeHours)
               this.props.editStore(store_id, values)
 
                 // }
@@ -501,6 +503,9 @@ class StoreEditForm extends React.Component {
                     ) : null}
 
                   <h4>Store Hours</h4>
+                  <p style={{fontStyle: "italic", fontSize: "14px", color: "coral"}}>Note: Changing hours may lead to appointments outside of new hours that remain scheduled
+                    unless canceled manually.
+                  </p>
 
                   <Form.Group className="text-left" controlId="formHoursMonday">
                     <h5>Monday</h5>

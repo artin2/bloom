@@ -93,31 +93,57 @@ class AppointmentDisplay extends React.Component {
     }
 
     const AppointmentList = (props) => {
-      let cards = [];
-      for (let i = 0; i < this.state.group_ids.length; i ++) {
-        cards.push(<Card style={{cursor: 'pointer'}} key={this.state.group_ids[i]}className="my-5 add-shadow" onClick={() => this.triggerAppointmentDisplay(this.state.group_ids[i])}>
-          <Card.Header as="h4">{this.state.store_name_mappings.find((element) => element.id === this.state.store_ids[i]).name} on {new Date(this.state.dates[i]).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}</Card.Header>
-          <Card.Body>
-            <Card.Text as="div">
-              <Row>
-                <Col>
-                  <h5>{convertMinsToHrsMins(this.state.start_times[i])} - {convertMinsToHrsMins(this.state.end_times[i])} </h5>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <h5>Services Booked for Today</h5>
-                  <ListGroup as="div" variant="flush">
-                    <ShowServices index={i}/>
-                    <ListGroup.Item><h3>Total Price: ${this.state.costs[i]}</h3></ListGroup.Item>
-                  </ListGroup>
-                </Col>
-              </Row>
-            </Card.Text>
-          </Card.Body>
-        </Card>);
+      let cards = {
+        pastAppointmentCards: [],
+        futureAppointmentCards: []
       }
-      return cards;
+
+      for (let i = 0; i < this.state.group_ids.length; i ++) {
+        let card = <Card style={{cursor: 'pointer'}} key={this.state.group_ids[i]}className="my-5 add-shadow" onClick={() => this.triggerAppointmentDisplay(this.state.group_ids[i])}>
+            <Card.Header as="h4">{this.state.store_name_mappings.find((element) => element.id === this.state.store_ids[i]).name} on {new Date(this.state.dates[i]).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}</Card.Header>
+            <Card.Body>
+              <Card.Text as="div">
+                <Row>
+                  <Col>
+                    <h5>{convertMinsToHrsMins(this.state.start_times[i])} - {convertMinsToHrsMins(this.state.end_times[i])} </h5>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <h5>Services Booked:</h5>
+                    <ListGroup as="div" variant="flush">
+                      <ShowServices index={i}/>
+                      <ListGroup.Item><h3>Total Price: ${this.state.costs[i]}</h3></ListGroup.Item>
+                    </ListGroup>
+                  </Col>
+                </Row>
+              </Card.Text>
+            </Card.Body>
+          </Card>
+
+        if(new Date(this.state.dates[i]) >= new Date()){
+          console.log("future", new Date(this.state.dates[i]))
+          cards.futureAppointmentCards.push(card)
+        }
+        else{
+          cards.pastAppointmentCards.push(card)
+        }
+      }
+
+      let row = <Row className="justify-content-md-center">
+                  <Col lg={5}>
+                    <h1 className="name mt-3" > Upcoming Appointments </h1>
+                    {cards.futureAppointmentCards}
+                  </Col>
+
+                  <Col lg={5}>
+                    <h1 className="name mt-3" > Past Appointments </h1>
+                    {cards.pastAppointmentCards}
+                  </Col>
+                </Row>
+
+      console.log("cards are", cards)
+      return row;
     }
 
     const DisplayWithLoading = (props) => {
@@ -133,11 +159,7 @@ class AppointmentDisplay extends React.Component {
           </Col>
         </Row>
       } else if (this.state.hasAppointments) {
-        return <Row className="justify-content-md-center">
-          <Col lg={5}>
-            <AppointmentList/>
-          </Col>
-        </Row>
+        return <AppointmentList/>
       } else {
         return <Row className="justify-content-center my-4">
         <Col xs={11} lg={8} className="mb-4">

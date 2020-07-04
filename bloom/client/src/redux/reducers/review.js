@@ -1,8 +1,8 @@
 import { ADD_REVIEW_SUCCESS, ADD_REVIEW_FAILURE } from "../actions/review"
 
 const initialState = {
-  review: {},
-  error: ''
+  review: null,
+  error: null
 }
 
 function reviewReducer(state = initialState, action) {

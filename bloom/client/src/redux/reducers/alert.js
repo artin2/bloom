@@ -1,7 +1,7 @@
 import { ADD_ALERT, REMOVE_ALERT } from "../actions/alert"
 
 const initialState = {
-  alert: {}
+  alert: null
 }
 
 function alertReducer(state = initialState, action) {

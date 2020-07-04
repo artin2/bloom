@@ -141,6 +141,7 @@ class ServiceEditForm extends React.Component {
       this.props.getCategories(this.props.match.params.store_id)
     }
     else {
+      console.log("hsjkdfhgjsfd", this.props.categories)
       this.convertCategory(this.props.categories)
     }
 
@@ -157,6 +158,7 @@ class ServiceEditForm extends React.Component {
     }
 
     if (prevProps.categories !== this.props.categories) {
+      console.log("CATEGORIES ARE", this.props.categories)
       this.convertCategory(this.props.categories)
     }
 

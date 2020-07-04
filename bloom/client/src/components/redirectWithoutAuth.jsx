@@ -58,7 +58,7 @@ export default function redirectWithoutAuth(ComponentToProtect) {
             if(this.props.match.params.user_id){
               let user = store.getState().userReducer.user
 
-              if (user.id === Number(this.props.match.params.user_id)) {
+              if (user && user.id === Number(this.props.match.params.user_id)) {
                 // if they are trying to access stores when they don't own any
                 if(typeof user.role === 'string' )
                 if(window.location.href.split("/users/" + this.props.match.params.user_id + '/stores').length > 1 && ((typeof user.role === 'string' && user.role !== '1') || (typeof user.role === 'number' && user.role !== 1))){
@@ -83,7 +83,7 @@ export default function redirectWithoutAuth(ComponentToProtect) {
             this.setState({ loading: false });
           } else {
             let user = store.getState().userReducer.user
-            if(!(Object.keys(user).length === 0 && user.constructor === Object)){
+            if(!(user && Object.keys(user).length === 0 && user.constructor === Object)){
               handleLogout(false, false);
             }
             

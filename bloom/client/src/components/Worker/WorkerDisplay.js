@@ -27,7 +27,7 @@ class WorkerDisplay extends React.Component {
     super(props);
     this.state = {
       worker: this.props.worker,
-      storeHours: this.props.storeHours,
+      store: this.props.store,
 
       loading: true,
       selectedOption: [],
@@ -132,7 +132,7 @@ class WorkerDisplay extends React.Component {
       if(this.state.choice === 0) {
         return <Calendar role={this.state.worker.first_name + "'s"} id={this.state.worker.id} />
       } else if(this.state.choice === 1) {
-        return <WorkerEditForm worker={this.state.worker} selectedOption={this.state.selectedOption} storeHours={this.state.storeHours} workerHours={this.state.workerHours} />
+        return <WorkerEditForm worker={this.state.worker} store={this.state.store} workerHours={this.state.worker.workerHours} storeHours={this.state.store.storeHours}/>
       } else {
         return <p>Past Appointments go here....</p>
       }
@@ -220,7 +220,7 @@ class WorkerDisplay extends React.Component {
 
 
 const mapStateToProps = state => ({
-  storeHours: state.storeReducer.store.storeHours,
+  store: state.storeReducer.store,
   worker: state.workerReducer.worker
 })
 
