@@ -320,6 +320,39 @@ async function edit(req, res, next) {
   }
 };
 
+
+async function deleteUser(req, res, next) {
+  try {
+    // query for stores owned by the user
+    let query = 'DELETE FROM users WHERE id=$1'
+    let values = [req.params.id]
+    console.log(query, values)
+
+    db.client.connect((err, client, done) => {
+      // try to get all stores registered to this user
+      db.client.query(query, values, (er, result) => {
+        done()
+          if (er) {
+            helper.queryError(res, er);
+          }
+          // we were successfuly able to get the users stores
+          if (result) {
+            helper.querySuccess(res, result.rows, "Successfully deleted user!");
+          }
+          else {
+            helper.queryError(res, "Could not delete user!");
+          }
+        });
+      if (err) {
+        helper.dbConnError(res, err);
+      }
+    });
+  }
+  catch (e) {
+    helper.authError(res, e);
+  }
+};
+
 async function getUsers(req, res, next) {
   try {
     // query for stores owned by the user
@@ -356,5 +389,6 @@ module.exports = {
   login: login,
   signup: signup,
   edit: edit,
-  getUsers: getUsers
+  getUsers: getUsers,
+  deleteUser: deleteUser
 };

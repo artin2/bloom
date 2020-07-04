@@ -77,6 +77,14 @@ class Profile extends React.Component {
     })
   };
 
+  componentDidMount() {
+    if(this.props.user === null){
+      this.props.history.push({
+        pathname: '/'
+      })
+    }
+  }
+
   async componentDidMount() {
     let picturesFetched = []
     try {
@@ -226,7 +234,7 @@ class Profile extends React.Component {
       } else if(this.state.choice === 1) {
         return <p>Past Appointments go here....</p>
       } else if(this.state.choice === 2) {
-        return <EditProfileForm updateProfileContent={this.updateProfileContent} picture={this.state.picture} provider={JSON.parse(Cookies.get('user').substring(2)).provider}/>
+        return <EditProfileForm updateProfileContent={this.updateProfileContent} picture={this.state.picture} provider={Cookies.get('user') ? JSON.parse(Cookies.get('user').substring(2)).provider : null}/>
       }
     }
 

@@ -72,6 +72,11 @@ app.post('/users/:id', withAuth, async (req, res, next) => {
   await users.edit(req, res, next);
 });
 
+app.delete('/users/:id', withAuth, async (req, res, next) => {
+  console.log('hit the users.deleteUser route')
+  await users.deleteUser(req, res, next);
+});
+
 app.get('/allUsers', withAuth, async (req, res, next) => {
   console.log('hit the all users route')
   await users.getUsers(req, res, next);

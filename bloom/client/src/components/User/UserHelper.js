@@ -1,8 +1,9 @@
-import { userLoginSuccess, userLoginFailure, userSignupSuccess, userSignupFailure, editUserSuccess, editUserFailure } from '../../redux/actions/user';
+import { userLoginSuccess, userLoginFailure, userSignupSuccess, userSignupFailure, editUserSuccess, editUserFailure, deleteUserSuccess, deleteUserFailure } from '../../redux/actions/user';
 // import {addServiceSuccess} from './actions/service';
 // import {getWorkerOptionsSuccess, addWorker} from './actions/worker';
 import { addAlert } from '../../redux/actions/alert'
 import { toast } from 'react-toastify'
+import { handleLogout } from '../../components/helperFunctions';
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 function failureToast(message) {
@@ -94,7 +95,6 @@ export function editUser(values) {
         dispatch(addAlert(response))
 
         if (response.status !== 200) {
-          console.log("response is!", response)
           failureToast(response.statusText)
           dispatch(editUserFailure(response))
         }
@@ -109,5 +109,37 @@ export function editUser(values) {
           return data
         }
       });
+  }
+}
+
+export function deleteUser(user_id) {
+  return dispatch => {
+    fetch(fetchDomain + '/users/' + user_id, {
+      method: "DELETE",
+      headers: {
+        'Content-type': 'application/json'
+      },
+      credentials: 'include',
+    })
+    .then(function (response) {
+      // dispatch(addAlert(response))
+
+      if (response.status !== 200) {
+        console.log("response is!", response)
+        failureToast(response.statusText)
+        dispatch(deleteUserFailure(response))
+      }
+      else {
+        // redirect to home page signed in
+        return response.json()
+      }
+    })
+    .then(data => {
+      if (data) {
+        dispatch(deleteUserSuccess(data))
+        handleLogout()
+        return data
+      }
+    });
   }
 }

@@ -10,9 +10,11 @@ import { FaLockOpen, FaLock, FaUser, FaPhone } from 'react-icons/fa';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { bindActionCreators } from 'redux';
-import {editUser} from './UserHelper'
+import {editUser, deleteUser} from './UserHelper'
 import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { connect } from 'react-redux';
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 import { FilePond, registerPlugin } from 'react-filepond';
@@ -118,6 +120,22 @@ class EditProfileForm extends React.Component {
     this.setState({
       modalShow: condition
     })
+  }
+
+  deleteAccount = () => {
+    confirmAlert({
+      title: 'Are you sure you want to delete your account?',
+      message: 'We will not be able to recover you account and you will lose all information related to your account.',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: () => this.props.deleteUser(this.props.user.id)
+        },
+        {
+          label: 'No'
+        }
+      ]
+    });
   }
 
   async componentDidMount(){
@@ -518,6 +536,7 @@ class EditProfileForm extends React.Component {
                     </div>
                   }
                   <Button className="update-button" disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} onClick={handleSubmit}>Submit</Button>
+                  <p className="my-1 mt-3" style={{color: "red"}}> Delete My Account <Button variant="link"className="p-0" onClick={() => this.deleteAccount()}> Delete </Button></p>
                 </Form>
               )}
               </Formik>
@@ -534,7 +553,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  editProfile: (email, password, auth_token) => editUser(email, password, auth_token)
+  editProfile: (email, password, auth_token) => editUser(email, password, auth_token),
+  deleteUser: (user_id) => deleteUser(user_id)
 }, dispatch)
 
 
