@@ -338,8 +338,6 @@ class StoreEditForm extends React.Component {
               })
 
               let store_id = this.props.match.params.store_id
-              let triggerStoreDisplay = this.triggerStoreDisplay
-              let triggerStoreDisplayNoResp = this.triggerStoreDisplayNoResp
 
               values.services = this.state.store.services
               values.owners = this.state.store.owners
@@ -381,6 +379,7 @@ class StoreEditForm extends React.Component {
                 }
               }
 
+              console.log("store hours are", values.storeHours)
               this.props.editStore(store_id, values)
 
                 // }

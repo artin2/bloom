@@ -509,7 +509,7 @@ async function editStore(req, res, next) {
 
                 let workerHours = await getWorkersSchedulesInternal(req.body.id)
 
-                ; (async (req, res) => {
+                ; (async (re, res) => {
                   const hourDb = await db.client.connect();
                   try {
                     for (let i = 0; i < newHours.length; i++) {
@@ -567,7 +567,14 @@ async function editStore(req, res, next) {
                     throw e;
                   } finally {
                     if (!failed) {
-                      helper.querySuccess(resp, store, 'Successfully updated store!');
+                      let success = await updateOldHoursAppointments(req, newHours)
+                      if(success){
+                        helper.querySuccess(resp, store, 'Successfully updated store!');
+                      }
+                      else{
+                        console.log("success is", success)
+                        helper.queryError(resp, "Unable to Update Conflicting Appointments!");
+                      }
                     } else {
                       helper.queryError(resp, "Unable to Update Store!");
                     }
@@ -577,7 +584,6 @@ async function editStore(req, res, next) {
 
               } else {
                 if (!failed) {
-                  // ******this is not working at the moment, need to wait for both queries to finish before sending this message....
                   helper.querySuccess(res, store, 'Successfully updated store!');
                 } else {
                   helper.queryError(res, "Unable to Update Store!");
@@ -602,6 +608,63 @@ async function editStore(req, res, next) {
     helper.queryError(res, "Missing Parameters!");
   }
 };
+
+async function updateOldHoursAppointments(req, newHours){
+  return new Promise(function(resolve, reject) {
+    console.log("new hours are", newHours)
+    if(newHours){
+      ; (async (re, res) => {
+        let success = true
+        const appointmentDb = await db.client.connect();
+        try {
+          for (let j = 0; j < newHours.length; j++) {
+            if(newHours[j].open_time){
+              await appointmentDb.query("BEGIN");
+              // this will lead to double values in warnings probably
+              // add warnings if applicable
+              let query = 'UPDATE appointments SET warnings = array_append(warnings, 0) WHERE store_id = $1 AND day_of_the_week = $2 AND (start_time < $3 OR end_time > $4) AND date > now()'
+              let values = [req.body.id, j, newHours[j].open_time, newHours[j].close_time]
+              console.log("1query is", query, "values are", values)
+              await appointmentDb.query(query, values);
+              await appointmentDb.query("COMMIT");
+
+              // remove warnings if applicable
+              query = 'UPDATE appointments SET warnings = array_remove(warnings, 0) WHERE store_id = $1 AND day_of_the_week = $2 AND (start_time >= $3 AND end_time <= $4) AND date > now()'
+              values = [req.body.id, j, newHours[j].open_time, newHours[j].close_time]
+              console.log("2query is", query, "values are", values)
+              await appointmentDb.query(query, values);
+              await appointmentDb.query("COMMIT");
+            }
+            else if(newHours[j].open_time === null){
+              await appointmentDb.query("BEGIN");
+              // this will lead to double values probably
+              // add warnings if applicable
+              let query = 'UPDATE appointments SET warnings = array_append(warnings, 0) WHERE store_id = $1 AND day_of_the_week = $2 AND date > now()'
+              let values = [req.body.id, j]
+              console.log("3query is", query, "values are", values)
+              await appointmentDb.query(query, values);
+              await appointmentDb.query("COMMIT");
+            }
+            else{
+              console.log("don't need to update", j, newHours[j])
+            }
+          }
+        } catch (e) {
+          console.log("error!", e)
+          await appointmentDb.query("ROLLBACK", e);
+          success = false
+          throw e;
+        } finally {
+          appointmentDb.release();
+          resolve(success)
+        }
+      })().catch(e => reject(appointmentDb.release()));
+    }
+    else{
+      resolve(true)
+    }
+  })
+}
 
 async function editStoreHours(newHours, store_id){
   try {
@@ -1529,10 +1592,10 @@ async function insertAppointments(req, res, group_id) {
         let appoint = []
         try {
           await hourDb.query("BEGIN");
-          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email, first_name, last_name, notes, warnings) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *;'
+          let query = 'INSERT INTO appointments(user_id, store_id, worker_id, service_id, date, created_at, start_time, end_time, price, group_id, email, first_name, last_name, notes, warnings, day_of_the_week) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *;'
           for (let i = 0; i < appointments.length; i++) {
             console.log("HERE: ", appointments[i])
-            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email, request.body.first_name, request.body.last_name, request.body.notes, appointments[i].warnings]
+            let values = [request.body.user_id, storeId, appointments[i].worker_id, appointments[i].service_id, appointments[i].date.substring(0, 18), timestamp, appointments[i].start_time, appointments[i].end_time, appointments[i].price, group_id, request.body.email, request.body.first_name, request.body.last_name, request.body.notes, appointments[i].warnings,  new Date(appointments[i].date).getDay()]
             appoint.push((await hourDb.query(query, values)).rows[0]);
           }
           await hourDb.query("COMMIT");
