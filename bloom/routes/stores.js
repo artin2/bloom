@@ -29,6 +29,7 @@ async function getStore(req, res, next) {
 
 
           if (result && result.rows.length > 0) {
+            console.log(result.rows)
             helper.querySuccess(res, result.rows[0], "Successfully got Store!");
           }
           else {
@@ -1293,6 +1294,8 @@ async function getIndividualWorkerHours(req, res, next) {
 
 async function getStoreHours(req, res, next) {
   // query for store item
+
+  console.log("HERE")
   let query = 'SELECT open_time, close_time FROM store_hours WHERE store_id = $1 ORDER BY day_of_the_week'
   let values = [req.params.store_id]
 

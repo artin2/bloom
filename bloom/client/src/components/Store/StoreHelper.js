@@ -29,6 +29,7 @@ export function getStoreHours(store_id) {
       credentials: 'include'
     })
       .then(function (response) {
+
         if (response.status !== 200) {
           // throw an error alert
           failureToast(response.statusText)
@@ -77,16 +78,17 @@ export function getStore(store_id, mode) {
       })
       .then(async data => {
         if (data) {
-          // data.storeHours = await getStoreHours(data.id)
-          // console.log("store hours is:", data.storeHours)
+          console.log(data)
+          data.storeHours = await getStoreHours(data.id)
+          console.log("store hours is:", data.storeHours)
 
-          // if (mode == "search") {
-          //   dispatch(updateSelectedStore(data))
-          // }
-          // else {
-          //   console.log("!!!!!@#!@#!@#!@#", data)
-          //   dispatch(updateCurrentStore(data))
-          // }
+          if (mode == "search") {
+            dispatch(updateSelectedStore(data))
+          }
+          else {
+            console.log("!!!!!@#!@#!@#!@#", data)
+            dispatch(updateCurrentStore(data))
+          }
 
           return data
 
