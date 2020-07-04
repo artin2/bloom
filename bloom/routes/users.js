@@ -8,8 +8,6 @@ async function login(req, res) {
     let query = 'SELECT * from users WHERE email = $1'
     let values = [req.body.email]
 
-    console.log(db.client.connect())
-
     db.client.connect((err, client, done) => {
 
       db.client.query(query, values, async (err, result) => {
@@ -154,102 +152,168 @@ async function signup(req, res) {
   }
 }
 
-async function edit(req, res, next) {
-  try{
-    // should fix this later so it only changes values that did change
-    try {
-      hash = await auth.generateHash(req.body.password);
-    } catch (err) {
-      helper.queryError(res, "Could not Create Password Hash");
-    }
+async function verifyUserPassword(req){
+  let query = 'SELECT * from users WHERE id = $1'
+  let values = [req.body.id]
 
-    // not sure how to update email, it is a unique attribute and seems you cant update a row's unique value
-    let query = 'UPDATE users SET first_name=$1, last_name=$2, phone=$3, password=$4 WHERE id=$5 RETURNING *'
-    let values = [req.body.first_name, req.body.last_name, req.body.phone, hash, req.body.id]
-
-    db.client.connect((err, client, done) => {
-      // query to update the user
-      db.client.query(query, values, (err, result) => {
-          // if the user is a worker, update the dependant worker information
-          if(req.body.role == '2'){
-            if (err) {
-              helper.queryError(res, err);
-            }
-
-            // if we were able to successfuly update the user
-            if (result && result.rows.length) {
-              query = "UPDATE workers SET first_name=$1, last_name=$2 WHERE user_id=$3 RETURNING *"
-              values = [req.body.first_name, req.body.last_name, req.body.id]
-
-              db.client.query(query, values, (errLast, resultLast) => {
-                done()
-                if (errLast) {
-                  helper.queryError(res, errLast);
-                }
-
-                if (resultLast && resultLast.rows.length) {
-                  let user = result.rows[0]
-                  user["worker_id"] = resultLast.rows[0]["id"]
-                  user["store_id"] = resultLast.rows[0]["store_id"]
-                  user["services"] = resultLast.rows[0]["services"]
-                  
-                  delete user.password
-                  const expiration = process.env.DB_ENV === 'dev' ? 1 : 7;
-                  const date = new Date();
-                  date.setDate(date.getDate() + expiration)
-
-                  // update the cookie for this user
-                  res.cookie('user', user, {
-                    expires: date,
-                    secure: false, // set to true if your using https
-                    httpOnly: false,
-                    domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN_PROD : process.env.DEV
-                  })
-                  helper.querySuccess(res, user, "Successfully Updated User!");
-                }
-                else{
-                  helper.queryError(res, "Could not update worker table!")
-                }
-              })
+  return new Promise(function(resolve, reject) {
+    db.client.connect((e, client, done) => {
+      db.client.query(query, values, async (err, result) => {
+        done()
+        console.log("success connecting and querying", query, values)
+        if (result && result.rows.length == 1) {
+          console.log("results are", result)
+          try {
+            console.log("trying password match", result.rows[0]["password"], req.body.password)
+            let passwordMatch = await auth.verifyHash(result.rows[0]["password"], req.body.password)
+  
+            if(passwordMatch != false) {
+              console.log("did match")
+              resolve(true)
             }
             else{
-              helper.queryError(res, "Could not update user table!")
+              console.log("did not match")
+              resolve(false)
             }
           }
-          else{
-            done()
-            if (err) {
-              helper.queryError(res, err);
-            }
-
-            // if we were able to successfuly update the user
-            if (result && result.rows.length) {
-              let user = result.rows[0]
-              delete user.password
-              const expiration = process.env.DB_ENV === 'dev' ? 1 : 7;
-              const date = new Date();
-              date.setDate(date.getDate() + expiration)
-
-              // update the cookie for this user
-              res.cookie('user', user, {
-                expires: date,
-                secure: false, // set to true if your using https
-                httpOnly: false,
-                domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN_PROD : process.env.DEV
-              })
-              helper.querySuccess(res, user, "Successfully Updated User!");
-            }
-            else{
-              helper.queryError(res, "Could not update user!")
-            }
+          catch(er){
+            console.log("error", er)
+            reject(er)
           }
         }
-      );
+        else if(result){
+          console.log("no results?", result)
+          reject(false)
+        }
+        else{
+          console.log('query errer?', err)
+          reject(err)
+        }
+      })
 
-      if (err) {
-        helper.dbConnError(res, err);
+      if (e) {
+        console.log("connect error", e)
+        reject(e)
       }
-    });
+    })
+  })
+};
+
+async function edit(req, res, next) {
+  try{
+    let verify = req.body.provider === undefined ? await verifyUserPassword(req) : true;
+    if(verify){
+      console.log("verified user password")
+      // should fix this later so it only changes values that did change
+     // not sure how to update email, it is a unique attribute and seems you cant update a row's unique value
+      let query
+      let values
+
+      if(req.body.new_password !== ''){
+        try {
+          let newHash = await auth.generateHash(req.body.new_password);
+          query = 'UPDATE users SET first_name=$1, last_name=$2, phone=$3, password=$4 WHERE id=$5 RETURNING *'
+          values = [req.body.first_name, req.body.last_name, req.body.phone, newHash, req.body.id]
+        } catch (err) {
+          console.log("error is", err)
+          helper.queryError(res, "Could not Create Password Hash");
+          return
+        }
+      }
+      else{
+        query = 'UPDATE users SET first_name=$1, last_name=$2, phone=$3 WHERE id=$4 RETURNING *'
+        values = [req.body.first_name, req.body.last_name, req.body.phone, req.body.id]
+      }
+
+      console.log("query is:", query, "values are", values)
+
+      db.client.connect((err, client, done) => {
+        // query to update the user
+        db.client.query(query, values, (err, result) => {
+            // if the user is a worker, update the dependant worker information
+            if(req.body.role == '2'){
+              if (err) {
+                helper.queryError(res, err);
+              }
+
+              // if we were able to successfuly update the user
+              if (result && result.rows.length) {
+                query = "UPDATE workers SET first_name=$1, last_name=$2 WHERE user_id=$3 RETURNING *"
+                values = [req.body.first_name, req.body.last_name, req.body.id]
+
+                db.client.query(query, values, (errLast, resultLast) => {
+                  done()
+                  if (errLast) {
+                    helper.queryError(res, errLast);
+                  }
+
+                  if (resultLast && resultLast.rows.length) {
+                    let user = result.rows[0]
+                    user["worker_id"] = resultLast.rows[0]["id"]
+                    user["store_id"] = resultLast.rows[0]["store_id"]
+                    user["services"] = resultLast.rows[0]["services"]
+                    
+                    delete user.password
+                    const expiration = process.env.DB_ENV === 'dev' ? 1 : 7;
+                    const date = new Date();
+                    date.setDate(date.getDate() + expiration)
+
+                    // update the cookie for this user
+                    res.cookie('user', user, {
+                      expires: date,
+                      secure: false, // set to true if your using https
+                      httpOnly: false,
+                      domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN_PROD : process.env.DEV
+                    })
+                    helper.querySuccess(res, user, "Successfully Updated User!");
+                  }
+                  else{
+                    helper.queryError(res, "Could not update worker table!")
+                  }
+                })
+              }
+              else{
+                helper.queryError(res, "Could not update user table!")
+              }
+            }
+            else{
+              done()
+              if (err) {
+                helper.queryError(res, err);
+              }
+
+              // if we were able to successfuly update the user
+              if (result && result.rows.length) {
+                let user = result.rows[0]
+                delete user.password
+                const expiration = process.env.DB_ENV === 'dev' ? 1 : 7;
+                const date = new Date();
+                date.setDate(date.getDate() + expiration)
+
+                // update the cookie for this user
+                res.cookie('user', user, {
+                  expires: date,
+                  secure: false, // set to true if your using https
+                  httpOnly: false,
+                  domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN_PROD : process.env.DEV
+                })
+                helper.querySuccess(res, user, "Successfully Updated User!");
+              }
+              else{
+                helper.queryError(res, "Could not update user!")
+              }
+            }
+          }
+        );
+
+        if (err) {
+          helper.dbConnError(res, err);
+        }
+      });
+    }
+    else{
+      helper.queryError(res, "Could not verify user password!")
+    }
   }
   catch(err){
     helper.queryError(res, "Some sort of error!");

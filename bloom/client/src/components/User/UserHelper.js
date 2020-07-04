@@ -1,7 +1,6 @@
-import { userLoginSuccess, userLoginFailure, userSignupSuccess, userSignupFailure, editUserSuccess } from '../../redux/actions/user';
+import { userLoginSuccess, userLoginFailure, userSignupSuccess, userSignupFailure, editUserSuccess, editUserFailure } from '../../redux/actions/user';
 // import {addServiceSuccess} from './actions/service';
 // import {getWorkerOptionsSuccess, addWorker} from './actions/worker';
-import { failure } from '../../redux/actions/index'
 import { addAlert } from '../../redux/actions/alert'
 import { toast } from 'react-toastify'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
@@ -95,8 +94,9 @@ export function editUser(values) {
         dispatch(addAlert(response))
 
         if (response.status !== 200) {
+          console.log("response is!", response)
           failureToast(response.statusText)
-          dispatch(failure(response))
+          dispatch(editUserFailure(response))
         }
         else {
           // redirect to home page signed in

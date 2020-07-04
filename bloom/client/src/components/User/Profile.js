@@ -12,6 +12,7 @@ import { getPictures } from '../s3'
 import './Profile.css'
 import workerImage from '../../assets/worker.png'
 import { convertMinsToHrsMins } from '../helperFunctions'
+import Cookies from 'js-cookie';
 import { css } from '@emotion/core'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -225,7 +226,7 @@ class Profile extends React.Component {
       } else if(this.state.choice === 1) {
         return <p>Past Appointments go here....</p>
       } else if(this.state.choice === 2) {
-        return <EditProfileForm updateProfileContent={this.updateProfileContent} picture={this.state.picture}/>
+        return <EditProfileForm updateProfileContent={this.updateProfileContent} picture={this.state.picture} provider={JSON.parse(Cookies.get('user').substring(2)).provider}/>
       }
     }
 

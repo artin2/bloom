@@ -4,6 +4,7 @@ export const USER_SIGNUP_SUCCESS = 'USER_SIGNUP_SUCCESS'
 export const USER_SIGNUP_FAILURE = 'USER_SIGNUP_FAILURE'
 export const USER_LOGOUT = 'USER_LOGOUT'
 export const EDIT_USER_SUCCESS = 'EDIT_USER_SUCCESS'
+export const EDIT_USER_FAILURE = 'EDIT_USER_FAILURE'
 export const UPDATE_ROLE = 'UPDATE_ROLE'
 
 
@@ -39,6 +40,13 @@ export function editUserSuccess(userPassed) {
   return {
     type: EDIT_USER_SUCCESS,
     user: userPassed
+  }
+}
+
+export function editUserFailure(error) {
+  return {
+    type: EDIT_USER_FAILURE,
+    error: error
   }
 }
 
