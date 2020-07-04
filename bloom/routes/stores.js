@@ -617,9 +617,9 @@ async function updateOldHoursAppointments(req, newHours){
         let success = true
         const appointmentDb = await db.client.connect();
         try {
+          await appointmentDb.query("BEGIN");
           for (let j = 0; j < newHours.length; j++) {
             if(newHours[j].open_time){
-              await appointmentDb.query("BEGIN");
               // this will lead to double values in warnings probably
               // add warnings if applicable
               let query = 'UPDATE appointments SET warnings = array_append(warnings, 0) WHERE store_id = $1 AND day_of_the_week = $2 AND (start_time < $3 OR end_time > $4) AND date > now()'
@@ -636,7 +636,6 @@ async function updateOldHoursAppointments(req, newHours){
               await appointmentDb.query("COMMIT");
             }
             else if(newHours[j].open_time === null){
-              await appointmentDb.query("BEGIN");
               // this will lead to double values probably
               // add warnings if applicable
               let query = 'UPDATE appointments SET warnings = array_append(warnings, 0) WHERE store_id = $1 AND day_of_the_week = $2 AND date > now()'
@@ -644,9 +643,6 @@ async function updateOldHoursAppointments(req, newHours){
               console.log("3query is", query, "values are", values)
               await appointmentDb.query(query, values);
               await appointmentDb.query("COMMIT");
-            }
-            else{
-              console.log("don't need to update", j, newHours[j])
             }
           }
         } catch (e) {
@@ -994,16 +990,43 @@ async function editWorker(req, res, next) {
   if (newHours.length > 0) {
     console.log("updating worker hours!", newHours)
     let worker_id = req.body.id
-      ; (async (req, res) => {
+      ; (async (re, res) => {
         const hourDb = await db.client.connect();
         try {
           await hourDb.query("BEGIN");
-          const query = 'UPDATE worker_hours SET start_time=$1, end_time=$2 WHERE worker_id=$3 and day_of_the_week=$4 RETURNING worker_id';
+          let query = 'UPDATE worker_hours SET start_time=$1, end_time=$2 WHERE worker_id=$3 and day_of_the_week=$4 RETURNING worker_id';
           for (let i = 0; i < newHours.length; i++) {
             if (newHours[i] != null && !(Object.keys(newHours[i]).length === 0 && newHours[i].constructor === Object)) {
               console.log("this one is not null:",newHours[i])
               let newHoursValues = [newHours[i].start_time, newHours[i].end_time, worker_id, i]
               await hourDb.query(query, newHoursValues);
+
+              // update appointments affected by new times
+              if(newHours[i].start_time){
+                // this will lead to double values in warnings probably
+                // add warnings if applicable
+                query = 'UPDATE appointments SET warnings = array_append(warnings, 1) WHERE store_id = $1 AND worker_id = $2 AND day_of_the_week = $3 AND (start_time < $4 OR end_time > $5) AND date > now()'
+                let values = [req.params.store_id, worker_id, i, newHours[i].start_time, newHours[i].end_time]
+                console.log("1query is", query, "values are", values)
+                await hourDb.query(query, values);
+                await hourDb.query("COMMIT");
+  
+                // remove warnings if applicable
+                query = 'UPDATE appointments SET warnings = array_remove(warnings, 1) WHERE store_id = $1 AND worker_id = $2 AND day_of_the_week = $3 AND (start_time >= $4 AND end_time <= $5) AND date > now()'
+                values = [req.params.store_id, worker_id, i, newHours[i].start_time, newHours[i].end_time]
+                console.log("2query is", query, "values are", values)
+                await hourDb.query(query, values);
+                await hourDb.query("COMMIT");
+              }
+              else if(newHours[i].start_time === null){
+                // this will lead to double values probably
+                // add warnings if applicable
+                query = 'UPDATE appointments SET warnings = array_append(warnings, 1) WHERE store_id = $1 AND worker_id = $2 AND day_of_the_week = $3 AND date > now()'
+                let values = [req.params.store_id, worker_id, i]
+                console.log("3query is", query, "values are", values)
+                await hourDb.query(query, values);
+                await hourDb.query("COMMIT");
+              }
             }
           }
           await hourDb.query("COMMIT");
