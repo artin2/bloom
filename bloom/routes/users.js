@@ -225,8 +225,6 @@ async function edit(req, res, next) {
         values = [req.body.first_name, req.body.last_name, req.body.phone, req.body.id]
       }
 
-      console.log("query is:", query, "values are", values)
-
       db.client.connect((err, client, done) => {
         // query to update the user
         db.client.query(query, values, (err, result) => {
@@ -326,7 +324,6 @@ async function deleteUser(req, res, next) {
     // query for stores owned by the user
     let query = 'DELETE FROM users WHERE id=$1'
     let values = [req.params.id]
-    console.log(query, values)
 
     db.client.connect((err, client, done) => {
       // try to get all stores registered to this user
@@ -384,11 +381,80 @@ async function getUsers(req, res, next) {
   }
 };
 
+async function addPasswordResetRequest(req, res, next) {
+  try {
+    let token = await auth.generateSecureToken()
+    let today = new Date()
+    let tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    let query = 'UPDATE users SET reset_password_token=$1, reset_password_expiration=$2 WHERE email=$3'
+    let values = [token, tomorrow.toISOString(), req.params.email]
+
+    db.client.connect((err, client, done) => {
+      db.client.query(query, values, async (er, result) => {
+        done()
+          if (er) {
+            helper.queryError(res, er);
+          }
+
+          if (result) {
+            await email.passwordReset(req.params.email, token)
+            helper.querySuccess(res, result.rows, "Successfully added password reset request!");
+          }
+          else {
+            helper.queryError(res, "Could not add password reset!");
+          }
+        });
+      if (err) {
+        helper.dbConnError(res, err);
+      }
+    });
+  }
+  catch (e) {
+    helper.authError(res, e);
+  }
+};
+
+async function updatePassword(req, res, next) {
+  try {
+    let encryptedPassword = await auth.generateHash(req.body.password)
+    let query = 'UPDATE users SET password=$1, reset_password_token=NULL, reset_password_expiration=NULL WHERE email=$2 AND reset_password_token=$3 AND reset_password_expiration >= now() RETURNING *'
+    let values = [encryptedPassword, req.body.email, req.body.token]
+
+    db.client.connect((err, client, done) => {
+      db.client.query(query, values, async (er, result) => {
+        done()
+          if (er) {
+            helper.queryError(res, er);
+          }
+
+          if (result && result.rows.length === 1) {
+            // log in user after changing password
+            await login(req, res, next)
+          }
+          else {
+            console.log("5 err", res)
+            helper.queryError(res, "Could not reset password!");
+          }
+        });
+      if (err) {
+        helper.dbConnError(res, err);
+      }
+    });
+  }
+  catch (e) {
+    helper.authError(res, e);
+  }
+};
+
 
 module.exports = {
   login: login,
   signup: signup,
   edit: edit,
   getUsers: getUsers,
-  deleteUser: deleteUser
+  deleteUser: deleteUser,
+  addPasswordResetRequest: addPasswordResetRequest,
+  updatePassword: updatePassword
 };

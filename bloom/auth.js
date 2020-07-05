@@ -1,15 +1,22 @@
 var bcrypt = require("bcryptjs");
 const saltRounds = 12;
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 async function generateHash(pw) {
   try{
     let hash = await bcrypt.hash(pw, saltRounds)
+    console.log("hash is", hash)
     return hash
   }
   catch(err){
+    console.log("error hashing", err)
     return null
   }
+}
+
+async function generateSecureToken() {
+  return crypto.randomBytes(64).toString('hex');
 }
 
 async function verifyHash(dbPw, userPw) {
@@ -78,4 +85,5 @@ module.exports = {
     verifyHash: verifyHash,
     generateToken: generateToken,
     verifyToken: verifyToken,
+    generateSecureToken: generateSecureToken
 };

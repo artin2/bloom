@@ -156,7 +156,8 @@ class LoginForm extends React.Component {
                     icon={<TiSocialFacebookCircular size={45} style={{paddingRight:"15px"}}/>}
                     callback={this.successFacebook}
                     />
-                  <p className="my-1"> Don't have a Bloom account yet? <Button variant="link"className="p-0" onClick={() => this.props.toggleLogin(false)}> Sign Up. </Button></p>
+                  <p className="my-1"> Don't have a Bloom account yet? <Button variant="link"className="p-0" onClick={() => this.props.toggleLogin(1)}> Sign Up. </Button></p>
+                  <p className="my-1"> Forgot Password? <Button variant="link"className="p-0" onClick={() => this.props.toggleLogin(2)}> Reset Password. </Button></p>
               </Col>
               </Form.Row>
             </Form>

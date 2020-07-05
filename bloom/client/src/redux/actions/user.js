@@ -7,6 +7,10 @@ export const EDIT_USER_SUCCESS = 'EDIT_USER_SUCCESS'
 export const EDIT_USER_FAILURE = 'EDIT_USER_FAILURE'
 export const DELETE_USER_SUCCESS = 'EDIT_USER_SUCCESS'
 export const DELETE_USER_FAILURE = 'EDIT_USER_FAILURE'
+export const SEND_RESET_PASSWORD_SUCCESS = 'SEND_RESET_PASSWORD_SUCCESS'
+export const SEND_RESET_PASSWORD_FAILURE = 'SEND_RESET_PASSWORD_FAILURE'
+export const UPDATE_PASSWORD_SUCCESS = 'SEND_RESET_PASSWORD_SUCCESS'
+export const UPDATE_PASSWORD_FAILURE = 'SEND_RESET_PASSWORD_FAILURE'
 export const UPDATE_ROLE = 'UPDATE_ROLE'
 
 
@@ -66,6 +70,32 @@ export function deleteUserFailure(error) {
   }
 }
 
+export function sendResetPasswordSuccess(){
+  return {
+    type: SEND_RESET_PASSWORD_SUCCESS
+  }
+}
+
+export function sendResetPasswordFailure(error){
+  return {
+    type: SEND_RESET_PASSWORD_FAILURE,
+    error: error
+  }
+}
+
+export function updatePasswordSuccess(userPassed){
+  return {
+    type: UPDATE_PASSWORD_SUCCESS,
+    user: userPassed
+  }
+}
+
+export function updatePasswordFailure(error){
+  return {
+    type: UPDATE_PASSWORD_FAILURE,
+    error: error
+  }
+}
 export function userLogout() {
   return {
     type: USER_LOGOUT
