@@ -17,6 +17,7 @@ import { getStores, getStore, getStoreHours } from './StoreHelper.js'
 import { updateCurrentStore } from '../../redux/actions/stores'
 import UserStoresDashboardLoader from './UserStoresDashboardLoader';
 import {getPictures, defaultStorePictures } from '../s3'
+import staticImg from '../../assets/barber.jpg'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
 // ***** NOTE: fix to properly display all the stores
@@ -39,10 +40,10 @@ class UserStoresDashboard extends React.Component {
     })
   }
 
-  triggerShowWorkers(store) {
+  async triggerShowWorkers(store) {
     // console.log("about to show worker")
-    this.props.updateCurrentStore(store)
-    this.props.getStoreHours(store.id)
+    await this.props.updateCurrentStore(store)
+
     // console.log("store is: ", store)
     // console.log("store updated")
     this.props.history.push({
@@ -50,9 +51,9 @@ class UserStoresDashboard extends React.Component {
     })
   }
 
-  triggerStoreShow(store) {
+  async triggerStoreShow(store) {
     // console.log("triggering store show")
-    this.props.updateCurrentStore(store)
+    await this.props.updateCurrentStore(store)
 
     // console.log("store is; ", store.id)
 
@@ -67,20 +68,20 @@ class UserStoresDashboard extends React.Component {
     })
   }
 
-  triggerShowCalendar(store) {
+  async triggerShowCalendar(store) {
 
-    this.props.updateCurrentStore(store)
-    this.props.getStoreHours(store.id)
+    await this.props.updateCurrentStore(store)
+    console.log(store)
 
     this.props.history.push({
       pathname: '/storeCalendar/' + store.id,
     })
   }
 
-  componentDidMount() {
+  async componentDidMount() {
 
     if(!this.props.stores) {
-      this.props.getStores(this.props.match.params.user_id)
+      await this.props.getStores(this.props.match.params.user_id)
     }
     else {
       this.fetchPictures(this.props.stores)
@@ -91,6 +92,8 @@ class UserStoresDashboard extends React.Component {
   componentDidUpdate(prevProps) {
 
     if(this.props.stores != prevProps.stores) {
+
+      console.log(this.props.stores)
       this.fetchPictures(this.props.stores)
     }
   }
@@ -98,20 +101,30 @@ class UserStoresDashboard extends React.Component {
   async fetchPictures(stores) {
 
 
+
     //why is this only returning default
-    let appendedStores = await Promise.all(stores.map(async (store): Promise<Object> => {
-      let newstore = Object.assign({}, store);
-      try {
-        let pictures = defaultStorePictures()
 
-        newstore.pictures = pictures;
-        return newstore;
-      } catch (error) {
-        newstore.pictures = defaultStorePictures();
-        return newstore
-      }
-    }));
+    // let appendedStores = await Promise.all(stores.map(async (store): Promise<Object> => {
+    //   let newstore = Object.assign({}, store);
+    //   try {
+    //     let pictures = defaultStorePictures()
+    //
+    //     newstore.pictures = pictures;
+    //     return newstore;
+    //   } catch (error) {
+    //     newstore.pictures = defaultStorePictures();
+    //     return newstore
+    //   }
+    // }));
 
+    let appendedStores = stores.map((store) => {
+
+      store.pictures = [{url: staticImg}];
+      return store
+
+    });
+
+    console.log(appendedStores)
     await this.setState({
       stores: appendedStores,
       loading: false
@@ -120,6 +133,7 @@ class UserStoresDashboard extends React.Component {
   }
 
   render() {
+    console.log(this.props.stores, this.state.stores)
     const DisplayWithLoading = (props) => {
       if (this.state.loading) {
         return <Row className="mt-5">

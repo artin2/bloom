@@ -235,6 +235,11 @@ app.get('/stores/:store_id/storeHours', async (req, res, next) => {
   await stores.getStoreHours(req, res, next);
 });
 
+app.post('/stores/:store_id/clients', withAuth, async (req, res, next) => {
+  console.log("hit the getClients route")
+  await stores.getClients(req, res, next);
+});
+
 //appointments
 app.post('/stores/:store_id/appointments/new', withAuth, async(req, res, next) => {
   console.log("hit the addAppointment route")

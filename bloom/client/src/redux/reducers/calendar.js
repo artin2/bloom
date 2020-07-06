@@ -1,4 +1,5 @@
-import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_SUCCESS, UPDATE_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_BY_ID_SUCCESS } from "../actions/calendar"
+import { CALENDAR_FAILURE, GET_APPOINTMENTS_SUCCESS, ADD_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_SUCCESS,
+  UPDATE_APPOINTMENT_SUCCESS, DELETE_APPOINTMENT_BY_ID_SUCCESS, GET_CLIENTS_SUCCESS } from "../actions/calendar"
 
 const initialState = {
   error: '',
@@ -6,6 +7,7 @@ const initialState = {
     appointments: null,
     groups: null
   },
+  clients: null
 }
 
 function calendarReducer(state = initialState, action) {
@@ -21,6 +23,12 @@ function calendarReducer(state = initialState, action) {
     case CALENDAR_FAILURE:
       return Object.assign({}, state, {
         error: action.error
+      })
+
+
+    case GET_CLIENTS_SUCCESS:
+      return Object.assign({}, state, {
+        clients: action.clients
       })
 
     case DELETE_APPOINTMENT_SUCCESS:
@@ -116,8 +124,6 @@ function calendarReducer(state = initialState, action) {
           }
 
       })
-
-      console.log(updated_appointments)
 
       return Object.assign({}, state, {
         appointments: updated_appointments

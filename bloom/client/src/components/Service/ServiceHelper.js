@@ -110,7 +110,7 @@ export function getService(store_id, service_id) {
 
 export function getServices(store_id, mode) {
   return dispatch => {
-    fetch(fetchDomain + '/stores/' + store_id + "/services/", {
+    return fetch(fetchDomain + '/stores/' + store_id + "/services/", {
       method: "GET",
       headers: {
         'Content-type': 'application/json'
@@ -137,10 +137,10 @@ export function getServices(store_id, mode) {
         if (data) {
 
           if (mode == "search") {
-            dispatch(getSearchServices(data))
+           dispatch(getSearchServices(data))
           }
           else {
-            dispatch(getServiceSuccess(data))
+           dispatch(getServiceSuccess(data))
           }
 
           return data

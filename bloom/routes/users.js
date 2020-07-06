@@ -170,6 +170,20 @@ async function edit(req, res, next) {
     db.client.connect((err, client, done) => {
       // query to update the user
       db.client.query(query, values, (err, result) => {
+
+          //update name in appointments table
+          if (result && result.rows.length) {
+            query = "UPDATE appointments SET first_name=$1, last_name=$2 WHERE email=$3 RETURNING *"
+            values = [req.body.first_name, req.body.last_name, req.body.email]
+
+            db.client.query(query, values, (errApp, resultApp) => {
+              // done()
+              if (errApp) {
+                helper.queryError(res, errLast);
+              }
+            })
+          }
+
           // if the user is a worker, update the dependant worker information
           if(req.body.role == '2'){
             if (err) {
@@ -192,7 +206,7 @@ async function edit(req, res, next) {
                   user["worker_id"] = resultLast.rows[0]["id"]
                   user["store_id"] = resultLast.rows[0]["store_id"]
                   user["services"] = resultLast.rows[0]["services"]
-                  
+
                   delete user.password
                   const expiration = process.env.DB_ENV === 'dev' ? 1 : 7;
                   const date = new Date();

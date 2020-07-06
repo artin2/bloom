@@ -11,7 +11,7 @@ function storeReducer(state = initialState, action) {
   switch (action.type) {
 
     case GET_STORES_SUCCESS:
-    console.log(action.stores)
+    // console.log(action.stores)
       return Object.assign({}, state, {
         stores: action.stores
       })
@@ -22,6 +22,7 @@ function storeReducer(state = initialState, action) {
       })
 
     case UPDATE_CURRENT_STORE:
+      // console.log(action.store)
       return Object.assign({}, state, {
           store: action.store
       })
@@ -32,10 +33,10 @@ function storeReducer(state = initialState, action) {
       })
 
     case STORE_HOURS_SUCCESS:
-      console.log("action is!!!: ", action)
+      // console.log("action is!!!: ", action)
       let store = state.store
       store.storeHours = action.storeHours
-      console.log("store is now: ", store)
+      // console.log("store is now: ", store)
       return Object.assign({}, state, {
         store: store
       })

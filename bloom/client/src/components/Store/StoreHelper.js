@@ -21,7 +21,7 @@ function failureToast(message) {
 export function getStoreHours(store_id) {
   console.log("getting store hours")
   return dispatch => {
-    fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
+    return fetch(fetchDomain + '/stores/' + store_id + "/storeHours", {
       method: "GET",
       headers: {
         'Content-type': 'application/json'
@@ -54,7 +54,7 @@ export function getStoreHours(store_id) {
 
 export function getStore(store_id, mode) {
   return dispatch => {
-    fetch(fetchDomain + '/stores/' + store_id, {
+    return fetch(fetchDomain + '/stores/' + store_id, {
       method: "GET",
       headers: {
         'Content-type': 'application/json'
@@ -99,7 +99,7 @@ export function getStore(store_id, mode) {
 export function getStores(user_id) {
   return dispatch => {
 
-    fetch(fetchDomain + '/stores/users/' + user_id, {
+    return fetch(fetchDomain + '/stores/users/' + user_id, {
       method: "GET",
       headers: {
         'Content-type': 'application/json'
@@ -120,6 +120,14 @@ export function getStores(user_id) {
       .then(async data => {
         if (data) {
 
+          data.map(async store => {
+            store.storeHours = await getStoreHoursInternal(store.id)
+            console.log(store.storeHours)
+            return store
+          })
+
+          console.log(data)
+
           dispatch(getStoresSuccess(data))
           // dispatch(getWorkerSuccess(data.workers))
           // dispatch(getServiceSuccess(data.services))
@@ -133,7 +141,7 @@ export function getStores(user_id) {
 
 export function editStore(store_id, values) {
   return dispatch => {
-    fetch(fetchDomain + '/stores/edit/' + store_id, {
+    return fetch(fetchDomain + '/stores/edit/' + store_id, {
       method: "POST",
       headers: {
         'Content-type': 'application/json'
@@ -164,7 +172,7 @@ export function editStore(store_id, values) {
 
 export function addStore(store_id, values) {
   return dispatch => {
-    fetch(fetchDomain + '/addStore', {
+    return fetch(fetchDomain + '/addStore', {
       method: "POST",
       headers: {
         'Content-type': 'application/json',
@@ -185,7 +193,7 @@ export function addStore(store_id, values) {
       .then(async data => {
         if (data) {
 
-          data.storeHours = await getStoreHours(data.id)
+          data.storeHours = await getStoreHoursInternal(data.id)
           dispatch(addStoreSuccess(data))
           return data
         }

@@ -7,21 +7,29 @@ import store from '../../redux/store';
 import { withStyles, Theme, createStyles } from '@material-ui/core';
 import { fade } from '@material-ui/core/styles/colorManipulator';
 import classNames from 'clsx';
-const state = store.getState();
+import {getArray} from './CalendarPage'
 
 const isWeekEnd = (date) => {
 
-  // console.log("____",state.storeReducer.store)
-  let start_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].open_time
-  return start_time == null;
+  let storeHours = getArray("store").storeHours
+  // console.log(storeHours)
+  // if(state.storeReducer.store.storeHours) {
+    let start_time = storeHours[(date.getDay()+6)%7].open_time
+    return start_time == null;
+  // }
+  // return false
 }
 
 const isRestTime = (date) => {
 
-    let start_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].open_time
-    let end_time = state.storeReducer.store.storeHours[(date.getDay()+6)%7].close_time
+    let storeHours = getArray("store").storeHours
+  // // if(state.storeReducer.store.storeHours) {
+    let start_time = storeHours[(date.getDay()+6)%7].open_time
+    let end_time = storeHours[(date.getDay()+6)%7].close_time
 
     return start_time == null || date.getHours() < start_time/60 || date.getHours() >= end_time/60;
+  // }
+  // return false
 }
 
 const styles = ({ palette }: Theme) => createStyles({

@@ -22,6 +22,7 @@
     "passport-google-oauth": "^2.0.0",
     "passport-google-openidconnect": "0.0.4",
     "pg": "^7.18.1",
+    "react-bootstrap-typeahead": "^5.1.0",
     "react-filepond": "^7.0.1",
     "sib-api-v3-sdk": "^7.2.3"
   },

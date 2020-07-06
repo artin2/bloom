@@ -1011,7 +1011,7 @@ async function editWorker(req, res, next) {
                 console.log("1query is", query, "values are", values)
                 await hourDb.query(query, values);
                 await hourDb.query("COMMIT");
-  
+
                 // remove warnings if applicable
                 query = 'UPDATE appointments SET warnings = array_remove(warnings, 1) WHERE store_id = $1 AND worker_id = $2 AND day_of_the_week = $3 AND (start_time >= $4 AND end_time <= $5) AND date > now()'
                 values = [req.params.store_id, worker_id, i, newHours[i].start_time, newHours[i].end_time]
@@ -1786,6 +1786,56 @@ async function getWorkersSchedulesInternal(store_id) {
   }
 };
 
+async function getClients(req, res, next) {
+
+
+  let failed = false
+  // Time to add to our appointment group one by one
+  let clients = req.body
+  // Below is for scoping issues. Res is undefined below
+  let resp = res
+  let request = req
+
+  console.log(req.body)
+
+  if (clients && clients.length > 0) {
+    let storeId = req.params.store_id
+      ; (async (req, res) => {
+        const hourDb = await db.client.connect();
+        let formattedClients = {}
+        try {
+          await hourDb.query("BEGIN");
+          let query = 'SELECT first_name, last_name, email FROM users WHERE id=$1'
+          for (let i = 0; i < clients.length; i++) {
+            let values = [clients[i]]
+            console.log("HERE: ", clients[i])
+            let currentClient = (await hourDb.query(query, values)).rows[0];
+            console.log(currentClient.email)
+            formattedClients[currentClient.email] = {first_name: currentClient.first_name, last_name: currentClient.last_name}
+          }
+          await hourDb.query("COMMIT");
+        } catch (e) {
+          console.log("error occured: ", e)
+          await hourDb.query("ROLLBACK");
+          failed = true
+          throw e;
+        } finally {
+          if (!failed) {
+
+            console.log("ROWS", formattedClients)
+            helper.querySuccess(resp, formattedClients, 'Successfully got clients!');
+
+          } else {
+            helper.queryError(res, "Unable to get clients!");
+          }
+          hourDb.release();
+        }
+      })().catch(e => helper.queryError(resp, e));
+  } else {
+      helper.querySuccess(resp, {}, 'No clients for this store!');;
+    }
+};
+
 module.exports = {
   getStore: getStore,
   editStore: editStore,
@@ -1807,5 +1857,6 @@ module.exports = {
   getIndividualWorkerHours: getIndividualWorkerHours,
   getStoreInfo: getStoreInfo,
   getWorkerInfo: getWorkerInfo,
-  getCategories: getCategories
+  getCategories: getCategories,
+  getClients: getClients
 };

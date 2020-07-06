@@ -9,8 +9,18 @@ import reservationReducer from './reservation'
 import appointmentReducer from './appointment'
 import calendarReducer from './calendar'
 import reviewReducer from './review'
+import { USER_LOGOUT } from "../actions/user";
 
-let rootReducer = combineReducers({
+
+const rootReducer = (state, action) => {
+   // Clear all data in redux store to initial.
+   if(action.type === USER_LOGOUT)
+      state = undefined;
+
+   return appReducer(state, action);
+};
+
+let appReducer = combineReducers({
   userReducer,
   alertReducer,
   storeReducer,

@@ -267,6 +267,7 @@ class EditProfileForm extends React.Component {
                       }
                     }
                   }
+                  values.email = this.props.user.email
                   this.props.editProfile(values)
                   this.props.updateProfileContent(needsUpdate, values.first_name, values.last_name)
                   actions.setSubmitting(false);
@@ -445,7 +446,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  editProfile: (email, password, auth_token) => editUser(email, password, auth_token)
+  editProfile: (values) => editUser(values)
 }, dispatch)
 
 

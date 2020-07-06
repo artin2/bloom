@@ -1,4 +1,5 @@
-import {calendarFailure, getAppointmentsSuccess, addAppointmentSuccess, deleteAppointmentSuccess, updateAppointmentSuccess, deleteAppointmentByIdSuccess} from '../../redux/actions/calendar';
+import { calendarFailure, getAppointmentsSuccess, addAppointmentSuccess, deleteAppointmentSuccess,
+  updateAppointmentSuccess, deleteAppointmentByIdSuccess, getClientsSuccess } from '../../redux/actions/calendar';
 import { toast } from 'react-toastify'
 const fetchDomain = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_FETCH_DOMAIN_PROD : process.env.REACT_APP_FETCH_DOMAIN_DEV;
 
@@ -160,6 +161,39 @@ export function updateAppointment(store_id, values) {
       if (data) {
 
         dispatch(updateAppointmentSuccess(data))
+        return data
+      }
+    })
+  }
+}
+
+export function getClients(store_id, clients) {
+
+  console.log(store_id, clients)
+  clients = clients ? clients : []
+  return dispatch => {
+    return fetch(fetchDomain + '/stores/' + store_id + '/clients', {
+      method: "POST",
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(clients)
+    })
+    .then(function (response) {
+      if (response.status !== 200) {
+        // throw an error alert
+        dispatch(calendarFailure(response))
+      }
+      else {
+        return response.json();
+      }
+    })
+    .then(async data => {
+      if (data) {
+
+        dispatch(getClientsSuccess(data))
         return data
       }
     })

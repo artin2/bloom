@@ -8,7 +8,7 @@ import Paper from '@material-ui/core/Paper';
 import store from '../../redux/store';
 import moment from 'moment';
 import { TimeTableCell, TimeTableCellDay, TimeTableCellWeek, DayScaleCell, DayScaleCellDay, DayScaleCellWeek, Appointment, AppointmentTooltipContent } from './CalendarSubComponents'
-import { BasicLayout } from './CalendarFormComponent'
+import { BasicLayout, CommandComponent, ConfirmationComponent, CommandButtonComponent } from './CalendarFormComponent'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Multiselect } from 'multiselect-react-dropdown';
@@ -152,7 +152,7 @@ const state = store.getState();
     }
 
     render() {
-      
+
       return (
 
           <Paper className="react-calendar">
@@ -196,7 +196,8 @@ const state = store.getState();
            <DateNavigator
            />
            <TodayButton />
-           <ConfirmationDialog />
+           <ConfirmationDialog
+           layoutComponent={ConfirmationComponent}/>
            <Appointments
            appointmentComponent={Appointment}/>
 
@@ -209,6 +210,8 @@ const state = store.getState();
              <AppointmentForm
              isRecurrence={false}
              basicLayoutComponent={BasicLayout}
+             commandLayoutComponent={(commandButtonComponent) => CommandComponent(commandButtonComponent, this.props.appointments)}
+
            />)}
 
 

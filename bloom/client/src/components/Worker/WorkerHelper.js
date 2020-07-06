@@ -23,7 +23,7 @@ export function getWorkers(store_id) {
   return dispatch => {
     dispatch(workerFetching(true))
 
-    fetch(fetchDomain + '/stores/' + store_id + '/workers', {
+    return fetch(fetchDomain + '/stores/' + store_id + '/workers', {
       method: "GET",
       headers: {
         'Content-type': 'application/json'
