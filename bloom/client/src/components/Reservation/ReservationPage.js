@@ -167,6 +167,9 @@ class ReservationPage extends React.Component {
     //   const response2 = allResponses[1]
     //
     // console.log(this.props.store)
+    window.onbeforeunload = function() {
+      return "Data will be lost if you refresh the page. Are you sure?";
+    };
     this.props.getWorkers(this.props.match.params.store_id)
     this.props.getStore(this.props.match.params.store_id, "search")
     this.props.getServices(this.props.match.params.store_id, "search")

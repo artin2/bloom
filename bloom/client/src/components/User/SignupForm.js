@@ -310,7 +310,7 @@ class SignupForm extends React.Component {
                 icon={<TiSocialFacebookCircular size={45} style={{paddingRight:"15px"}}/>}
                 callback={this.successFacebook}
                 />
-                <p className="my-1"> Already have a Bloom account? <Button variant="link" className="p-0" onClick={() => this.props.toggleLogin(true)}> Log in. </Button></p>
+                <p className="my-1"> Already have a Bloom account? <Button variant="link" className="p-0" onClick={() => this.props.toggleLogin(0)}> Log in. </Button></p>
                 </Col>
 
                 </Row>

@@ -1,4 +1,4 @@
-import { USER_LOGIN_SUCCESS, USER_LOGIN_FAILURE, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAILURE, USER_LOGOUT, EDIT_USER_SUCCESS, UPDATE_ROLE } from "../actions/user"
+import { USER_LOGIN_SUCCESS, USER_LOGIN_FAILURE, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAILURE, USER_LOGOUT, EDIT_USER_SUCCESS, EDIT_USER_FAILURE, DELETE_USER_SUCCESS, DELETE_USER_FAILURE, UPDATE_ROLE, SEND_RESET_PASSWORD_SUCCESS, SEND_RESET_PASSWORD_FAILURE, UPDATE_PASSWORD_SUCCESS, UPDATE_PASSWORD_FAILURE } from "../actions/user"
 
 const initialState = {
   user: null,
@@ -30,6 +30,41 @@ function userReducer(state = initialState, action) {
     case EDIT_USER_SUCCESS:
       return Object.assign({}, state, {
         user: action.user
+      })
+
+    case EDIT_USER_FAILURE:
+      return Object.assign({}, state, {
+        error: action.error
+      })
+
+    case DELETE_USER_SUCCESS:
+      return Object.assign({}, state, {
+        user: null
+      })
+
+    case DELETE_USER_FAILURE:
+      return Object.assign({}, state, {
+        error: action.error
+      })
+
+    // case SEND_RESET_PASSWORD_SUCCESS:
+    //   return Object.assign({}, state, {
+    //     user: null
+    //   })
+
+    case SEND_RESET_PASSWORD_FAILURE:
+      return Object.assign({}, state, {
+        error: action.error
+      })
+
+    case UPDATE_PASSWORD_SUCCESS:
+      return Object.assign({}, state, {
+        user: action.user
+      })
+
+    case UPDATE_PASSWORD_FAILURE:
+      return Object.assign({}, state, {
+        error: action.error
       })
 
     case USER_LOGOUT:

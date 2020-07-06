@@ -6,6 +6,7 @@ import Col from 'react-bootstrap/Col'
 import paint from '../../assets/abstract-painting.jpg'
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
+import ResetPasswordForm from './ResetPasswordForm'
 import { Image } from 'react-bootstrap'
 
 class Registration extends React.Component {
@@ -15,7 +16,7 @@ class Registration extends React.Component {
       email: '',
       password: '',
       message: {},
-      displayLogin: props.location.pathname === "/login"
+      displayLogin: props.location.pathname === "/login" ? 0 : 1
     };
 
     this.toggleLogin = this.toggleLogin.bind(this);
@@ -46,11 +47,14 @@ class Registration extends React.Component {
   }
 
   render() {
-    const RenderLoginOrSignup = (props) => {
-      if(this.state.displayLogin) {
+    const RenderLoginOrSignupOrResetPassword = (props) => {
+      if(this.state.displayLogin == 0) {
         return <LoginForm title="Login" history={this.props.history} toggleLogin={this.toggleLogin}/>
-      } else {
+      } else if(this.state.displayLogin == 1) {
         return <SignupForm history={this.props.history} toggleLogin={this.toggleLogin}/>
+      }
+      else{
+        return <ResetPasswordForm history={this.props.history} toggleLogin={this.toggleLogin}/>
       }
     }
     return (
@@ -58,7 +62,7 @@ class Registration extends React.Component {
         <Image src={paint} fluid alt="paint" style={{top: 0, left: 0, position: 'absolute', height: '100vh', width:'100%', filter: 'grayscale(0.4)'}}/>
         <Row className="justify-content-center mt-5">
           <Col xs={12} sm={10} md={8} lg={7}>
-            <RenderLoginOrSignup/>
+            <RenderLoginOrSignupOrResetPassword/>
           </Col>
         </Row>
       </Container>

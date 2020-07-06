@@ -132,12 +132,12 @@ class AppointmentDisplay extends React.Component {
 
       let row = <Row className="justify-content-md-center">
                   <Col lg={5}>
-                    <h1 className="name mt-3" > Upcoming Appointments </h1>
+                    <h1 className="name mt-3" > Upcoming </h1>
                     {cards.futureAppointmentCards}
                   </Col>
 
                   <Col lg={5}>
-                    <h1 className="name mt-3" > Past Appointments </h1>
+                    <h1 className="name mt-3" > Past </h1>
                     {cards.pastAppointmentCards}
                   </Col>
                 </Row>

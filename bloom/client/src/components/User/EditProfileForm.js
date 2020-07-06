@@ -10,9 +10,11 @@ import { FaLockOpen, FaLock, FaUser, FaPhone } from 'react-icons/fa';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { bindActionCreators } from 'redux';
-import {editUser} from './UserHelper'
+import {editUser, deleteUser} from './UserHelper'
 import { getPictures, deleteHandler, uploadHandler } from '../s3'
 import { connect } from 'react-redux';
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import { css } from '@emotion/core'
 import GridLoader from 'react-spinners/GridLoader'
 import { FilePond, registerPlugin } from 'react-filepond';
@@ -55,6 +57,8 @@ class EditProfileForm extends React.Component {
         phone: '',
         password: '',
         password_confirmation: '',
+        new_password: '',
+        new_password_confirmation: '',
         id: ''
       },
       files: [],
@@ -88,35 +92,10 @@ class EditProfileForm extends React.Component {
       deleted: 0,
       selectedFiles: [],
       keys: [],
-      isLoading: true
+      isLoading: true,
+      yupValidationSchema: ''
     }
-    // RegEx for phone number validation
-    this.phoneRegExp = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/
-    // this.emailRegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/
-    // Schema for yup
-    this.yupValidationSchema = Yup.object().shape({
-      first_name: Yup.string()
-      .min(2, "First name must have at least 2 characters")
-      .max(100, "First name can't be longer than 100 characters")
-      .required("First name is required"),
-      last_name: Yup.string()
-      .min(2, "Last name must have at least 2 characters")
-      .max(100, "Last name can't be longer than 100 characters")
-      .required("Last name is required"),
-      // email: Yup.string()
-      // .email("Must be a valid email address")
-      // .max(100, "Email must be less than 100 characters")
-      // .required("Email is required"),
-      phone: Yup.string()
-      .matches(this.phoneRegExp, "Phone number is not valid"),
-      password: Yup.string()
-      .min(6, "Password must have at least 6 characters")
-      .max(100, "Password can't be longer than 100 characters")
-      .required("Password is required"),
-      password_confirmation: Yup.string()
-      .oneOf([Yup.ref('password')], 'Passwords do not match')
-      .required("Password confirmation is required"),
-    });
+
     this.handleEdit = this.handleEdit.bind(this);
   }
 
@@ -143,7 +122,79 @@ class EditProfileForm extends React.Component {
     })
   }
 
+  deleteAccount = () => {
+    confirmAlert({
+      title: 'Are you sure you want to delete your account?',
+      message: 'We will not be able to recover you account and you will lose all information related to your account.',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: () => this.props.deleteUser(this.props.user.id)
+        },
+        {
+          label: 'No'
+        }
+      ]
+    });
+  }
+
   async componentDidMount(){
+    let allowPasswords = false
+    let yupValidationSchema
+    if(this.props.provider === null || this.props.provider === undefined){
+      allowPasswords = true
+      yupValidationSchema = Yup.object().shape({
+        first_name: Yup.string()
+        .min(2, "First name must have at least 2 characters")
+        .max(100, "First name can't be longer than 100 characters")
+        .required("First name is required"),
+        last_name: Yup.string()
+        .min(2, "Last name must have at least 2 characters")
+        .max(100, "Last name can't be longer than 100 characters")
+        .required("Last name is required"),
+        // email: Yup.string()
+        // .email("Must be a valid email address")
+        // .max(100, "Email must be less than 100 characters")
+        // .required("Email is required"),
+        phone: Yup.string()
+        .matches(/^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/, "Phone number is not valid"),
+        password: Yup.string()
+        .min(6, "Password must have at least 6 characters")
+        .max(100, "Password can't be longer than 100 characters")
+        .required("Password is required"),
+        password_confirmation: Yup.string()
+        .oneOf([Yup.ref('password')], 'Passwords do not match')
+        .required("Password confirmation is required"),
+        new_password: Yup.string()
+        .min(6, "New password must have at least 6 characters")
+        .max(100, "New password can't be longer than 100 characters"),
+        new_password_confirmation: Yup.string().when('new_password', {
+          is: (new_password) => new_password !== undefined ? new_password.length > 0 : false,
+          then: Yup.string()
+          .required("New password confrimation is required.")
+          .oneOf([Yup.ref('new_password')], 'New passwords do not match'),
+        })
+      });
+    }
+    else{
+      yupValidationSchema = Yup.object().shape({
+        first_name: Yup.string()
+        .min(2, "First name must have at least 2 characters")
+        .max(100, "First name can't be longer than 100 characters")
+        .required("First name is required"),
+        last_name: Yup.string()
+        .min(2, "Last name must have at least 2 characters")
+        .max(100, "Last name can't be longer than 100 characters")
+        .required("Last name is required"),
+        // email: Yup.string()
+        // .email("Must be a valid email address")
+        // .max(100, "Email must be less than 100 characters")
+        // .required("Email is required"),
+        phone: Yup.string()
+        .matches(/^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/, "Phone number is not valid"),
+      });
+    }
+
     if(this.props.picture){
       this.setState({
         files: [{
@@ -159,7 +210,9 @@ class EditProfileForm extends React.Component {
           }
         }],
         key: this.props.picture.key,
-        isLoading: false
+        isLoading: false,
+        allowPasswords: allowPasswords,
+        yupValidationSchema: yupValidationSchema
       })
     }
     else{
@@ -183,12 +236,16 @@ class EditProfileForm extends React.Component {
               }
             }],
             key: this.props.picture.key,
-            isLoading: false
+            isLoading: false,
+            allowPasswords: allowPasswords,
+            yupValidationSchema: yupValidationSchema
           })
         }
         else{
           await this.setState({
-            isLoading: false
+            isLoading: false,
+            allowPasswords: allowPasswords,
+            yupValidationSchema: yupValidationSchema
           })
         }
       } catch (e) {
@@ -228,9 +285,11 @@ class EditProfileForm extends React.Component {
                   phone: this.props.user.phone,
                   password: '',
                   password_confirmation: '',
+                  new_password: '',
+                  new_password_confirmation: '',
                   id: 0,
                 }}
-                validationSchema={this.yupValidationSchema}
+                validationSchema={this.state.yupValidationSchema}
                 onSubmit={async (values, actions) => {
                   values.id = this.props.user.id
                   values.role = this.props.user.role
@@ -388,48 +447,97 @@ class EditProfileForm extends React.Component {
                     ): null}
                   </Form.Group>
 
-                  <Form.Group controlId="formPassword">
-                    <InputGroup>
-                      <InputGroup.Prepend>
-                          <InputGroup.Text>
-                              <FaLockOpen/>
-                          </InputGroup.Text>
-                      </InputGroup.Prepend>
-                      <Form.Control
-                        type="password"
-                        value={values.password}
-                        placeholder="Password"
-                        name="password"
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={touched.password && errors.password ? "error" : null}/>
-                    </InputGroup>
-                    {touched.password && errors.password ? (
-                      <div className="error-message">{errors.password}</div>
-                    ): null}
-                  </Form.Group>
+                  {this.state.allowPasswords &&
+                    <div>
+                      <Form.Group controlId="newPassword">
+                        <InputGroup>
+                          <InputGroup.Prepend>
+                              <InputGroup.Text>
+                                  <FaLockOpen/>
+                              </InputGroup.Text>
+                          </InputGroup.Prepend>
+                          <Form.Control
+                            type="password"
+                            value={values.new_password}
+                            placeholder="New Password (optional)"
+                            name="new_password"
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className={touched.new_password && errors.new_password ? "error" : null}/>
+                        </InputGroup>
+                        {touched.new_password && errors.new_password ? (
+                          <div className="error-message">{errors.new_password}</div>
+                        ): null}
+                      </Form.Group>
 
-                  <Form.Group controlId="formPasswordConfirmation">
-                    <InputGroup>
-                      <InputGroup.Prepend>
-                          <InputGroup.Text>
-                              <FaLock/>
-                          </InputGroup.Text>
-                      </InputGroup.Prepend>
-                      <Form.Control
-                        type="password"
-                        value={values.password_confirmation}
-                        placeholder="Confirm Password"
-                        name="password_confirmation"
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={touched.password_confirmation && errors.password_confirmation ? "error" : null}/>
-                    </InputGroup>
-                    {touched.password_confirmation && errors.password_confirmation ? (
-                      <div className="error-message">{errors.password_confirmation}</div>
-                    ): null}
-                  </Form.Group>
+                      <Form.Group controlId="formNewPasswordConfirmation">
+                        <InputGroup>
+                          <InputGroup.Prepend>
+                              <InputGroup.Text>
+                                  <FaLock/>
+                              </InputGroup.Text>
+                          </InputGroup.Prepend>
+                          <Form.Control
+                            type="password"
+                            value={values.new_password_confirmation}
+                            placeholder="Confirm New Password (optional)"
+                            name="new_password_confirmation"
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className={touched.new_password_confirmation && errors.new_password_confirmation ? "error" : null}/>
+                        </InputGroup>
+                        {touched.new_password_confirmation && errors.new_password_confirmation ? (
+                          <div className="error-message">{errors.new_password_confirmation}</div>
+                        ): null}
+                      </Form.Group>
+
+                      <hr className="mt-4"/>
+
+                      <Form.Group controlId="formPassword">
+                        <InputGroup>
+                          <InputGroup.Prepend>
+                              <InputGroup.Text>
+                                  <FaLockOpen/>
+                              </InputGroup.Text>
+                          </InputGroup.Prepend>
+                          <Form.Control
+                            type="password"
+                            value={values.password}
+                            placeholder="Password"
+                            name="password"
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className={touched.password && errors.password ? "error" : null}/>
+                        </InputGroup>
+                        {touched.password && errors.password ? (
+                          <div className="error-message">{errors.password}</div>
+                        ): null}
+                      </Form.Group>
+
+                      <Form.Group controlId="formPasswordConfirmation">
+                        <InputGroup>
+                          <InputGroup.Prepend>
+                              <InputGroup.Text>
+                                  <FaLock/>
+                              </InputGroup.Text>
+                          </InputGroup.Prepend>
+                          <Form.Control
+                            type="password"
+                            value={values.password_confirmation}
+                            placeholder="Confirm Password"
+                            name="password_confirmation"
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className={touched.password_confirmation && errors.password_confirmation ? "error" : null}/>
+                        </InputGroup>
+                        {touched.password_confirmation && errors.password_confirmation ? (
+                          <div className="error-message">{errors.password_confirmation}</div>
+                        ): null}
+                      </Form.Group>
+                    </div>
+                  }
                   <Button className="update-button" disabled={isSubmitting || (Object.keys(errors).length === 0 && errors.constructor === Object && (Object.keys(touched).length === 0 && touched.constructor === Object)) || !(Object.keys(errors).length === 0 && errors.constructor === Object)} onClick={handleSubmit}>Submit</Button>
+                  <p className="my-1 mt-3" style={{color: "red"}}> Delete My Account <Button variant="link"className="p-0" onClick={() => this.deleteAccount()}> Delete </Button></p>
                 </Form>
               )}
               </Formik>
@@ -446,7 +554,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  editProfile: (values) => editUser(values)
+  editProfile: (email, password, auth_token) => editUser(email, password, auth_token),
+  deleteUser: (user_id) => deleteUser(user_id)
 }, dispatch)
 
 

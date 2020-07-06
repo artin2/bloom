@@ -33,6 +33,7 @@ import AppointmentDisplay from './components/Appointments/AppointmentDisplay';
 import { handleLogout } from '../src/components/helperFunctions';
 import UserAppointments from './components/Appointments/UserAppointments';
 import NotFoundPage from './components/StaticPages/NotFoundPage';
+import ResetPasswordPage from './components/User/ResetPasswordPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -64,6 +65,7 @@ function App() {
             <Route path="/users/:user_id/stores" component={redirectWithoutAuth(UserStoresDashboard)}/>
             <Route path="/users/:user_id/appointments" component={redirectWithoutAuth(UserAppointments)}/>
             <Route path="/users/:user_id" component={redirectWithoutAuth(Profile)}/>
+            <Route path="/resetPassword/:email/:token" component={ResetPasswordPage}/>
 
             <Route exact path="/storeCalendar/:store_id" component={redirectWithoutAuth(Calendar)} />
             <Route path="/book/:store_id" component={ReservationPage} />
